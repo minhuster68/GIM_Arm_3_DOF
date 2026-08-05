@@ -161,24 +161,6 @@
     <limit lower="-1.57" upper="0" effort="5.0" velocity="12.5" />
   </joint>
 
-  <ros2_control name="GimArmSystem" type="system">
-  <hardware>
-    <plugin>gim_arm_hardware/GimArmSystemHardware</plugin>
-  </hardware>
-  <joint name="base_joint">
-    <command_interface name="position"/>
-    <state_interface name="position"/>
-  </joint>
-  <joint name="shoulder_joint">
-    <command_interface name="position"/>
-    <state_interface name="position"/>
-  </joint>
-  <joint name="elbow_joint">
-    <command_interface name="position"/>
-    <state_interface name="position"/>
-  </joint>
-</ros2_control>
-
 <!-- param cho node_id + CAN interface + state verlocity -->
 <ros2_control name="GimArmSystem" type="system">
   <hardware>

@@ -71,29 +71,43 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_configure(
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
+void GimArmSystemHardware::send_position_command(size_t i, double position_rad)
+{
+  // Set_Input_Pos dùng đơn vị REV, không phải RAD (manual 4.1.2) -- nhân
+  // kGearRatio, đã xác nhận đúng bằng test thật (lệnh -3.14 rad -> quay đúng
+  // 180 độ trên khớp elbow), không còn là giả định nữa.
+  const double pos_rev = (position_rad / (2.0 * M_PI)) * kGearRatio;
+  const float pos_rev_f = static_cast<float>(pos_rev);
+  const int16_t vel_ff = 0;     // chưa dùng feedforward ở bước bench-test này
+  const int16_t torque_ff = 0;
+
+  uint8_t data[8];
+  std::memcpy(&data[0], &pos_rev_f, 4);
+  std::memcpy(&data[4], &vel_ff, 2);
+  std::memcpy(&data[6], &torque_ff, 2);
+
+  can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetInputPos), data, 8);
+}
+
 hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("GimArmSystemHardware"), "Activating...");
 
+  // 1) Đặt controller mode trước -- việc này KHÔNG gây chuyển động vì motor
+  //    vẫn đang IDLE (chưa closed-loop).
   for (size_t i = 0; i < info_.joints.size(); ++i) {
-    const uint8_t node_id = can_node_ids_[i];
     uint8_t data[8];
-
-    // Set_Controller_Mode: control_mode=3 (position), input_mode=3 (filtered
-    // position) -- manual 3.1.6. CHƯA dùng Mit_Control ở bước bench-test này,
-    // để riêng cho thẻ "Chuyển đổi Mode điều khiển" sau.
+    // control_mode=3 (position), input_mode=3 (filtered position) -- manual
+    // 3.1.6. CHƯA dùng Mit_Control ở bước bench-test này.
     gim6010::pack_u32_le(data, /*control_mode=*/3, /*input_mode=*/3);
-    can_bus_.send(gim6010::make_can_id(node_id, gim6010::CmdId::SetControllerMode), data, 8);
-
-    // Set_Axis_State: requested_state=8 (AXIS_STATE_CLOSED_LOOP_CONTROL)
-    gim6010::pack_u32_le(data, /*requested_state=*/8);
-    can_bus_.send(gim6010::make_can_id(node_id, gim6010::CmdId::SetAxisState), data, 8);
+    can_bus_.send(
+      gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetControllerMode), data, 8);
   }
 
-  // Đọc vị trí hiện tại trước khi gửi lệnh đầu tiên -- tránh snap giật nếu tay
-  // không đang ở gần 0. Get_Encoder_Estimates broadcast định kỳ 10ms mặc định
-  // (manual 4.1.5) nên đợi tối đa 300ms là đủ dư trong điều kiện bình thường.
+  // 2) Đọc vị trí hiện tại TRONG LÚC MOTOR CÒN IDLE (mềm, an toàn) --
+  //    Get_Encoder_Estimates broadcast định kỳ 10ms mặc định (manual 4.1.5)
+  //    nên đợi tối đa 300ms là đủ dư trong điều kiện bình thường.
   const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(300);
   std::vector<bool> got_position(info_.joints.size(), false);
 
@@ -116,10 +130,6 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
         }
         float pos_rev;
         std::memcpy(&pos_rev, &frame.data[0], 4);
-        // TODO xác nhận bằng test thật: Get_Encoder_Estimates là REV ở phía
-        // rotor hay trục ra? Đang giả định ROTOR-side (giống USB/odrivetool)
-        // nên chia cho kGearRatio. Nếu tay quay sai 8 lần (quá nhiều/quá ít),
-        // bỏ phép chia này -- xem ghi chú trong read().
         const double pos_rad = (pos_rev / kGearRatio) * 2.0 * M_PI;
         hw_commands_[i] = pos_rad;
         hw_states_position_[i] = pos_rad;
@@ -142,6 +152,23 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
         info_.joints[i].name.c_str(), can_node_ids_[i]);
       hw_commands_[i] = 0.0;
     }
+  }
+
+  // 3) Gửi Set_Input_Pos khớp ĐÚNG với vị trí vừa đọc (hoặc 0.0 fallback) --
+  //    TRƯỚC KHI vào closed-loop. Đây chính là chỗ sửa lỗi "snap": nếu vào
+  //    closed-loop trước rồi mới gửi vị trí đúng, driver sẽ bám theo setpoint
+  //    cũ/mặc định của nó trong lúc chờ, gây giật.
+  for (size_t i = 0; i < info_.joints.size(); ++i) {
+    send_position_command(i, hw_commands_[i]);
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));  // dư thời gian driver xử lý
+
+  // 4) Giờ mới vào closed-loop -- input_pos nội bộ của driver đã khớp đúng
+  //    vị trí thật, không còn setpoint lệch để mà giật về.
+  for (size_t i = 0; i < info_.joints.size(); ++i) {
+    uint8_t data[8];
+    gim6010::pack_u32_le(data, /*requested_state=*/8);  // AXIS_STATE_CLOSED_LOOP_CONTROL
+    can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetAxisState), data, 8);
   }
 
   RCLCPP_INFO(rclcpp::get_logger("GimArmSystemHardware"), "Successfully activated!");
@@ -227,20 +254,7 @@ hardware_interface::return_type GimArmSystemHardware::write(
     if (std::isnan(hw_commands_[i])) {
       continue;  // chưa có lệnh hợp lệ, đừng gửi rác xuống CAN
     }
-
-    // Set_Input_Pos dùng đơn vị REV, không phải RAD (manual 4.1.2) -- nhân lại
-    // kGearRatio cho khớp chiều với giả định ở read()/on_activate().
-    const double pos_rev = (hw_commands_[i] / (2.0 * M_PI)) * kGearRatio;
-    const float pos_rev_f = static_cast<float>(pos_rev);
-    const int16_t vel_ff = 0;     // chưa dùng feedforward ở bước bench-test này
-    const int16_t torque_ff = 0;
-
-    uint8_t data[8];
-    std::memcpy(&data[0], &pos_rev_f, 4);
-    std::memcpy(&data[4], &vel_ff, 2);
-    std::memcpy(&data[6], &torque_ff, 2);
-
-    can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetInputPos), data, 8);
+    send_position_command(i, hw_commands_[i]);
   }
 
   return hardware_interface::return_type::OK;

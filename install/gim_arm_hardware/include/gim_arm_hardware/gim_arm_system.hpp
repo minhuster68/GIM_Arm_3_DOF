@@ -55,6 +55,10 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
+  // Gửi 1 lệnh Set_Input_Pos cho khớp `i` với vị trí `position_rad` (đơn vị RAD,
+  // phía trục ra) -- dùng chung bởi write() và on_activate().
+  void send_position_command(size_t i, double position_rad);
+
   // Các mảng lưu trữ giá trị cho 3 khớp (base, shoulder, elbow) -- đơn vị RAD, phía trục ra
   std::vector<double> hw_commands_;
   std::vector<double> hw_states_position_;
