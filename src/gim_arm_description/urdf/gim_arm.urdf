@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<robot name="gim_arm">
+
+  <!-- Dummy root link to satisfy KDL (added) -->
+  <link name="base_footprint"/>
+
+  <!-- Tạo mặt đất ảo -->
+  <link name="world"/>
+
+  <!-- Bắt vít gốc của cánh tay xuống mặt đất ảo -->
+  <joint name="world_fixed" type="fixed">
+    <parent link="world"/>
+    <child link="base_footprint"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Fixed joint from dummy root to base_link (added) -->
+  <joint name="base_footprint_to_base_link" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0.12514 -0.24189 -0.38484" rpy="0 0 0" />
+      <mass value="6.6731" />
+      <inertia
+        ixx="0.31539"
+        ixy="1.4901E-05"
+        ixz="0.022379"
+        iyy="0.29283"
+        iyz="-2.4376E-05"
+        izz="0.15732" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://gim_arm_description/meshes/base_link.STL" />
+      </geometry>
+      <material name="base_link_color">
+        <color rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://gim_arm_description/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="shoulder_link">
+    <inertial>
+      <origin xyz="-1.3878E-17 0.060369 -0.036849" rpy="0 0 0" />
+      <mass value="0.06547" />
+      <inertia
+        ixx="0.00018777"
+        ixy="-6.6182E-20"
+        ixz="6.7763E-20"
+        iyy="0.00010552"
+        iyz="7.374E-05"
+        izz="0.0001159" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://gim_arm_description/meshes/shoulder_link.STL" />
+      </geometry>
+      <material name="shoulder_link_color">
+        <color rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://gim_arm_description/meshes/shoulder_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="base_joint" type="revolute">
+    <origin xyz="0.12249 0 0.13463" rpy="0 -0.17453 0" />
+    <parent link="base_link" />
+    <child link="shoulder_link" />
+    <axis xyz="0 0 -1" />
+    <limit lower="0" upper="1.57" effort="5.0" velocity="12.5" />
+  </joint>
+
+  <link name="upper_arm_link">
+    <inertial>
+      <origin xyz="0.081498 -0.010308 0.016005" rpy="0 0 0" />
+      <mass value="2.524" />
+      <inertia
+        ixx="0.002612"
+        ixy="0.0010092"
+        ixz="0.00048166"
+        iyy="0.0061609"
+        iyz="-4.4532E-05"
+        izz="0.0079327" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://gim_arm_description/meshes/upper_arm_link.STL" />
+      </geometry>
+      <material name="upper_arm_link_color">
+        <color rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://gim_arm_description/meshes/upper_arm_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="shoulder_joint" type="revolute">
+    <origin xyz="0 0.098298 -0.082481" rpy="0 1.3963 1.5708" />
+    <parent link="shoulder_link" />
+    <child link="upper_arm_link" />
+    <axis xyz="0 0 -1" />
+    <limit lower="-0.2" upper="1.57" effort="5.0" velocity="12.5" />
+  </joint>
+
+  <link name="lower_arm_link">
+    <inertial>
+      <origin xyz="0.21746 0.011437 -0.056567" rpy="0 0 0" />
+      <mass value="0.586" />
+      <inertia
+        ixx="0.00058917"
+        ixy="2.2812E-05"
+        ixz="0.00025401"
+        iyy="0.0015587"
+        iyz="1.8284E-05"
+        izz="0.0017331" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://gim_arm_description/meshes/lower_arm_link.STL" />
+      </geometry>
+      <material name="lower_arm_link_color">
+        <color rgba="0.75294 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://gim_arm_description/meshes/lower_arm_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="elbow_joint" type="revolute">
+    <origin xyz="0.21367 -0.052381 -0.02" rpy="0 0 -0.59584" />
+    <parent link="upper_arm_link" />
+    <child link="lower_arm_link" />
+    <axis xyz="0 0 1" />
+    <limit lower="-1.57" upper="0" effort="5.0" velocity="12.5" />
+  </joint>
+
+  <ros2_control name="GimArmSystem" type="system">
+  <hardware>
+    <plugin>gim_arm_hardware/GimArmSystemHardware</plugin>
+  </hardware>
+  <joint name="base_joint">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+  </joint>
+  <joint name="shoulder_joint">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+  </joint>
+  <joint name="elbow_joint">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+  </joint>
+</ros2_control>
+
+<!-- param cho node_id + CAN interface + state verlocity -->
+<ros2_control name="GimArmSystem" type="system">
+  <hardware>
+    <plugin>gim_arm_hardware/GimArmSystemHardware</plugin>
+    <param name="can_interface">can0</param>
+  </hardware>
+  <joint name="base_joint">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+    <param name="can_node_id">0</param>
+  </joint>
+  <joint name="shoulder_joint">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+    <param name="can_node_id">1</param>
+  </joint>
+  <joint name="elbow_joint">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+    <param name="can_node_id">2</param>
+  </joint>
+</ros2_control>
+
+</robot>

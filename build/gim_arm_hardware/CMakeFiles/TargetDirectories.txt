@@ -1,0 +1,10 @@
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/uninstall.dir
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/gim_arm_hardware_uninstall.dir
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/gim_arm_system_hardware.dir
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/test.dir
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/edit_cache.dir
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/rebuild_cache.dir
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/list_install_components.dir
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/install.dir
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/install/local.dir
+/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/install/strip.dir

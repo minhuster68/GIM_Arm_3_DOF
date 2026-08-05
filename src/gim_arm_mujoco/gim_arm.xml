@@ -1,0 +1,29 @@
+<mujoco model="gim_arm">
+  <compiler angle="radian"/>
+
+  <asset>
+    <mesh name="base_link" content_type="model/stl" file="meshes/base_link.STL"/>
+    <mesh name="shoulder_link" content_type="model/stl" file="meshes/shoulder_link.STL"/>
+    <mesh name="upper_arm_link" content_type="model/stl" file="meshes/upper_arm_link.STL"/>
+    <mesh name="lower_arm_link" content_type="model/stl" file="meshes/lower_arm_link.STL"/>
+  </asset>
+
+  <worldbody>
+    <geom type="mesh" rgba="0.75294 0.75294 0.75294 1" mesh="base_link"/>
+    <body name="shoulder_link" pos="0.12249 0 0.13463" quat="0.996195 0 -0.0871543 0">
+      <inertial pos="0 0.060369 -0.036849" quat="0.917015 0.398853 0 0" mass="0.06547" diaginertia="0.00018777 0.000184632 3.67876e-05"/>
+      <joint name="base_joint" pos="0 0 0" axis="0 0 -1" range="0 1.57"/>
+      <geom type="mesh" rgba="0.79216 0.81961 0.93333 1" mesh="shoulder_link"/>
+      <body name="upper_arm_link" pos="0 0.098298 -0.082481" quat="0.541666 -0.45453 0.454529 0.541668">
+        <inertial pos="0.081498 -0.010308 0.016005" quat="0.103862 0.732483 -0.0755592 0.66856" mass="2.524" diaginertia="0.00797725 0.00642371 0.00230464"/>
+        <joint name="shoulder_joint" pos="0 0 0" axis="0 0 -1" range="-0.2 1.57"/>
+        <geom type="mesh" rgba="0.75294 0.75294 0.75294 1" mesh="upper_arm_link"/>
+        <body name="lower_arm_link" pos="0.21367 -0.052381 -0.02" quat="0.955949 0 0 -0.293532">
+          <inertial pos="0.21746 0.011437 -0.056567" quat="0.0378449 0.77621 0.0323415 0.628506" mass="0.586" diaginertia="0.00178919 0.00155681 0.000534968"/>
+          <joint name="elbow_joint" pos="0 0 0" axis="0 0 1" range="-1.57 0"/>
+          <geom type="mesh" rgba="0.75294 0.75294 0.75294 1" mesh="lower_arm_link"/>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

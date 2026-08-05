@@ -1,0 +1,4 @@
+source;share/gim_arm_description/local_setup.bash
+source;share/gim_arm_description/local_setup.dsv
+source;share/gim_arm_description/local_setup.sh
+source;share/gim_arm_description/local_setup.zsh

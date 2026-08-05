@@ -1,0 +1,28 @@
+1. huong dan calib & set up config motor
+- odrv0.erase_configuration()
+- odrv0.reboot()
+- odrv0.axis0.motor.config.current_lim = 30
+# Cài đặt dòng hiệu chuẩn
+odrv0.axis0.motor.config.calibration_current = 2
+# Cài đặt số cặp cực
+odrv0.axis0.motor.config.pole_pairs = 14
+# Cài đặt hằng số mô-men xoắn
+odrv0.axis0.motor.config.torque_constant = 8.23/12.3
+- # 1. Yêu cầu mạch nhận diện Motor (Sẽ phát ra tiếng "tạch" nhẹ)
+odrv0.axis0.requested_state = AXIS_STATE_MOTOR_CALIBRATION
+- # 2. Yêu cầu mạch dò góc Encoder (Trục sẽ từ từ quay tiến rồi lùi)
+odrv0.axis0.requested_state = AXIS_STATE_ENCODER_OFFSET_CALIBRATION
+- odrv0.axis0.motor.config.pre_calibrated = 1
+odrv0.axis0.encoder.config.pre_calibrated = 1
+odrv0.save_configuration()
+- đổi ID
+odrv0.axis0.config.can.node_id = 0
+odrv0.save_configuration()
+2. setup CAN
+- sudo ip link set can0 down
+- sudo ip link set can0 up type can bitrate 500000
+* kiem tra xem CAN ok chua
+    + nhin CAN, neu den RX va TX nhap nhay lien tuc thi ok
+    + candump can0, co log output ra lien tuc thi ok
+3. ros2 run gim_control moveit_bridge
+ros2 launch gim_arm_moveit_config demo.launch.py

@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: gim_arm_description
+    relative_path: urdf/gim_arm.urdf
+  srdf:
+    relative_path: config/gim_arm.srdf
+  package_settings:
+    author_name: Minh
+    author_email: minhvuviet20051311123456789@gmail.com
+    generated_timestamp: 1785728494
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

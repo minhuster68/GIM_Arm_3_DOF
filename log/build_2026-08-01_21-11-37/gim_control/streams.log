@@ -1,0 +1,27 @@
+[0.431s] Invoking command in '/home/minh/gim60108_ws/src/gim_control': PYTHONPATH=/home/minh/gim60108_ws/build/gim_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/minh/gim60108_ws/install/gim_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/gim_control build --build-base /home/minh/gim60108_ws/build/gim_control/build install --record /home/minh/gim60108_ws/build/gim_control/install.log --install-scripts $base/lib/gim_control --single-version-externally-managed install_data
+[0.583s] running egg_info
+[0.592s] writing ../../build/gim_control/gim_control.egg-info/PKG-INFO
+[0.596s] writing dependency_links to ../../build/gim_control/gim_control.egg-info/dependency_links.txt
+[0.596s] writing entry points to ../../build/gim_control/gim_control.egg-info/entry_points.txt
+[0.596s] writing requirements to ../../build/gim_control/gim_control.egg-info/requires.txt
+[0.596s] writing top-level names to ../../build/gim_control/gim_control.egg-info/top_level.txt
+[0.618s] reading manifest file '../../build/gim_control/gim_control.egg-info/SOURCES.txt'
+[0.618s] writing manifest file '../../build/gim_control/gim_control.egg-info/SOURCES.txt'
+[0.619s] running build
+[0.619s] running build_py
+[0.619s] copying gim_control/__init__.py -> /home/minh/gim60108_ws/build/gim_control/build/lib/gim_control
+[0.619s] copying gim_control/motor_test_all_modes.py -> /home/minh/gim60108_ws/build/gim_control/build/lib/gim_control
+[0.619s] running install
+[0.622s] running install_lib
+[0.632s] copying /home/minh/gim60108_ws/build/gim_control/build/lib/gim_control/motor_test_all_modes.py -> /home/minh/gim60108_ws/install/gim_control/lib/python3.10/site-packages/gim_control
+[0.633s] byte-compiling /home/minh/gim60108_ws/install/gim_control/lib/python3.10/site-packages/gim_control/motor_test_all_modes.py to motor_test_all_modes.cpython-310.pyc
+[0.634s] running install_data
+[0.634s] copying resource/gim_control -> /home/minh/gim60108_ws/install/gim_control/share/ament_index/resource_index/packages
+[0.634s] copying package.xml -> /home/minh/gim60108_ws/install/gim_control/share/gim_control
+[0.634s] running install_egg_info
+[0.645s] removing '/home/minh/gim60108_ws/install/gim_control/lib/python3.10/site-packages/gim_control-0.0.0-py3.10.egg-info' (and everything under it)
+[0.646s] Copying ../../build/gim_control/gim_control.egg-info to /home/minh/gim60108_ws/install/gim_control/lib/python3.10/site-packages/gim_control-0.0.0-py3.10.egg-info
+[0.646s] running install_scripts
+[0.667s] Installing motor_test_all_modes script to /home/minh/gim60108_ws/install/gim_control/lib/gim_control
+[0.667s] writing list of installed files to '/home/minh/gim60108_ws/build/gim_control/install.log'
+[0.681s] Invoked command in '/home/minh/gim60108_ws/src/gim_control' returned '0': PYTHONPATH=/home/minh/gim60108_ws/build/gim_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/minh/gim60108_ws/install/gim_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/gim_control build --build-base /home/minh/gim60108_ws/build/gim_control/build install --record /home/minh/gim60108_ws/build/gim_control/install.log --install-scripts $base/lib/gim_control --single-version-externally-managed install_data

@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/minh/gim60108_ws/build/gim_arm_description/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

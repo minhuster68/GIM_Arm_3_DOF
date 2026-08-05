@@ -1,0 +1,6 @@
+# Default initial positions for gim_arm's ros2_control fake system
+
+initial_positions:
+  base_joint: 0
+  elbow_joint: 0
+  shoulder_joint: 0

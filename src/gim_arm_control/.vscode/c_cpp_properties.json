@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control/include/**",
+        "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins/include/**",
+        "/home/minh/rehab_robot_ver2_modified/install/gravity_compensation/include/**",
+        "/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface/include/**",
+        "/home/minh/apriltag_ws/install/apriltag_ros/include/**",
+        "/opt/ros/humble/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ros2",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++17"
+    }
+  ],
+  "version": 4
+}

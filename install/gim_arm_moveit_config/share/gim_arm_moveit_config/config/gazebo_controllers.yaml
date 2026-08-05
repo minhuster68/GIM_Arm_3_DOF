@@ -1,0 +1,24 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Tần số quét 100Hz
+
+    # Bộ đọc trạng thái khớp (Bắt buộc phải có)
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    # Bộ điều khiển bám quỹ đạo vị trí (MoveIt sẽ gửi lệnh vào đây)
+    gim_arm_group_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# Cấu hình chi tiết cho tay máy
+gim_arm_group_controller:
+  ros__parameters:
+    joints:
+      - base_joint
+      - shoulder_joint
+      - elbow_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
