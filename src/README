@@ -24,5 +24,6 @@ odrv0.save_configuration()
 * kiem tra xem CAN ok chua
     + nhin CAN, neu den RX va TX nhap nhay lien tuc thi ok
     + candump can0, co log output ra lien tuc thi ok
-3. ros2 run gim_control moveit_bridge
-ros2 launch gim_arm_moveit_config demo.launch.py
+3. ros2 launch gim_control gim_arm_control.launch.py
+ros2 launch gim_arm_moveit_config move_group.launch.py
+ros2 launch moveit_rviz.launch.py
