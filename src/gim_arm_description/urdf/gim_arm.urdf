@@ -23,15 +23,15 @@
 
   <link name="base_link">
     <inertial>
-      <origin xyz="0.12514 -0.24189 -0.38484" rpy="0 0 0" />
-      <mass value="6.6731" />
+      <origin xyz="0.27344094303007 0.27938715952061 0.510149299908653" rpy="0 0 0" />
+      <mass value="6.66855777151619" />
       <inertia
-        ixx="0.31539"
-        ixy="1.4901E-05"
-        ixz="0.022379"
-        iyy="0.29283"
-        iyz="-2.4376E-05"
-        izz="0.15732" />
+        ixx="0.292932757999248"
+        ixy="2.42532565985983E-05"
+        ixz="1.4908094022849E-05"
+        iyy="0.157532051318604"
+        iyz="-0.0223597784843357"
+        izz="0.31549969202859" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -39,7 +39,7 @@
         <mesh filename="package://gim_arm_description/meshes/base_link.STL" />
       </geometry>
       <material name="base_link_color">
-        <color rgba="0.75294 0.75294 0.75294 1" />
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
       </material>
     </visual>
     <collision>
@@ -52,15 +52,15 @@
 
   <link name="shoulder_link">
     <inertial>
-      <origin xyz="-1.3878E-17 0.060369 -0.036849" rpy="0 0 0" />
-      <mass value="0.06547" />
+      <origin xyz="-0.166448794327975 0.0056887985806402 -0.0172848581490532" rpy="0 0 0" />
+      <mass value="0.190732966677201" />
       <inertia
-        ixx="0.00018777"
-        ixy="-6.6182E-20"
-        ixz="6.7763E-20"
-        iyy="0.00010552"
-        iyz="7.374E-05"
-        izz="0.0001159" />
+        ixx="0.000205948851297408"
+        ixy="-2.38990127172075E-07"
+        ixz="7.27163071554151E-05"
+        iyy="0.000237074859368272"
+        iyz="-8.24496296171646E-07"
+        izz="0.000153162765676654" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -68,7 +68,7 @@
         <mesh filename="package://gim_arm_description/meshes/shoulder_link.STL" />
       </geometry>
       <material name="shoulder_link_color">
-        <color rgba="0.79216 0.81961 0.93333 1" />
+        <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
       </material>
     </visual>
     <collision>
@@ -79,25 +79,29 @@
     </collision>
   </link>
 
+  <!-- type đổi continuous -> revolute (bản export mặc định continuous, không giới
+       hạn góc; khớp thật của bạn có giới hạn -> phải revolute mới đảm bảo
+       lower/upper được các tool tôn trọng). axis lệch trục sạch (không phải
+       "1 0 0"), nên xác nhận lại với CAD xem đây là lệch thật hay nhiễu mate. -->
   <joint name="base_joint" type="revolute">
-    <origin xyz="0.12249 0 0.13463" rpy="0 -0.17453 0" />
+    <origin xyz="0.031381 -0.48621 0.64846" rpy="1.4637 1.364 1.4753" />
     <parent link="base_link" />
     <child link="shoulder_link" />
-    <axis xyz="0 0 -1" />
-    <limit lower="0" upper="1.57" effort="5.0" velocity="12.5" />
+    <axis xyz="0.99932 -0.031099 -0.019999" />
+    <limit lower="0" upper="1.57" effort="5" velocity="12.5" />
   </joint>
 
   <link name="upper_arm_link">
     <inertial>
-      <origin xyz="0.081498 -0.010308 0.016005" rpy="0 0 0" />
-      <mass value="2.524" />
+      <origin xyz="-0.020736655172626 0.102615712569984 -0.0918424005027231" rpy="0 0 0" />
+      <mass value="1.15563310050408" />
       <inertia
-        ixx="0.002612"
-        ixy="0.0010092"
-        ixz="0.00048166"
-        iyy="0.0061609"
-        iyz="-4.4532E-05"
-        izz="0.0079327" />
+        ixx="0.0046453378861501"
+        ixy="-0.000106201197109939"
+        ixz="-0.000256625754245197"
+        iyy="0.00528562874184763"
+        iyz="-0.00041294658184148"
+        izz="0.0010644214679654" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -105,7 +109,7 @@
         <mesh filename="package://gim_arm_description/meshes/upper_arm_link.STL" />
       </geometry>
       <material name="upper_arm_link_color">
-        <color rgba="0.75294 0.75294 0.75294 1" />
+        <color rgba="0.545098039215686 0 0.870588235294118 1" />
       </material>
     </visual>
     <collision>
@@ -117,24 +121,24 @@
   </link>
 
   <joint name="shoulder_joint" type="revolute">
-    <origin xyz="0 0.098298 -0.082481" rpy="0 1.3963 1.5708" />
+    <origin xyz="-0.049966 0.001555 0.00099995" rpy="-1.3842 -0.058173 1.7475" />
     <parent link="shoulder_link" />
     <child link="upper_arm_link" />
-    <axis xyz="0 0 -1" />
-    <limit lower="-0.2" upper="1.57" effort="5.0" velocity="12.5" />
+    <axis xyz="0 1 0" />
+    <limit lower="-0.2" upper="1.57" effort="5" velocity="12.5" />
   </joint>
 
   <link name="lower_arm_link">
     <inertial>
-      <origin xyz="0.21746 0.011437 -0.056567" rpy="0 0 0" />
-      <mass value="0.586" />
+      <origin xyz="0.185270162663334 0.00970989472364725 0.0463325988746627" rpy="0 0 0" />
+      <mass value="0.846776609767109" />
       <inertia
-        ixx="0.00058917"
-        ixy="2.2812E-05"
-        ixz="0.00025401"
-        iyy="0.0015587"
-        iyz="1.8284E-05"
-        izz="0.0017331" />
+        ixx="0.000639693628361318"
+        ixy="2.29941438911678E-05"
+        ixz="0.000253970645035867"
+        iyy="0.00160796485183614"
+        iyz="1.83629192835509E-05"
+        izz="0.00182026575035514" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -142,7 +146,7 @@
         <mesh filename="package://gim_arm_description/meshes/lower_arm_link.STL" />
       </geometry>
       <material name="lower_arm_link_color">
-        <color rgba="0.75294 0.75294 0.75294 1" />
+        <color rgba="1 0.509803921568627 0.196078431372549 1" />
       </material>
     </visual>
     <collision>
@@ -154,14 +158,14 @@
   </link>
 
   <joint name="elbow_joint" type="revolute">
-    <origin xyz="0.21367 -0.052381 -0.02" rpy="0 0 -0.59584" />
+    <origin xyz="-0.014232 0 -0.21358" rpy="-1.5708 1.1931 0" />
     <parent link="upper_arm_link" />
     <child link="lower_arm_link" />
     <axis xyz="0 0 1" />
-    <limit lower="-1.57" upper="0" effort="5.0" velocity="12.5" />
+    <limit lower="0" upper="1.57" effort="5" velocity="12.5" />
   </joint>
 
-<!-- param cho node_id + CAN interface + state verlocity -->
+<!-- param cho node_id + CAN interface + state velocity + gear_ratio + invert_direction -->
 <ros2_control name="GimArmSystem" type="system">
   <hardware>
     <plugin>gim_arm_hardware/GimArmSystemHardware</plugin>
@@ -178,12 +182,14 @@
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">1</param>
+    <param name="gear_ratio">64.0</param>
   </joint>
   <joint name="elbow_joint">
     <command_interface name="position"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">2</param>
+    <param name="invert_direction">true</param>
   </joint>
 </ros2_control>
 
