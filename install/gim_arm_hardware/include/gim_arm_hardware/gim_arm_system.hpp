@@ -67,15 +67,33 @@ private:
   // Mỗi khớp 1 node_id CAN riêng -- đọc từ <param name="can_node_id"> trong URDF
   std::vector<uint8_t> can_node_ids_;
 
+  // Tỉ số truyền TỔNG mỗi khớp (rotor GIM6010-8 -> góc khớp thật ở URDF).
+  // Mặc định 8.0 (đúng bằng hộp số nội bộ của GIM6010-8). Khớp nào có thêm
+  // hộp giảm tốc ngoài (vd shoulder_joint: thêm 8:1 -> tổng 64) phải khai rõ
+  // <param name="gear_ratio">64.0</param> trong URDF, nếu không sẽ dùng mặc
+  // định 8.0 và bị lệch góc thật.
+  std::vector<double> gear_ratios_;
+
+  // Dấu chiều quay mỗi khớp: +1.0 (mặc định) hoặc -1.0. Bù cho việc motor
+  // được LẮP ĐẶT VẬT LÝ theo chiều khác nhau -- không liên quan gì tới <axis>
+  // trong URDF (axis chỉ ảnh hưởng RViz/TF/Jacobian, không chạm vào giá trị
+  // gửi xuống CAN). Khai <param name="invert_direction">true</param> nếu
+  // khớp đó quay ngược so với ý muốn khi gửi cùng 1 giá trị dương.
+  std::vector<double> directions_;
+
+  // Offset "điểm 0" mỗi khớp (rad), áp dụng SAU khi đã quy đổi gear_ratio +
+  // direction -- bù cho việc encoder tuyệt đối của driver không có cách nào
+  // đặt lại "0" tin cậy qua reboot (đã thử index_offset và set_linear_count
+  // của ODrive fork này, cả 2 đều không lưu được qua save_configuration()).
+  // Mặc định 0.0 nếu không khai <param name="zero_offset_rad">. Cách lấy giá
+  // trị: để mặc định 0, xoay khớp về đúng tư thế muốn coi là "0", đọc
+  // /joint_states lúc đó -- số đọc được CHÍNH LÀ giá trị cần điền vào đây.
+  std::vector<double> zero_offsets_rad_;
+
   // Tên interface CAN (vd "can0") -- đọc từ <hardware><param name="can_interface">
   std::string can_interface_name_;
 
   SocketCanBus can_bus_;
-
-  // Tỉ số truyền GIM6010-8: 8:1. CẦN xác nhận bằng test thật (xem TODO trong .cpp)
-  // trước khi tin số này -- manual chỉ xác nhận rõ Mit_Control là phía trục ra,
-  // không nói rõ Set_Input_Pos/Get_Encoder_Estimates là rotor hay trục ra.
-  static constexpr double kGearRatio = 8.0;
 };
 
 }  // namespace gim_arm_hardware

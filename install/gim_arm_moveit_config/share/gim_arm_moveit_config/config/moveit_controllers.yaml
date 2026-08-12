@@ -2,6 +2,11 @@
 
 moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
 
+trajectory_execution:
+  allowed_start_tolerance: 0.05
+  allowed_execution_duration_scaling: 1.2
+  allowed_goal_duration_margin: 0.5
+
 moveit_simple_controller_manager:
   controller_names:
     - gim_arm_group_controller

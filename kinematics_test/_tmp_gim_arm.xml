@@ -1,0 +1,29 @@
+<mujoco model="gim_arm">
+  <compiler angle="radian"/>
+
+  <asset>
+    <mesh name="base_link" content_type="model/stl" file="meshes/base_link.STL"/>
+    <mesh name="shoulder_link" content_type="model/stl" file="meshes/shoulder_link.STL"/>
+    <mesh name="upper_arm_link" content_type="model/stl" file="meshes/upper_arm_link.STL"/>
+    <mesh name="lower_arm_link" content_type="model/stl" file="meshes/lower_arm_link.STL"/>
+  </asset>
+
+  <worldbody>
+    <geom type="mesh" rgba="0.752941 0.752941 0.752941 1" mesh="base_link"/>
+    <body name="shoulder_link" pos="0.031381 -0.48621 0.64846" quat="0.710699 0.0685299 0.695938 0.0766885">
+      <inertial pos="-0.166449 0.0056888 -0.0172849" quat="0.953505 0.00316386 -0.300899 -0.0166541" mass="0.190733" diaginertia="0.000256936 0.000237054 0.000102196"/>
+      <joint name="base_joint" pos="0 0 0" axis="0.999316 -0.0310989 -0.0199989" range="0 1.57" actuatorfrcrange="-5 5"/>
+      <geom type="mesh" rgba="0.752941 0.752941 0.752941 1" mesh="shoulder_link"/>
+      <body name="upper_arm_link" pos="-0.049966 0.001555 0.00099995" quat="0.508268 -0.392326 -0.503467 0.578156">
+        <inertial pos="-0.0207367 0.102616 -0.0918424" quat="0.663565 -0.00524028 0.0607563 0.745629" mass="1.15563" diaginertia="0.00533537 0.00465501 0.00100501"/>
+        <joint name="shoulder_joint" pos="0 0 0" axis="0 -1 0" range="-1.1811 1.2002" actuatorfrcrange="-5 5"/>
+        <geom type="mesh" rgba="0.545098 0 0.870588 1" mesh="upper_arm_link"/>
+        <body name="lower_arm_link" pos="-0.014232 0 -0.21358" quat="0.584973 -0.584975 0.397246 0.397247">
+          <inertial pos="0.18527 0.00970989 0.0463326" quat="0.0339146 0.77458 0.0270247 0.630988" mass="0.846777" diaginertia="0.00187451 0.00160639 0.00058703"/>
+          <joint name="elbow_joint" pos="0 0 0" axis="0 0 -1" range="-1.6983 1.1929" actuatorfrcrange="-5 5"/>
+          <geom type="mesh" rgba="1 0.509804 0.196078 1" mesh="lower_arm_link"/>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

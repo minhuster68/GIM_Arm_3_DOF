@@ -16,7 +16,7 @@ set(_gim_arm_description_CONFIG_INCLUDED TRUE)
 
 # output package information
 if(NOT gim_arm_description_FIND_QUIETLY)
-  message(STATUS "Found gim_arm_description: 0.0.0 (${gim_arm_description_DIR})")
+  message(STATUS "Found gim_arm_description: 1.0.0 (${gim_arm_description_DIR})")
 endif()
 
 # warn when using a deprecated package

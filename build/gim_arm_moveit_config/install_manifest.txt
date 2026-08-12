@@ -23,10 +23,10 @@
 /home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/launch/warehouse_db.launch.py
 /home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/joint_limits.yaml
 /home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/moveit.rviz
+/home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/gim_arm_urdf.xacro
 /home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/gim_arm.ros2_control.xacro
 /home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/initial_positions.yaml
 /home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/ros2_controllers.yaml
-/home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/gim_arm.urdf.xacro
 /home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/pilz_cartesian_limits.yaml
 /home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/gim_arm.srdf
 /home/minh/gim60108_ws/install/gim_arm_moveit_config/share/gim_arm_moveit_config/config/kinematics.yaml

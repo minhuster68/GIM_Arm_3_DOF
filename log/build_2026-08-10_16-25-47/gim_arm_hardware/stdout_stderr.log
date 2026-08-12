@@ -1,0 +1,6 @@
+[31mCMake Error at CMakeLists.txt:17:
+  Parse error.  Expected "(", got identifier with text "gim_arm_hardware".
+
+[0m
+-- Configuring incomplete, errors occurred!
+gmake: *** [Makefile:267: cmake_check_build_system] Error 1

@@ -1,8 +1,8 @@
-/home/minh/gim60108_ws/install/gim_arm_description/share/gim_arm_description/urdf/gim_arm.urdf
 /home/minh/gim60108_ws/install/gim_arm_description/share/gim_arm_description/meshes/lower_arm_link.STL
 /home/minh/gim60108_ws/install/gim_arm_description/share/gim_arm_description/meshes/base_link.STL
 /home/minh/gim60108_ws/install/gim_arm_description/share/gim_arm_description/meshes/upper_arm_link.STL
 /home/minh/gim60108_ws/install/gim_arm_description/share/gim_arm_description/meshes/shoulder_link.STL
+/home/minh/gim60108_ws/install/gim_arm_description/share/gim_arm_description/urdf/gim_arm.urdf
 /home/minh/gim60108_ws/install/gim_arm_description/share/gim_arm_description/launch/display.launch.py
 /home/minh/gim60108_ws/install/gim_arm_description/share/ament_index/resource_index/package_run_dependencies/gim_arm_description
 /home/minh/gim60108_ws/install/gim_arm_description/share/ament_index/resource_index/parent_prefix_path/gim_arm_description

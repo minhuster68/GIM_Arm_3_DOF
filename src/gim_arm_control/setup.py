@@ -25,7 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'motor_test_all_modes = gim_control.motor_test_all_modes:main',
-            'moveit_bridge = gim_control.moveit_bridge:main',
+            'draw_trajectory = gim_control.draw_trajectory:main',
         ],
     },
 )

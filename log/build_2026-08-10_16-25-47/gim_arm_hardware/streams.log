@@ -1,0 +1,8 @@
+[0.010s] Invoking command in '/home/minh/gim60108_ws/build/gim_arm_hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/gim60108_ws/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/gim60108_ws/build/gim_arm_hardware -- -j16 -l16
+[0.088s] [31mCMake Error at CMakeLists.txt:17:
+[0.088s]   Parse error.  Expected "(", got identifier with text "gim_arm_hardware".
+[0.089s] 
+[0.089s] [0m
+[0.089s] -- Configuring incomplete, errors occurred!
+[0.090s] gmake: *** [Makefile:267: cmake_check_build_system] Error 1
+[0.137s] Invoked command in '/home/minh/gim60108_ws/build/gim_arm_hardware' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/gim60108_ws/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/gim60108_ws/build/gim_arm_hardware -- -j16 -l16

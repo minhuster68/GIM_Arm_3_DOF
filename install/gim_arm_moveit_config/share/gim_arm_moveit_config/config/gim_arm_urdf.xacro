@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="gim_arm">
+
+    <!-- Import gim_arm urdf file: đã có sẵn <ros2_control name="GimArmSystem">
+         thật (plugin gim_arm_hardware/GimArmSystemHardware) bên trong rồi,
+         không cần và không được thêm block ros2_control giả nào nữa. -->
+    <xacro:include filename="$(find gim_arm_description)/urdf/gim_arm.urdf" />
+
+</robot>

@@ -81,6 +81,15 @@ private:
   // khớp đó quay ngược so với ý muốn khi gửi cùng 1 giá trị dương.
   std::vector<double> directions_;
 
+  // Offset "điểm 0" mỗi khớp (rad), áp dụng SAU khi đã quy đổi gear_ratio +
+  // direction -- bù cho việc encoder tuyệt đối của driver không có cách nào
+  // đặt lại "0" tin cậy qua reboot (đã thử index_offset và set_linear_count
+  // của ODrive fork này, cả 2 đều không lưu được qua save_configuration()).
+  // Mặc định 0.0 nếu không khai <param name="zero_offset_rad">. Cách lấy giá
+  // trị: để mặc định 0, xoay khớp về đúng tư thế muốn coi là "0", đọc
+  // /joint_states lúc đó -- số đọc được CHÍNH LÀ giá trị cần điền vào đây.
+  std::vector<double> zero_offsets_rad_;
+
   // Tên interface CAN (vd "can0") -- đọc từ <hardware><param name="can_interface">
   std::string can_interface_name_;
 

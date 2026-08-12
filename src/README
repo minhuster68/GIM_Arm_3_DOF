@@ -24,5 +24,57 @@ odrv0.save_configuration()
 * kiem tra xem CAN ok chua
     + nhin CAN, neu den RX va TX nhap nhay lien tuc thi ok
     + candump can0, co log output ra lien tuc thi ok
-3. ros2 run gim_control moveit_bridge
-ros2 launch gim_arm_moveit_config demo.launch.py
+3. ros2 launch gim_control gim_arm_control.launch.py
+
+ros2 launch gim_arm_moveit_config move_group.launch.py
+ros2 launch gim_arm_moveit_config moveit_rviz.launch.py
+
+ros2 run gim_control draw_trajectory
+
+4. cach set zero encoder 
+Đây là quy trình đầy đủ, chạy trong odrivetool trên Ubuntu.
+
+Bước 0 — Kết nối và kiểm tra sạch lỗi
+
+python
+dump_errors(odrv0)
+odrv0.clear_errors()
+odrv0.axis0.requested_state = AXIS_STATE_IDLE
+
+Bước 1 — Xoá offset cũ để bắt đầu từ gốc encoder thật
+
+python
+odrv0.axis0.encoder.config.index_offset = 0
+odrv0.save_configuration()
+
+Driver tự reboot sau lệnh save. odrivetool sẽ mất kết nối vài giây rồi tự bắt lại và in ra dòng Connected to ODrive.... Nếu bạn gõ lệnh trong lúc đó sẽ gặp ObjectLostError — chỉ cần đợi rồi gõ lại.
+
+Bước 2 — Đưa trục tới vị trí muốn coi là 0
+
+Motor đang ở IDLE nên trục quay tay được (có hộp số 8:1 nên hơi nặng). Nếu cần chính xác thì dùng position control:
+
+python
+odrv0.axis0.controller.config.control_mode = 3   # position
+odrv0.axis0.controller.config.input_mode = 3     # filter
+odrv0.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
+odrv0.axis0.controller.input_pos = 0.25          # chỉnh dần tới khi đúng vị trí
+odrv0.axis0.requested_state = AXIS_STATE_IDLE    # nhả ra trước khi ghi config
+
+Bước 3 — Ghi offset
+
+python
+odrv0.axis0.encoder.pos_estimate                 # xem giá trị, ví dụ 0.7431
+odrv0.axis0.encoder.config.index_offset = odrv0.axis0.encoder.pos_estimate
+odrv0.save_configuration()
+
+Bước 4 — Kiểm tra
+
+python
+odrv0.axis0.encoder.config.index_offset          # phải bằng giá trị vừa ghi
+odrv0.axis0.encoder.pos_estimate                 # phải ≈ 0
+
+Nếu pos_estimate chưa về 0 thì cộng dồn phần dư rồi save lại:
+
+python
+odrv0.axis0.encoder.config.index_offset += odrv0.axis0.encoder.pos_estimate
+odrv0.save_configuration()

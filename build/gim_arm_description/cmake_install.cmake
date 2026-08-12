@@ -44,10 +44,9 @@ endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gim_arm_description" TYPE DIRECTORY FILES
-    "/home/minh/gim60108_ws/src/gim_arm_description/urdf"
     "/home/minh/gim60108_ws/src/gim_arm_description/meshes"
+    "/home/minh/gim60108_ws/src/gim_arm_description/urdf"
     "/home/minh/gim60108_ws/src/gim_arm_description/launch"
-    "/home/minh/gim60108_ws/src/gim_arm_description/rviz"
     )
 endif()
 

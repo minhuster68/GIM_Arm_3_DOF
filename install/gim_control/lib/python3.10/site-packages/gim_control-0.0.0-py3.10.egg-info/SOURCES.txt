@@ -10,8 +10,10 @@ setup.py
 ../../build/gim_control/gim_control.egg-info/zip-safe
 config/controllers.yaml
 gim_control/__init__.py
+gim_control/draw_trajectory.py
+gim_control/gim_arm_kinematics.py
 gim_control/motor_test_all_modes.py
-gim_control/moveit_bridge.py
+gim_control/shapes.py
 launch/gim_arm_control.launch.py
 resource/gim_control
 test/test_copyright.py

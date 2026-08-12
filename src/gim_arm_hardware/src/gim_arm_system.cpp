@@ -31,6 +31,7 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   can_node_ids_.resize(n_joints, 0);
   gear_ratios_.resize(n_joints, 8.0);
   directions_.resize(n_joints, 1.0);
+  zero_offsets_rad_.resize(n_joints, 0.0);
 
   // node_id riêng từng khớp: khai trong URDF <joint><param name="can_node_id">N</param>
   for (size_t i = 0; i < n_joints; ++i) {
@@ -73,6 +74,22 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
       info_.joints[i].name.c_str(), directions_[i], inverted ? " (đã đảo chiều)" : "");
   }
 
+  // Offset "điểm 0" mỗi khớp (rad): khai <param name="zero_offset_rad">X</param>,
+  // không bắt buộc -- thiếu thì mặc định 0.0 (dùng luôn "0" thô của encoder).
+  // Cách lấy đúng giá trị: để mặc định 0, xoay khớp về đúng tư thế muốn coi
+  // là "0", đọc /joint_states lúc đó -- số đọc được chính là giá trị cần điền.
+  for (size_t i = 0; i < n_joints; ++i) {
+    const auto it = info_.joints[i].parameters.find("zero_offset_rad");
+    if (it != info_.joints[i].parameters.end()) {
+      zero_offsets_rad_[i] = std::stod(it->second);
+    }
+    RCLCPP_INFO(
+      rclcpp::get_logger("GimArmSystemHardware"),
+      "Khớp '%s': zero_offset_rad = %.4f%s",
+      info_.joints[i].name.c_str(), zero_offsets_rad_[i],
+      it == info_.joints[i].parameters.end() ? " (mặc định, không khai trong URDF)" : "");
+  }
+
   // Tên interface CAN: <ros2_control><hardware><param name="can_interface">can0</param>
   can_interface_name_ = info_.hardware_parameters.count("can_interface")
     ? info_.hardware_parameters.at("can_interface")
@@ -103,12 +120,17 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_configure(
 
 void GimArmSystemHardware::send_position_command(size_t i, double position_rad)
 {
+  // position_rad đến từ hw_commands_ (không gian URDF, đã trừ zero_offset_rad_)
+  // -- cộng lại offset để ra đúng "rad thô" khớp với quy ước encoder thật,
+  // TRƯỚC KHI áp dụng gear_ratio/direction như cũ.
+  const double position_rad_raw = position_rad + zero_offsets_rad_[i];
+
   // Set_Input_Pos dùng đơn vị REV, không phải RAD (manual 4.1.2) -- nhân
   // gear_ratios_[i] (tỉ số truyền TỔNG của riêng khớp này), đã xác nhận đúng
   // bằng test thật (lệnh -3.14 rad -> quay đúng 180 độ trên elbow, gear_ratio=8).
   // gear_ratios_[i] quy đổi rad<->rev; directions_[i] (+1/-1) bù chiều lắp
   // đặt vật lý thật của motor, không liên quan tới <axis> trong URDF.
-  const double pos_rev = (position_rad * directions_[i] / (2.0 * M_PI)) * gear_ratios_[i];
+  const double pos_rev = (position_rad_raw * directions_[i] / (2.0 * M_PI)) * gear_ratios_[i];
   const float pos_rev_f = static_cast<float>(pos_rev);
   const int16_t vel_ff = 0;     // chưa dùng feedforward ở bước bench-test này
   const int16_t torque_ff = 0;
@@ -174,7 +196,8 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
         }
         float pos_rev;
         std::memcpy(&pos_rev, &frame.data[0], 4);
-        const double pos_rad = (pos_rev / gear_ratios_[i]) * 2.0 * M_PI * directions_[i];
+        const double pos_rad_raw = (pos_rev / gear_ratios_[i]) * 2.0 * M_PI * directions_[i];
+        const double pos_rad = pos_rad_raw - zero_offsets_rad_[i];  // trừ offset "điểm 0"
         hw_commands_[i] = pos_rad;
         hw_states_position_[i] = pos_rad;
         send_position_command(i, pos_rad);  // chốt setpoint ngay, chặn trôi tiếp
@@ -269,8 +292,10 @@ hardware_interface::return_type GimArmSystemHardware::read(
       std::memcpy(&vel_rev_s, &frame.data[4], 4);
 
       // gear_ratios_[i]/directions_[i] riêng của khớp này -- xem giải thích ở on_init().
+      // zero_offsets_rad_[i]: chỉ trừ ở VỊ TRÍ, không áp dụng cho vận tốc
+      // (offset là 1 hằng số dịch góc, đạo hàm của hằng số = 0).
       hw_states_position_[i] = (static_cast<double>(pos_rev) / gear_ratios_[i]) * 2.0 * M_PI *
-        directions_[i];
+        directions_[i] - zero_offsets_rad_[i];
       hw_states_velocity_[i] = (static_cast<double>(vel_rev_s) / gear_ratios_[i]) * 2.0 * M_PI *
         directions_[i];
       break;

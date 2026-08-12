@@ -124,8 +124,8 @@
     <origin xyz="-0.049966 0.001555 0.00099995" rpy="-1.3842 -0.058173 1.7475" />
     <parent link="shoulder_link" />
     <child link="upper_arm_link" />
-    <axis xyz="0 1 0" />
-    <limit lower="-0.2" upper="1.57" effort="5" velocity="12.5" />
+    <axis xyz="0 -1 0" />
+    <limit lower="-1.1811" upper="1.2002" effort="5" velocity="12.5" />
   </joint>
 
   <link name="lower_arm_link">
@@ -161,8 +161,8 @@
     <origin xyz="-0.014232 0 -0.21358" rpy="-1.5708 1.1931 0" />
     <parent link="upper_arm_link" />
     <child link="lower_arm_link" />
-    <axis xyz="0 0 1" />
-    <limit lower="0" upper="1.57" effort="5" velocity="12.5" />
+    <axis xyz="0 0 -1" />
+    <limit lower="-1.6983" upper="1.1929" effort="5" velocity="12.5" />
   </joint>
 
 <!-- param cho node_id + CAN interface + state velocity + gear_ratio + invert_direction -->

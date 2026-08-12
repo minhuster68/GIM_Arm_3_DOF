@@ -1,15 +1,27 @@
 import mujoco
 import mujoco.viewer
 import time
+import re
 
 # Đường dẫn file
 urdf_path = "gim_arm.urdf"
+urdf_mujoco_path = "gim_arm_mujoco.urdf"  # bản đã sửa đường dẫn mesh, MuJoCo đọc được
 xml_path = "gim_arm.xml"
 
-# 1. Đọc file URDF và biên dịch ngầm
+# 0. Sửa package://<tên_package>/meshes/... thành meshes/... -- MuJoCo không
+# hiểu quy ước package:// của ROS, chỉ hiểu đường dẫn tương đối/tuyệt đối
+# thường. Bước này BẮT BUỘC làm lại mỗi lần đồng bộ gim_arm.urdf mới từ ROS,
+# không phải việc làm 1 lần.
+with open(urdf_path, "r", encoding="utf-8") as f:
+    content = f.read()
+fixed_content = re.sub(r"package://[^/]+/meshes/", "meshes/", content)
+with open(urdf_mujoco_path, "w", encoding="utf-8") as f:
+    f.write(fixed_content)
+
+# 1. Đọc file URDF (bản đã sửa đường dẫn) và biên dịch ngầm
 print("Đang biên dịch URDF...")
 try:
-    model = mujoco.MjModel.from_xml_path(urdf_path)
+    model = mujoco.MjModel.from_xml_path(urdf_mujoco_path)
 except Exception as e:
     print(f"Lỗi khi đọc URDF: {e}")
     exit()
@@ -30,13 +42,13 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
     # Vòng lặp mô phỏng
     while viewer.is_running():
         step_start = time.time()
-        
+
         # Tính toán vật lý tiến lên 1 bước (thường là 2ms)
         mujoco.mj_step(model, data)
-        
+
         # Cập nhật hình ảnh lên màn hình
         viewer.sync()
-        
+
         # Đảm bảo mô phỏng chạy đúng với thời gian thực (Real-time)
         time_until_next_step = model.opt.timestep - (time.time() - step_start)
         if time_until_next_step > 0:

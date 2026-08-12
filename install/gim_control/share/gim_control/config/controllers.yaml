@@ -8,6 +8,9 @@ controller_manager:
     forward_position_controller:
       type: forward_command_controller/ForwardCommandController
 
+    gim_arm_group_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
 forward_position_controller:
   ros__parameters:
     joints:
@@ -15,3 +18,27 @@ forward_position_controller:
       - shoulder_joint
       - elbow_joint
     interface_name: position
+
+# JointTrajectoryController -- nội suy quỹ đạo theo thời gian (không như
+# forward_position_controller chỉ nhận 1 điểm đích), và expose action
+# FollowJointTrajectory mà MoveIt cần để gửi lệnh xuống.
+gim_arm_group_controller:
+  ros__parameters:
+    joints:
+      - base_joint
+      - shoulder_joint
+      - elbow_joint
+    # Hardware interface hiện tại chỉ có command "position" (chưa có
+    # velocity/effort command) -- JTC vẫn chạy tốt ở chế độ chỉ-vị-trí,
+    # tự nội suy điểm trung gian, không cần velocity feedforward.
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0

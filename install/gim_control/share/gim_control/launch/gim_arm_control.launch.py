@@ -30,7 +30,6 @@ def generate_launch_description():
         executable="ros2_control_node",
         parameters=[robot_description, robot_controllers],
         output="screen",
-        prefix=['gdb -ex run -ex bt --args'],
     )
 
     robot_state_pub_node = Node(
@@ -46,18 +45,32 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
 
+    gim_arm_group_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gim_arm_group_controller", "--controller-manager", "/controller_manager"],
+    )
+
+    # forward_position_controller vẫn nạp sẵn để dùng khi cần test point-to-point
+    # nhanh, nhưng KHÔNG active cùng lúc với gim_arm_group_controller -- cả 2
+    # đều claim command_interfaces "position" của cùng 3 khớp, controller_manager
+    # không cho 2 controller cùng giữ 1 command interface. Dùng
+    # `ros2 control switch_controllers` để đổi qua lại khi cần.
     forward_position_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["forward_position_controller", "--controller-manager", "/controller_manager"],
+        arguments=[
+            "forward_position_controller", "--controller-manager", "/controller_manager",
+            "--inactive",
+        ],
     )
 
-    # Đợi joint_state_broadcaster load xong rồi mới spawn controller kia,
+    # Đợi joint_state_broadcaster load xong rồi mới spawn 2 controller kia,
     # tránh race condition lúc controller_manager vừa mới lên.
-    delay_forward_controller_after_jsb = RegisterEventHandler(
+    delay_controllers_after_jsb = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
-            on_exit=[forward_position_controller_spawner],
+            on_exit=[gim_arm_group_controller_spawner, forward_position_controller_spawner],
         )
     )
 
@@ -65,5 +78,5 @@ def generate_launch_description():
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
-        delay_forward_controller_after_jsb,
+        delay_controllers_after_jsb,
     ])
