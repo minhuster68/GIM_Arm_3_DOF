@@ -131,6 +131,7 @@ if __name__ == "__main__":
             break
         elif cmd[0] == "c":
             axis.controller.config.control_mode = 3  # CONTROL_MODE_POSITION_CONTROL
+            axis.controller.config.input_mode = 3   
             axis.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
             time.sleep(0.3)
             print(f"current_state = {axis.current_state} (8 = CLOSED_LOOP_CONTROL đúng)")
@@ -159,7 +160,7 @@ if __name__ == "__main__":
                       " tránh mỗi lần test lại xuất phát từ 1 tư thế khác nhau.")
                 continue
             t, pos, start_pos, target = run_step_test(
-                axis, step_size_rev=0.05, duration=2.0, start_pos=home_pos[0]
+                axis, step_size_rev=0.5, duration=2.0, start_pos=home_pos[0]
             )
             plot_and_analyze(t, pos, start_pos, target)
         elif cmd[0] == "s":
