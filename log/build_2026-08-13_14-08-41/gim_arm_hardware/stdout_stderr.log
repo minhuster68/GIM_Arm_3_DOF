@@ -1,0 +1,106 @@
+[0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+[0m
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter
+-- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)
+-- Found rosidl_generator_c: 3.1.9 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+-- Found rosidl_adapter: 3.1.9 (/opt/ros/humble/share/rosidl_adapter/cmake)
+-- Found rosidl_generator_cpp: 3.1.9 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+-- Found rmw_cyclonedds_cpp: 1.3.4 (/opt/ros/humble/share/rmw_cyclonedds_cpp/cmake)
+-- Using RMW implementation 'rmw_cyclonedds_cpp' as default
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Found hardware_interface: 2.54.0 (/opt/ros/humble/share/hardware_interface/cmake)
+[33mCMake Warning (dev) at /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package):
+  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+  --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:183 (find_dependency)
+  CMakeLists.txt:21 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+[0m
+-- Found Boost: /usr/include (found version "1.74.0") found components: filesystem serialization
+-- eigenpy FOUND. eigenpy at /opt/ros/humble/lib/x86_64-linux-gnu/libeigenpy.so
+-- Checking for NumPy
+--   NUMPY_INCLUDE_DIRS=/home/minh/.local/lib/python3.10/site-packages/numpy/core/include
+--   NUMPY_VERSION=1.26.4
+-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter Development.Module NumPy
+-- PythonLibraryDirs: 
+-- PythonLibVersionString: 3.10.12
+-- Python site lib: lib/python3.10/site-packages
+-- Python include dirs: /usr/include/python3.10
+-- Checking for NumPy
+--   NUMPY_INCLUDE_DIRS=/home/minh/.local/lib/python3.10/site-packages/numpy/core/include
+--   NUMPY_VERSION=1.26.4
+-- NumPy include dir: /home/minh/.local/lib/python3.10/site-packages/numpy/core/include
+[33mCMake Warning (dev) at /opt/ros/humble/lib/x86_64-linux-gnu/cmake/eigenpy/boost.cmake:146 (find_package):
+  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+  --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/eigenpy/eigenpyConfig.cmake:172 (SEARCH_FOR_BOOST_PYTHON)
+  /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)
+  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:184 (find_dependency)
+  CMakeLists.txt:21 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+[0m
+-- Found Boost: /usr/include (found version "1.74.0") found components: python310
+-- Default C++ standard: 201703
+-- Minimal C++ standard upgraded to 11
+-- C++ standard sufficient: Minimal required 11, currently defined: 17
+-- CMAKE_CXX_STANDARD was not set: automatically set to currently defined standard 17
+-- coal FOUND. coal at /opt/ros/humble/lib/x86_64-linux-gnu/libcoal.so
+[33mCMake Warning (dev) at /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package):
+  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+  --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/coal/coalConfig.cmake:154 (find_dependency)
+  /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)
+  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:186 (find_dependency)
+  CMakeLists.txt:21 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+[0m
+-- Found Boost: /usr/include (found version "1.74.0") found components: serialization filesystem
+-- C++ standard sufficient: Minimal required 11, currently defined: 17
+-- Minimal C++ standard upgraded to 17
+-- C++ standard sufficient: Minimal required 17, currently defined: 17
+-- Configuring done (2.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/minh/gim60108_ws/build/gim_arm_hardware
+[ 50%] [32mBuilding CXX object CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o[0m
+In file included from [01m[K/home/minh/gim60108_ws/src/gim_arm_hardware/src/gim_arm_system.cpp:1[m[K:
+[01m[K/home/minh/gim60108_ws/src/gim_arm_hardware/include/gim_arm_hardware/gim_arm_system.hpp:17:10:[m[K [01;31m[Kfatal error: [m[Kpinocchio/multibody/model.hpp: No such file or directory
+   17 | #include [01;31m[K"pinocchio/multibody/model.hpp"[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+gmake[2]: *** [CMakeFiles/gim_arm_system_hardware.dir/build.make:79: CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:153: CMakeFiles/gim_arm_system_hardware.dir/all] Error 2
+gmake: *** [Makefile:146: all] Error 2

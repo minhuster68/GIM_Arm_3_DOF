@@ -100,7 +100,6 @@ libgim_arm_system_hardware.so: /opt/ros/humble/lib/libmock_components.so
 libgim_arm_system_hardware.so: /opt/ros/humble/lib/libhardware_interface.so
 libgim_arm_system_hardware.so: /opt/ros/humble/lib/librclcpp_lifecycle.so
 libgim_arm_system_hardware.so: /opt/ros/humble/lib/libclass_loader.so
-libgim_arm_system_hardware.so: /usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0
 libgim_arm_system_hardware.so: /usr/lib/x86_64-linux-gnu/libtinyxml2.so
 libgim_arm_system_hardware.so: /opt/ros/humble/lib/librclcpp.so
 libgim_arm_system_hardware.so: /opt/ros/humble/lib/liblibstatistics_collector.so
@@ -222,6 +221,19 @@ libgim_arm_system_hardware.so: /opt/ros/humble/lib/librcpputils.so
 libgim_arm_system_hardware.so: /opt/ros/humble/lib/librosidl_runtime_c.so
 libgim_arm_system_hardware.so: /opt/ros/humble/lib/librcutils.so
 libgim_arm_system_hardware.so: /usr/lib/x86_64-linux-gnu/libpython3.10.so
+libgim_arm_system_hardware.so: /opt/ros/humble/lib/x86_64-linux-gnu/libpinocchio_parsers.so.4.0.0
+libgim_arm_system_hardware.so: /opt/ros/humble/lib/x86_64-linux-gnu/liburdfdom_sensor.so.3.0
+libgim_arm_system_hardware.so: /opt/ros/humble/lib/x86_64-linux-gnu/liburdfdom_model.so.3.0
+libgim_arm_system_hardware.so: /opt/ros/humble/lib/x86_64-linux-gnu/liburdfdom_world.so.3.0
+libgim_arm_system_hardware.so: /usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0
+libgim_arm_system_hardware.so: /usr/lib/x86_64-linux-gnu/libtinyxml.so
+libgim_arm_system_hardware.so: /opt/ros/humble/lib/x86_64-linux-gnu/libpinocchio_collision.so.4.0.0
+libgim_arm_system_hardware.so: /opt/ros/humble/lib/x86_64-linux-gnu/libpinocchio_default.so.4.0.0
+libgim_arm_system_hardware.so: /opt/ros/humble/lib/x86_64-linux-gnu/libcoal.so.3.0.3
+libgim_arm_system_hardware.so: /usr/lib/x86_64-linux-gnu/libboost_filesystem.so
+libgim_arm_system_hardware.so: /usr/lib/x86_64-linux-gnu/libboost_serialization.so
+libgim_arm_system_hardware.so: /opt/ros/humble/lib/x86_64-linux-gnu/liboctomap.so.1.9.8
+libgim_arm_system_hardware.so: /opt/ros/humble/lib/x86_64-linux-gnu/liboctomath.so.1.9.8
 libgim_arm_system_hardware.so: CMakeFiles/gim_arm_system_hardware.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX shared library libgim_arm_system_hardware.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/gim_arm_system_hardware.dir/link.txt --verbose=$(VERBOSE)

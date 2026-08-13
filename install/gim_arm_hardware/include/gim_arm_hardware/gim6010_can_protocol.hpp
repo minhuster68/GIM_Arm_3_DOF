@@ -21,6 +21,7 @@
 // Both are plain little-endian uint32 pairs -- see pack_u32_le() below.
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 
@@ -59,6 +60,13 @@ enum class CmdId : uint8_t {
   SaveConfiguration      = 0x01F,
 };
 
+// Internal gearbox of the GIM6010-8 itself, i.e. what the firmware means by
+// "output shaft" in the Mit_Control note above. A joint whose total ratio is
+// larger than this has an EXTRA gearbox bolted on outside the motor, which the
+// firmware cannot know about -- the host must convert for it. See
+// external_ratios_ in gim_arm_system.hpp.
+constexpr double kInternalGearRatio = 8.0;
+
 inline uint32_t make_can_id(uint8_t node_id, CmdId cmd) {
   return (static_cast<uint32_t>(node_id) << 5) | static_cast<uint32_t>(cmd);
 }
@@ -77,10 +85,28 @@ constexpr double kKpMin  = 0.0,   kKpMax  = 500.0; // Nm/rad, 12 bit
 constexpr double kKdMin  = 0.0,   kKdMax  = 5.0;   // Nm*s/rad, 12 bit
 constexpr double kTrqMin = -50.0, kTrqMax = 50.0;  // Nm, output shaft, 12 bit
 
+// LAM TRON, khong cat. Truoc day dung static_cast<uint16_t> truc tiep, tuc la
+// CAT xuong (truncate toward zero). Vi (x - lo) luon >= 0 sau khi clamp, phep
+// cat luon lech ve phia `lo` -- KHONG phai nhieu doi xung ma la SAI SO MOT
+// CHIEU. Voi field torque (lo = -50 Nm) nghia la mo-men gui xuong luon nho hon
+// mong muon, do lech trung binh nua LSB.
+//
+// Con so do duoc (200 gia tri g(q) ngau nhien, quy ve phia khop):
+//   base/elbow (r=1): trung binh -0.0127 Nm  -> khong dang ke
+//   shoulder   (r=8): trung binh -0.0947 Nm, |max| 0.193 Nm
+// Shoulder nang vi send_mit_command() chia mo-men cho r truoc khi ma hoa, roi
+// hop so ngoai nhan lai r lan -- sai so ma hoa bi nhan theo.
+//
+// -0.095 Nm bu THIEU mot chieu o shoulder trong y het "khoi luong trong URDF
+// thap hon that ~2.4%", nen se lam sai ket luan cua phep thu troi tu do (dat
+// mit_kp = 0, torque_ff = g(q), xem tay may co lo lung khong). Doi sang lround
+// thi lech trung binh con -0.0019 Nm va het lech mot chieu.
 inline uint16_t encode_range(double x, double lo, double hi, int bits) {
   x = std::clamp(x, lo, hi);
   const double scale = static_cast<double>((1u << bits) - 1);
-  return static_cast<uint16_t>((x - lo) * scale / (hi - lo));
+  // Sau clamp, bieu thuc nam trong [0, scale] nen lround khong the vuot uint16
+  // voi bits <= 16 (Mit_Control dung nhieu nhat 16 bit cho vi tri).
+  return static_cast<uint16_t>(std::lround((x - lo) * scale / (hi - lo)));
 }
 
 inline double decode_range(uint16_t x_int, double lo, double hi, int bits) {

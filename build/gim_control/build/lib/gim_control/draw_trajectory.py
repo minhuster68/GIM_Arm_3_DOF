@@ -197,7 +197,13 @@ def main():
 
     from gim_control.shapes import letter_o, discretize
 
-    path_o = letter_o(center=(-0.045, 0.7), radius=0.07, plane="x", plane_value=0.2)
+    # Vùng vẽ ĐÃ KIỂM CHỨNG với tới được 60/60 điểm (kinematics_test/
+    # fit_drawable_circle.py). Cấu hình cũ center=(-0.045,0.7) r=0.07 x=0.2 chọn
+    # theo bounding box của scan_workspace.py nên chỉ 16/60 điểm với tới được --
+    # IK không hội tụ điểm nào và hàm này luôn thoát mà không gửi gì.
+    # r=0.035 cũng đạt 60/60 nhưng dư biên khớp chỉ 0.026 rad; 0.025 dư 0.081 rad.
+    # ĐỔI Ở ĐÂY thì phải đổi SHAPE_KW trong src/gim_arm_mujoco/replay_trajectory.py.
+    path_o = letter_o(center=(-0.3021, 0.1447), radius=0.025, plane="x", plane_value=0.1)
     positions = discretize(path_o, n_points=60, close_loop=True)
 
     results = kin.solve_trajectory(positions)

@@ -1,6 +1,7 @@
 from launch import LaunchDescription
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -12,7 +13,13 @@ def generate_launch_description():
             FindPackageShare("gim_arm_description"), "urdf", "gim_arm_origin.urdf"
         ]),
     ])
-    robot_description = {"robot_description": robot_description_content}
+    # value_type=str là BẮT BUỘC (xem giải thích dài trong display.launch.py):
+    # thiếu nó thì launch_ros thử yaml.safe_load() lên nội dung URDF, và một
+    # dòng comment chứa ": " sẽ làm launch chết với "Unable to parse the value
+    # of parameter robot_description as yaml".
+    robot_description = {
+        "robot_description": ParameterValue(robot_description_content, value_type=str)
+    }
 
     robot_state_publisher_node = Node(
         package="robot_state_publisher",

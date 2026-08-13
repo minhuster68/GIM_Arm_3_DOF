@@ -17,6 +17,7 @@
 			"set_target_properties",
 			"include",
 			"find_package",
+			"find_dependency",
 			"add_compile_options",
 			"target_include_directories"
 		],
@@ -29,10 +30,6 @@
 			"/opt/ros/humble/share/pluginlib/cmake/pluginlibConfig.cmake",
 			"/opt/ros/humble/share/hardware_interface/cmake/ament_cmake_export_dependencies-extras.cmake",
 			"/opt/ros/humble/share/hardware_interface/cmake/hardware_interfaceConfig.cmake",
-			"/opt/ros/humble/share/class_loader/cmake/class_loaderExport.cmake",
-			"/opt/ros/humble/share/class_loader/cmake/ament_cmake_export_targets-extras.cmake",
-			"/opt/ros/humble/share/class_loader/cmake/class_loaderConfig.cmake",
-			"/opt/ros/humble/share/pluginlib/cmake/ament_cmake_export_dependencies-extras.cmake",
 			"/opt/ros/humble/share/rclcpp/cmake/rclcppExport.cmake",
 			"/opt/ros/humble/share/rclcpp/cmake/ament_cmake_export_targets-extras.cmake",
 			"/opt/ros/humble/share/rclcpp/cmake/rclcppConfig.cmake",
@@ -76,7 +73,20 @@
 			"/opt/ros/humble/share/rcutils/cmake/rcutilsConfig.cmake",
 			"/opt/ros/humble/share/rosidl_runtime_c/cmake/ament_cmake_export_dependencies-extras.cmake",
 			"/opt/ros/humble/share/rosidl_runtime_c/cmake/rosidl_runtime_cConfig.cmake",
-			"/opt/ros/humble/share/rcl_interfaces/cmake/export_rcl_interfaces__rosidl_generator_pyExport.cmake"
+			"/opt/ros/humble/share/rcl_interfaces/cmake/export_rcl_interfaces__rosidl_generator_pyExport.cmake",
+			"/opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioTargets.cmake",
+			"/opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake",
+			"/opt/ros/humble/lib/x86_64-linux-gnu/urdfdom/cmake/urdfdomExport.cmake",
+			"/opt/ros/humble/lib/x86_64-linux-gnu/urdfdom/cmake/urdfdom-config.cmake",
+			"/home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake",
+			"/opt/ros/humble/share/class_loader/cmake/class_loaderExport.cmake",
+			"/opt/ros/humble/share/class_loader/cmake/ament_cmake_export_targets-extras.cmake",
+			"/opt/ros/humble/share/class_loader/cmake/class_loaderConfig.cmake",
+			"/opt/ros/humble/share/pluginlib/cmake/ament_cmake_export_dependencies-extras.cmake",
+			"/opt/ros/humble/lib/x86_64-linux-gnu/cmake/coal/coalTargets.cmake",
+			"/opt/ros/humble/lib/x86_64-linux-gnu/cmake/coal/coalConfig.cmake",
+			"/opt/ros/humble/share/octomap/octomap-targets.cmake",
+			"/opt/ros/humble/share/octomap/octomap-config.cmake"
 		],
 		"nodes" : 
 		[
@@ -86,19 +96,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 16,
+				"line" : 26,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 37,
+				"line" : 67,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 26,
+				"line" : 50,
 				"parent" : 0
 			},
 			{
@@ -164,86 +174,40 @@
 				"parent" : 14
 			},
 			{
-				"command" : 5,
-				"file" : 4,
-				"line" : 41,
-				"parent" : 10
-			},
-			{
-				"file" : 10,
-				"parent" : 16
-			},
-			{
-				"command" : 6,
-				"file" : 10,
-				"line" : 21,
-				"parent" : 17
-			},
-			{
-				"file" : 9,
-				"parent" : 18
-			},
-			{
-				"command" : 5,
-				"file" : 9,
-				"line" : 41,
-				"parent" : 19
-			},
-			{
-				"file" : 8,
-				"parent" : 20
-			},
-			{
-				"command" : 5,
-				"file" : 8,
-				"line" : 9,
-				"parent" : 21
-			},
-			{
-				"file" : 7,
-				"parent" : 22
-			},
-			{
-				"command" : 4,
-				"file" : 7,
-				"line" : 56,
-				"parent" : 23
-			},
-			{
 				"command" : 6,
 				"file" : 0,
 				"line" : 10,
 				"parent" : 0
 			},
 			{
-				"file" : 13,
-				"parent" : 25
+				"file" : 9,
+				"parent" : 16
 			},
 			{
 				"command" : 5,
-				"file" : 13,
+				"file" : 9,
 				"line" : 41,
-				"parent" : 26
+				"parent" : 17
 			},
 			{
-				"file" : 12,
-				"parent" : 27
+				"file" : 8,
+				"parent" : 18
 			},
 			{
 				"command" : 5,
-				"file" : 12,
+				"file" : 8,
 				"line" : 9,
-				"parent" : 28
+				"parent" : 19
 			},
 			{
-				"file" : 11,
-				"parent" : 29
+				"file" : 7,
+				"parent" : 20
 			},
 			{
 				"command" : 4,
-				"file" : 11,
+				"file" : 7,
 				"line" : 56,
-				"parent" : 30
+				"parent" : 21
 			},
 			{
 				"command" : 6,
@@ -252,146 +216,146 @@
 				"parent" : 8
 			},
 			{
-				"file" : 16,
+				"file" : 12,
+				"parent" : 23
+			},
+			{
+				"command" : 5,
+				"file" : 12,
+				"line" : 41,
+				"parent" : 24
+			},
+			{
+				"file" : 11,
+				"parent" : 25
+			},
+			{
+				"command" : 5,
+				"file" : 11,
+				"line" : 9,
+				"parent" : 26
+			},
+			{
+				"file" : 10,
+				"parent" : 27
+			},
+			{
+				"command" : 4,
+				"file" : 10,
+				"line" : 56,
+				"parent" : 28
+			},
+			{
+				"command" : 5,
+				"file" : 9,
+				"line" : 41,
+				"parent" : 17
+			},
+			{
+				"file" : 20,
+				"parent" : 30
+			},
+			{
+				"command" : 6,
+				"file" : 20,
+				"line" : 21,
+				"parent" : 31
+			},
+			{
+				"file" : 19,
 				"parent" : 32
 			},
 			{
 				"command" : 5,
-				"file" : 16,
+				"file" : 19,
 				"line" : 41,
 				"parent" : 33
 			},
 			{
-				"file" : 15,
+				"file" : 18,
 				"parent" : 34
 			},
 			{
-				"command" : 5,
-				"file" : 15,
-				"line" : 9,
+				"command" : 6,
+				"file" : 18,
+				"line" : 21,
 				"parent" : 35
 			},
 			{
-				"file" : 14,
+				"file" : 17,
 				"parent" : 36
 			},
 			{
-				"command" : 4,
-				"file" : 14,
-				"line" : 56,
+				"command" : 5,
+				"file" : 17,
+				"line" : 41,
 				"parent" : 37
 			},
 			{
-				"command" : 5,
-				"file" : 13,
-				"line" : 41,
-				"parent" : 26
+				"file" : 16,
+				"parent" : 38
 			},
 			{
-				"file" : 24,
+				"command" : 6,
+				"file" : 16,
+				"line" : 21,
 				"parent" : 39
 			},
 			{
-				"command" : 6,
-				"file" : 24,
-				"line" : 21,
+				"file" : 15,
 				"parent" : 40
 			},
 			{
-				"file" : 23,
+				"command" : 5,
+				"file" : 15,
+				"line" : 41,
 				"parent" : 41
 			},
 			{
-				"command" : 5,
-				"file" : 23,
-				"line" : 41,
+				"file" : 14,
 				"parent" : 42
 			},
 			{
-				"file" : 22,
+				"command" : 5,
+				"file" : 14,
+				"line" : 9,
 				"parent" : 43
 			},
 			{
-				"command" : 6,
-				"file" : 22,
-				"line" : 21,
+				"file" : 13,
 				"parent" : 44
 			},
 			{
-				"file" : 21,
+				"command" : 4,
+				"file" : 13,
+				"line" : 56,
 				"parent" : 45
 			},
 			{
 				"command" : 5,
-				"file" : 21,
+				"file" : 17,
 				"line" : 41,
-				"parent" : 46
+				"parent" : 37
 			},
 			{
-				"file" : 20,
+				"file" : 22,
 				"parent" : 47
 			},
 			{
-				"command" : 6,
-				"file" : 20,
-				"line" : 21,
+				"command" : 5,
+				"file" : 22,
+				"line" : 9,
 				"parent" : 48
 			},
 			{
-				"file" : 19,
+				"file" : 21,
 				"parent" : 49
 			},
 			{
-				"command" : 5,
-				"file" : 19,
-				"line" : 41,
-				"parent" : 50
-			},
-			{
-				"file" : 18,
-				"parent" : 51
-			},
-			{
-				"command" : 5,
-				"file" : 18,
-				"line" : 9,
-				"parent" : 52
-			},
-			{
-				"file" : 17,
-				"parent" : 53
-			},
-			{
 				"command" : 4,
-				"file" : 17,
-				"line" : 56,
-				"parent" : 54
-			},
-			{
-				"command" : 5,
 				"file" : 21,
-				"line" : 41,
-				"parent" : 46
-			},
-			{
-				"file" : 26,
-				"parent" : 56
-			},
-			{
-				"command" : 5,
-				"file" : 26,
-				"line" : 9,
-				"parent" : 57
-			},
-			{
-				"file" : 25,
-				"parent" : 58
-			},
-			{
-				"command" : 4,
-				"file" : 25,
 				"line" : 56,
-				"parent" : 59
+				"parent" : 50
 			},
 			{
 				"command" : 5,
@@ -400,24 +364,24 @@
 				"parent" : 6
 			},
 			{
-				"file" : 28,
-				"parent" : 61
+				"file" : 24,
+				"parent" : 52
 			},
 			{
 				"command" : 5,
-				"file" : 28,
+				"file" : 24,
 				"line" : 9,
-				"parent" : 62
+				"parent" : 53
 			},
 			{
-				"file" : 27,
-				"parent" : 63
+				"file" : 23,
+				"parent" : 54
 			},
 			{
 				"command" : 4,
-				"file" : 27,
+				"file" : 23,
 				"line" : 74,
-				"parent" : 64
+				"parent" : 55
 			},
 			{
 				"command" : 6,
@@ -426,357 +390,555 @@
 				"parent" : 8
 			},
 			{
-				"file" : 31,
-				"parent" : 66
+				"file" : 27,
+				"parent" : 57
 			},
 			{
 				"command" : 5,
-				"file" : 31,
+				"file" : 27,
 				"line" : 41,
-				"parent" : 67
+				"parent" : 58
 			},
 			{
-				"file" : 30,
-				"parent" : 68
+				"file" : 26,
+				"parent" : 59
 			},
 			{
 				"command" : 5,
-				"file" : 30,
+				"file" : 26,
 				"line" : 9,
-				"parent" : 69
+				"parent" : 60
+			},
+			{
+				"file" : 25,
+				"parent" : 61
+			},
+			{
+				"command" : 4,
+				"file" : 25,
+				"line" : 56,
+				"parent" : 62
+			},
+			{
+				"command" : 5,
+				"file" : 26,
+				"line" : 9,
+				"parent" : 60
+			},
+			{
+				"file" : 28,
+				"parent" : 64
+			},
+			{
+				"command" : 4,
+				"file" : 28,
+				"line" : 56,
+				"parent" : 65
+			},
+			{
+				"command" : 5,
+				"file" : 26,
+				"line" : 9,
+				"parent" : 60
 			},
 			{
 				"file" : 29,
-				"parent" : 70
+				"parent" : 67
 			},
 			{
 				"command" : 4,
 				"file" : 29,
+				"line" : 56,
+				"parent" : 68
+			},
+			{
+				"command" : 5,
+				"file" : 26,
+				"line" : 9,
+				"parent" : 60
+			},
+			{
+				"file" : 30,
+				"parent" : 70
+			},
+			{
+				"command" : 4,
+				"file" : 30,
 				"line" : 56,
 				"parent" : 71
 			},
 			{
 				"command" : 5,
-				"file" : 30,
+				"file" : 26,
 				"line" : 9,
-				"parent" : 69
+				"parent" : 60
 			},
 			{
-				"file" : 32,
+				"file" : 31,
 				"parent" : 73
 			},
 			{
 				"command" : 4,
-				"file" : 32,
+				"file" : 31,
 				"line" : 56,
 				"parent" : 74
 			},
 			{
 				"command" : 5,
-				"file" : 30,
+				"file" : 26,
 				"line" : 9,
-				"parent" : 69
+				"parent" : 60
 			},
 			{
-				"file" : 33,
+				"file" : 32,
 				"parent" : 76
 			},
 			{
 				"command" : 4,
-				"file" : 33,
+				"file" : 32,
 				"line" : 56,
 				"parent" : 77
 			},
 			{
 				"command" : 5,
-				"file" : 30,
+				"file" : 26,
 				"line" : 9,
-				"parent" : 69
+				"parent" : 60
 			},
 			{
-				"file" : 34,
+				"file" : 33,
 				"parent" : 79
 			},
 			{
 				"command" : 4,
-				"file" : 34,
+				"file" : 33,
 				"line" : 56,
 				"parent" : 80
 			},
 			{
 				"command" : 5,
-				"file" : 30,
+				"file" : 26,
 				"line" : 9,
-				"parent" : 69
+				"parent" : 60
 			},
 			{
-				"file" : 35,
+				"file" : 34,
 				"parent" : 82
 			},
 			{
 				"command" : 4,
-				"file" : 35,
+				"file" : 34,
 				"line" : 56,
 				"parent" : 83
 			},
 			{
-				"command" : 5,
-				"file" : 30,
-				"line" : 9,
-				"parent" : 69
+				"command" : 6,
+				"file" : 16,
+				"line" : 21,
+				"parent" : 39
 			},
 			{
-				"file" : 36,
+				"file" : 37,
 				"parent" : 85
 			},
 			{
-				"command" : 4,
-				"file" : 36,
-				"line" : 56,
+				"command" : 5,
+				"file" : 37,
+				"line" : 41,
 				"parent" : 86
 			},
 			{
-				"command" : 5,
-				"file" : 30,
-				"line" : 9,
-				"parent" : 69
+				"file" : 36,
+				"parent" : 87
 			},
 			{
-				"file" : 37,
+				"command" : 5,
+				"file" : 36,
+				"line" : 9,
 				"parent" : 88
 			},
 			{
-				"command" : 4,
-				"file" : 37,
-				"line" : 56,
+				"file" : 35,
 				"parent" : 89
 			},
 			{
-				"command" : 5,
-				"file" : 30,
-				"line" : 9,
-				"parent" : 69
-			},
-			{
-				"file" : 38,
-				"parent" : 91
-			},
-			{
 				"command" : 4,
-				"file" : 38,
+				"file" : 35,
 				"line" : 56,
+				"parent" : 90
+			},
+			{
+				"command" : 5,
+				"file" : 36,
+				"line" : 9,
+				"parent" : 88
+			},
+			{
+				"file" : 38,
 				"parent" : 92
 			},
 			{
-				"command" : 6,
-				"file" : 20,
-				"line" : 21,
-				"parent" : 48
-			},
-			{
-				"file" : 41,
-				"parent" : 94
+				"command" : 4,
+				"file" : 38,
+				"line" : 56,
+				"parent" : 93
 			},
 			{
 				"command" : 5,
-				"file" : 41,
-				"line" : 41,
+				"file" : 36,
+				"line" : 9,
+				"parent" : 88
+			},
+			{
+				"file" : 39,
 				"parent" : 95
 			},
 			{
-				"file" : 40,
+				"command" : 4,
+				"file" : 39,
+				"line" : 56,
 				"parent" : 96
 			},
 			{
-				"command" : 5,
-				"file" : 40,
-				"line" : 9,
-				"parent" : 97
+				"command" : 6,
+				"file" : 18,
+				"line" : 21,
+				"parent" : 35
 			},
 			{
-				"file" : 39,
+				"file" : 44,
 				"parent" : 98
 			},
 			{
-				"command" : 4,
-				"file" : 39,
-				"line" : 56,
+				"command" : 5,
+				"file" : 44,
+				"line" : 41,
 				"parent" : 99
 			},
 			{
-				"command" : 5,
-				"file" : 40,
-				"line" : 9,
-				"parent" : 97
+				"file" : 43,
+				"parent" : 100
 			},
 			{
-				"file" : 42,
+				"command" : 6,
+				"file" : 43,
+				"line" : 21,
 				"parent" : 101
 			},
 			{
-				"command" : 4,
 				"file" : 42,
-				"line" : 56,
 				"parent" : 102
 			},
 			{
 				"command" : 5,
-				"file" : 40,
-				"line" : 9,
-				"parent" : 97
+				"file" : 42,
+				"line" : 41,
+				"parent" : 103
 			},
 			{
-				"file" : 43,
+				"file" : 41,
 				"parent" : 104
 			},
 			{
-				"command" : 4,
-				"file" : 43,
-				"line" : 56,
+				"command" : 5,
+				"file" : 41,
+				"line" : 9,
 				"parent" : 105
 			},
 			{
-				"command" : 6,
-				"file" : 22,
-				"line" : 21,
-				"parent" : 44
+				"file" : 40,
+				"parent" : 106
 			},
 			{
-				"file" : 48,
+				"command" : 4,
+				"file" : 40,
+				"line" : 56,
 				"parent" : 107
 			},
 			{
-				"command" : 5,
-				"file" : 48,
-				"line" : 41,
-				"parent" : 108
+				"command" : 6,
+				"file" : 43,
+				"line" : 21,
+				"parent" : 101
 			},
 			{
-				"file" : 47,
+				"file" : 49,
 				"parent" : 109
 			},
 			{
-				"command" : 6,
-				"file" : 47,
-				"line" : 21,
+				"command" : 5,
+				"file" : 49,
+				"line" : 41,
 				"parent" : 110
 			},
 			{
-				"file" : 46,
+				"file" : 48,
 				"parent" : 111
 			},
 			{
-				"command" : 5,
-				"file" : 46,
-				"line" : 41,
+				"command" : 6,
+				"file" : 48,
+				"line" : 21,
 				"parent" : 112
 			},
 			{
-				"file" : 45,
+				"file" : 47,
 				"parent" : 113
 			},
 			{
 				"command" : 5,
-				"file" : 45,
-				"line" : 9,
+				"file" : 47,
+				"line" : 41,
 				"parent" : 114
 			},
 			{
-				"file" : 44,
+				"file" : 46,
 				"parent" : 115
 			},
 			{
-				"command" : 4,
-				"file" : 44,
-				"line" : 56,
+				"command" : 5,
+				"file" : 46,
+				"line" : 9,
 				"parent" : 116
 			},
 			{
-				"command" : 6,
-				"file" : 47,
-				"line" : 21,
-				"parent" : 110
+				"file" : 45,
+				"parent" : 117
 			},
 			{
-				"file" : 53,
+				"command" : 4,
+				"file" : 45,
+				"line" : 56,
 				"parent" : 118
 			},
 			{
 				"command" : 5,
-				"file" : 53,
-				"line" : 41,
-				"parent" : 119
+				"file" : 36,
+				"line" : 9,
+				"parent" : 88
 			},
 			{
-				"file" : 52,
+				"file" : 50,
 				"parent" : 120
 			},
 			{
-				"command" : 6,
-				"file" : 52,
-				"line" : 21,
+				"command" : 4,
+				"file" : 50,
+				"line" : 56,
 				"parent" : 121
 			},
 			{
-				"file" : 51,
-				"parent" : 122
+				"command" : 6,
+				"file" : 0,
+				"line" : 23,
+				"parent" : 0
 			},
 			{
-				"command" : 5,
-				"file" : 51,
-				"line" : 41,
+				"file" : 52,
 				"parent" : 123
 			},
 			{
-				"file" : 50,
+				"command" : 5,
+				"file" : 52,
+				"line" : 199,
 				"parent" : 124
 			},
 			{
-				"command" : 5,
-				"file" : 50,
-				"line" : 9,
+				"file" : 51,
 				"parent" : 125
 			},
 			{
-				"file" : 49,
+				"command" : 4,
+				"file" : 51,
+				"line" : 111,
 				"parent" : 126
 			},
 			{
-				"command" : 4,
-				"file" : 49,
-				"line" : 56,
-				"parent" : 127
+				"command" : 7,
+				"file" : 52,
+				"line" : 182,
+				"parent" : 124
 			},
 			{
-				"command" : 5,
-				"file" : 40,
-				"line" : 9,
-				"parent" : 97
+				"command" : 6,
+				"file" : 55,
+				"line" : 78,
+				"parent" : 128
 			},
 			{
 				"file" : 54,
 				"parent" : 129
 			},
 			{
-				"command" : 4,
+				"command" : 5,
 				"file" : 54,
-				"line" : 56,
+				"line" : 42,
 				"parent" : 130
 			},
 			{
+				"file" : 53,
+				"parent" : 131
+			},
+			{
+				"command" : 4,
+				"file" : 53,
+				"line" : 97,
+				"parent" : 132
+			},
+			{
+				"command" : 5,
+				"file" : 4,
+				"line" : 41,
+				"parent" : 10
+			},
+			{
+				"file" : 59,
+				"parent" : 134
+			},
+			{
+				"command" : 6,
+				"file" : 59,
+				"line" : 21,
+				"parent" : 135
+			},
+			{
+				"file" : 58,
+				"parent" : 136
+			},
+			{
+				"command" : 5,
+				"file" : 58,
+				"line" : 41,
+				"parent" : 137
+			},
+			{
+				"file" : 57,
+				"parent" : 138
+			},
+			{
+				"command" : 5,
+				"file" : 57,
+				"line" : 9,
+				"parent" : 139
+			},
+			{
+				"file" : 56,
+				"parent" : 140
+			},
+			{
+				"command" : 4,
+				"file" : 56,
+				"line" : 56,
+				"parent" : 141
+			},
+			{
+				"command" : 4,
+				"file" : 53,
+				"line" : 57,
+				"parent" : 132
+			},
+			{
+				"command" : 4,
+				"file" : 51,
+				"line" : 75,
+				"parent" : 126
+			},
+			{
+				"command" : 4,
+				"file" : 51,
+				"line" : 93,
+				"parent" : 126
+			},
+			{
+				"command" : 4,
+				"file" : 51,
+				"line" : 57,
+				"parent" : 126
+			},
+			{
 				"command" : 7,
+				"file" : 52,
+				"line" : 186,
+				"parent" : 124
+			},
+			{
+				"command" : 6,
+				"file" : 55,
+				"line" : 78,
+				"parent" : 147
+			},
+			{
+				"file" : 61,
+				"parent" : 148
+			},
+			{
+				"command" : 5,
+				"file" : 61,
+				"line" : 168,
+				"parent" : 149
+			},
+			{
+				"file" : 60,
+				"parent" : 150
+			},
+			{
+				"command" : 4,
+				"file" : 60,
+				"line" : 57,
+				"parent" : 151
+			},
+			{
+				"command" : 7,
+				"file" : 61,
+				"line" : 155,
+				"parent" : 149
+			},
+			{
+				"command" : 6,
+				"file" : 55,
+				"line" : 78,
+				"parent" : 153
+			},
+			{
+				"file" : 63,
+				"parent" : 154
+			},
+			{
+				"command" : 5,
+				"file" : 63,
+				"line" : 77,
+				"parent" : 155
+			},
+			{
+				"file" : 62,
+				"parent" : 156
+			},
+			{
+				"command" : 4,
+				"file" : 62,
+				"line" : 69,
+				"parent" : 157
+			},
+			{
+				"command" : 8,
 				"file" : 0,
 				"line" : 5,
 				"parent" : 0
 			},
 			{
-				"command" : 8,
+				"command" : 2,
 				"file" : 0,
-				"line" : 21,
+				"line" : 59,
 				"parent" : 0
 			},
 			{
-				"command" : 8,
+				"command" : 9,
+				"file" : 0,
+				"line" : 45,
+				"parent" : 0
+			},
+			{
+				"command" : 9,
 				"file" : 1,
 				"line" : 141,
 				"parent" : 3
@@ -789,23 +951,47 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-fPIC"
+					"fragment" : "-std=gnu++17 -fPIC"
 				},
 				{
-					"backtrace" : 132,
+					"backtrace" : 159,
 					"fragment" : "-Wall"
 				},
 				{
-					"backtrace" : 132,
+					"backtrace" : 159,
 					"fragment" : "-Wextra"
 				},
 				{
-					"backtrace" : 132,
+					"backtrace" : 159,
 					"fragment" : "-Wpedantic"
 				}
 			],
 			"defines" : 
 			[
+				{
+					"backtrace" : 160,
+					"define" : "BOOST_FUSION_INVOKE_MAX_ARITY=12"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "BOOST_MPL_LIMIT_LIST_SIZE=30"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "BOOST_MPL_LIMIT_VECTOR_SIZE=30"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "COAL_HAS_OCTOMAP"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "COAL_HAVE_OCTOMAP"
+				},
 				{
 					"backtrace" : 4,
 					"define" : "DEFAULT_RMW_IMPLEMENTATION=rmw_fastrtps_cpp"
@@ -813,6 +999,34 @@
 				{
 					"backtrace" : 4,
 					"define" : "FASTCDR_DYN_LINK"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "OCTOMAP_MAJOR_VERSION=1"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "OCTOMAP_MINOR_VERSION=9"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "OCTOMAP_PATCH_VERSION=7"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "PINOCCHIO_ENABLE_TEMPLATE_INSTANTIATION"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "PINOCCHIO_WITH_COLLISION"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "PINOCCHIO_WITH_HPP_FCL"
+				},
+				{
+					"backtrace" : 160,
+					"define" : "PINOCCHIO_WITH_URDFDOM"
 				},
 				{
 					"backtrace" : 4,
@@ -825,26 +1039,26 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 133,
+					"backtrace" : 161,
 					"path" : "/home/minh/gim60108_ws/src/gim_arm_hardware/include"
 				},
 				{
-					"backtrace" : 134,
+					"backtrace" : 162,
 					"isSystem" : true,
 					"path" : "/opt/ros/humble/include/rclcpp"
 				},
 				{
-					"backtrace" : 134,
+					"backtrace" : 162,
 					"isSystem" : true,
 					"path" : "/opt/ros/humble/include/hardware_interface"
 				},
 				{
-					"backtrace" : 134,
+					"backtrace" : 162,
 					"isSystem" : true,
 					"path" : "/opt/ros/humble/include/pluginlib"
 				},
 				{
-					"backtrace" : 134,
+					"backtrace" : 162,
 					"isSystem" : true,
 					"path" : "/opt/ros/humble/include/rclcpp_lifecycle"
 				},
@@ -1017,9 +1231,43 @@
 					"backtrace" : 4,
 					"isSystem" : true,
 					"path" : "/opt/ros/humble/include/trajectory_msgs"
+				},
+				{
+					"backtrace" : 160,
+					"isSystem" : true,
+					"path" : "/opt/ros/humble/include"
+				},
+				{
+					"backtrace" : 160,
+					"isSystem" : true,
+					"path" : "/usr/include/eigen3"
+				},
+				{
+					"backtrace" : 160,
+					"isSystem" : true,
+					"path" : "/opt/ros/humble/include/pinocchio/deprecated"
+				},
+				{
+					"backtrace" : 160,
+					"isSystem" : true,
+					"path" : "/opt/ros/humble/include/urdfdom"
+				},
+				{
+					"backtrace" : 160,
+					"isSystem" : true,
+					"path" : "/opt/ros/humble/include/urdfdom_headers"
 				}
 			],
 			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					4,
+					160
+				],
+				"standard" : "17"
+			},
 			"sourceIndexes" : 
 			[
 				0
@@ -1054,7 +1302,7 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-Wl,-rpath,/opt/ros/humble/lib:",
+				"fragment" : "-Wl,-rpath,/opt/ros/humble/lib:/opt/ros/humble/lib/x86_64-linux-gnu:",
 				"role" : "libraries"
 			},
 			{
@@ -1083,11 +1331,6 @@
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 24,
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0",
-				"role" : "libraries"
-			},
-			{
 				"backtrace" : 15,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
 				"role" : "libraries"
@@ -1098,608 +1341,673 @@
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/liblibstatistics_collector.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librosgraph_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librosgraph_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librosgraph_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librosgraph_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librosgraph_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librosgraph_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librosgraph_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librosgraph_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libstatistics_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libstatistics_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libstatistics_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libstatistics_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libstatistics_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libstatistics_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libstatistics_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libstatistics_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 38,
+				"backtrace" : 29,
 				"fragment" : "/opt/ros/humble/lib/librcl_lifecycle.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl_interfaces__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl_interfaces__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl_interfaces__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl_interfaces__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl_interfaces__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl_interfaces__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl_interfaces__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl_interfaces__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcl_yaml_param_parser.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 55,
+				"backtrace" : 46,
 				"fragment" : "/opt/ros/humble/lib/libyaml.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 60,
+				"backtrace" : 51,
 				"fragment" : "/opt/ros/humble/lib/librmw_implementation.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libament_index_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 60,
+				"backtrace" : 51,
 				"fragment" : "/opt/ros/humble/lib/librcl_logging_spdlog.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 60,
+				"backtrace" : 51,
 				"fragment" : "/opt/ros/humble/lib/librcl_logging_interface.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libtracetools.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libtinyxml2.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/libcontrol_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 72,
+				"backtrace" : 63,
 				"fragment" : "/opt/ros/humble/lib/libaction_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 72,
+				"backtrace" : 63,
 				"fragment" : "/opt/ros/humble/lib/libunique_identifier_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 72,
+				"backtrace" : 63,
 				"fragment" : "/opt/ros/humble/lib/libsensor_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 72,
+				"backtrace" : 63,
 				"fragment" : "/opt/ros/humble/lib/libtrajectory_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 72,
+				"backtrace" : 63,
 				"fragment" : "/opt/ros/humble/lib/libgeometry_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 72,
+				"backtrace" : 63,
 				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/libcontrol_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 75,
+				"backtrace" : 66,
 				"fragment" : "/opt/ros/humble/lib/libaction_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 75,
+				"backtrace" : 66,
 				"fragment" : "/opt/ros/humble/lib/libunique_identifier_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 75,
+				"backtrace" : 66,
 				"fragment" : "/opt/ros/humble/lib/libsensor_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 75,
+				"backtrace" : 66,
 				"fragment" : "/opt/ros/humble/lib/libtrajectory_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 75,
+				"backtrace" : 66,
 				"fragment" : "/opt/ros/humble/lib/libgeometry_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 75,
+				"backtrace" : 66,
 				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/libcontrol_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 78,
+				"backtrace" : 69,
 				"fragment" : "/opt/ros/humble/lib/libaction_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 78,
+				"backtrace" : 69,
 				"fragment" : "/opt/ros/humble/lib/libunique_identifier_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 78,
+				"backtrace" : 69,
 				"fragment" : "/opt/ros/humble/lib/libsensor_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 78,
+				"backtrace" : 69,
 				"fragment" : "/opt/ros/humble/lib/libtrajectory_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 78,
+				"backtrace" : 69,
 				"fragment" : "/opt/ros/humble/lib/libgeometry_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 78,
+				"backtrace" : 69,
 				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/libcontrol_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 81,
+				"backtrace" : 72,
 				"fragment" : "/opt/ros/humble/lib/libaction_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 81,
+				"backtrace" : 72,
 				"fragment" : "/opt/ros/humble/lib/libunique_identifier_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 81,
+				"backtrace" : 72,
 				"fragment" : "/opt/ros/humble/lib/libsensor_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 81,
+				"backtrace" : 72,
 				"fragment" : "/opt/ros/humble/lib/libtrajectory_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 81,
+				"backtrace" : 72,
 				"fragment" : "/opt/ros/humble/lib/libgeometry_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 81,
+				"backtrace" : 72,
 				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/libcontrol_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 84,
+				"backtrace" : 75,
 				"fragment" : "/opt/ros/humble/lib/libaction_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 84,
+				"backtrace" : 75,
 				"fragment" : "/opt/ros/humble/lib/libunique_identifier_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 84,
+				"backtrace" : 75,
 				"fragment" : "/opt/ros/humble/lib/libsensor_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 84,
+				"backtrace" : 75,
 				"fragment" : "/opt/ros/humble/lib/libtrajectory_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 84,
+				"backtrace" : 75,
 				"fragment" : "/opt/ros/humble/lib/libgeometry_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 84,
+				"backtrace" : 75,
 				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/libcontrol_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/libcontrol_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/libcontrol_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 87,
+				"backtrace" : 78,
 				"fragment" : "/opt/ros/humble/lib/libaction_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 90,
+				"backtrace" : 81,
 				"fragment" : "/opt/ros/humble/lib/libaction_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 93,
+				"backtrace" : 84,
 				"fragment" : "/opt/ros/humble/lib/libaction_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 87,
+				"backtrace" : 78,
 				"fragment" : "/opt/ros/humble/lib/libunique_identifier_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 90,
+				"backtrace" : 81,
 				"fragment" : "/opt/ros/humble/lib/libunique_identifier_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 93,
+				"backtrace" : 84,
 				"fragment" : "/opt/ros/humble/lib/libunique_identifier_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 87,
+				"backtrace" : 78,
 				"fragment" : "/opt/ros/humble/lib/libsensor_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 90,
+				"backtrace" : 81,
 				"fragment" : "/opt/ros/humble/lib/libsensor_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 93,
+				"backtrace" : 84,
 				"fragment" : "/opt/ros/humble/lib/libsensor_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 87,
+				"backtrace" : 78,
 				"fragment" : "/opt/ros/humble/lib/libtrajectory_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 90,
+				"backtrace" : 81,
 				"fragment" : "/opt/ros/humble/lib/libtrajectory_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 93,
+				"backtrace" : 84,
 				"fragment" : "/opt/ros/humble/lib/libtrajectory_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 87,
+				"backtrace" : 78,
 				"fragment" : "/opt/ros/humble/lib/libgeometry_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 90,
+				"backtrace" : 81,
 				"fragment" : "/opt/ros/humble/lib/libgeometry_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 93,
+				"backtrace" : 84,
 				"fragment" : "/opt/ros/humble/lib/libgeometry_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 87,
+				"backtrace" : 78,
 				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 90,
+				"backtrace" : 81,
 				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 93,
+				"backtrace" : 84,
 				"fragment" : "/opt/ros/humble/lib/libstd_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/libbuiltin_interfaces__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/liblifecycle_msgs__rosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 100,
+				"backtrace" : 91,
 				"fragment" : "/opt/ros/humble/lib/librosidl_typesupport_fastrtps_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/liblifecycle_msgs__rosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/liblifecycle_msgs__rosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 100,
+				"backtrace" : 91,
 				"fragment" : "/opt/ros/humble/lib/librosidl_typesupport_fastrtps_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 60,
+				"backtrace" : 51,
 				"fragment" : "/opt/ros/humble/lib/librmw.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 100,
+				"backtrace" : 91,
 				"fragment" : "/opt/ros/humble/lib/libfastcdr.so.1.0.29",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/liblifecycle_msgs__rosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 103,
+				"backtrace" : 94,
 				"fragment" : "/opt/ros/humble/lib/librosidl_typesupport_introspection_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 106,
+				"backtrace" : 97,
 				"fragment" : "/opt/ros/humble/lib/librosidl_typesupport_introspection_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/liblifecycle_msgs__rosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librosidl_typesupport_cpp.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/liblifecycle_msgs__rosidl_generator_py.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/liblifecycle_msgs__rosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 65,
+				"backtrace" : 56,
 				"fragment" : "/opt/ros/humble/lib/liblifecycle_msgs__rosidl_generator_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 117,
+				"backtrace" : 108,
 				"fragment" : "/opt/ros/humble/lib/librosidl_typesupport_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcpputils.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 60,
+				"backtrace" : 51,
 				"fragment" : "/opt/ros/humble/lib/librosidl_runtime_c.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 31,
+				"backtrace" : 22,
 				"fragment" : "/opt/ros/humble/lib/librcutils.so",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 128,
+				"backtrace" : 119,
 				"fragment" : "-ldl",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 128,
+				"backtrace" : 119,
 				"fragment" : "-latomic",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 131,
+				"backtrace" : 122,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libpython3.10.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 127,
+				"fragment" : "/opt/ros/humble/lib/x86_64-linux-gnu/libpinocchio_parsers.so.4.0.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 133,
+				"fragment" : "/opt/ros/humble/lib/x86_64-linux-gnu/liburdfdom_sensor.so.3.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 133,
+				"fragment" : "/opt/ros/humble/lib/x86_64-linux-gnu/liburdfdom_model.so.3.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 133,
+				"fragment" : "/opt/ros/humble/lib/x86_64-linux-gnu/liburdfdom_world.so.3.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 142,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libconsole_bridge.so.1.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 143,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libtinyxml.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 127,
+				"fragment" : "/opt/ros/humble/lib/x86_64-linux-gnu/libpinocchio_collision.so.4.0.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 127,
+				"fragment" : "/opt/ros/humble/lib/x86_64-linux-gnu/libpinocchio_default.so.4.0.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 144,
+				"fragment" : "/opt/ros/humble/lib/x86_64-linux-gnu/libcoal.so.3.0.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 145,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libboost_filesystem.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 146,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libboost_serialization.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 152,
+				"fragment" : "/opt/ros/humble/lib/x86_64-linux-gnu/liboctomap.so.1.9.8",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 158,
+				"fragment" : "/opt/ros/humble/lib/x86_64-linux-gnu/liboctomath.so.1.9.8",
 				"role" : "libraries"
 			}
 		],

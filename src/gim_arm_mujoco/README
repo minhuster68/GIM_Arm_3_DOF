@@ -81,3 +81,189 @@ odrv0.save_configuration()
 
 ros2 launch gim_arm_moveit_config move_group.launch.py
 ros2 launch gim_arm_moveit_config moveit_rviz.launch.py
+
+
+5. cach do GIOI HAN KHOP THAT bang odrivetool (thay so CAD trong <limit>)
+
+Gia tri <limit lower/upper> trong gim_arm.urdf ban dau la so CAD, chua do tren
+may that (base_joint la 0 / 1.57 = pi/2 -- so tron trinh, gan chac chan khong
+phai bien co khi that). Quy trinh duoi day thay bang so do that.
+
+--- BANG QUY DOI (nghich dao cua gim_arm_system.cpp:435-438) ---
+q_rad = dir * (turns_rotor / gear_total) * 2*pi - zero_offset
+zero_offset = 0 ca 3 khop (khong khai <param name="zero_offset_rad"> nao).
+
+  khop            node_id  gear_total  dir   rad / 1 turn    turns cho 45 do
+  base_joint         0          8      +1     +0.7853982          1.000
+  shoulder_joint     1         64      +1     +0.0981748          8.000
+  elbow_joint        2          8      -1     -0.7853982         -1.000
+
+gear_total cua shoulder la 64 (KHONG phai 8 nhu 2 khop kia) va elbow co
+dir = -1: lay tu <ros2_control> trong gim_arm.urdf.
+
+QUY TAC CHONG SAI DAU: quy doi CA HAI bien sang rad roi lay lower = min,
+upper = max. Lam vay thi viec trao lower/upper cua elbow tu dong dung.
+
+--- BUOC 0: KIEM CHUNG ROTOR-SIDE (cong chan, lam TRUOC moi so do) ---
+Code dung HAI quy uoc don vi khac nhau o hai chieu va chua ai kiem chung:
+  read()             (gim_arm_system.cpp:435-438) chia gear ratio TONG (8/64/8)
+                     => coi Get_Encoder_Estimates la turns ROTOR
+  send_mit_command() (gim_arm_system.cpp:266-271) chi nhan gear/8
+                     => coi field pos cua Mit_Control la rad o truc ra sau 8:1
+Hai gia dinh lech nhau dung he so 8. Neu read() sai thi MOI limit do duoc sai
+dung 8 lan, va bieu hien duy nhat la "tay may di qua xa roi va".
+
+Phep thu -- lam tren SHOULDER truoc (3 gia thuyet cho 3 so khac han nhau nen
+mot phep do phan giai duoc ca ba, dong thoi kiem chung luon gear_ratio=64):
+o IDLE, doc pos_estimate, xoay link dung 45 do (app thuoc nghieng dien thoai,
+hoac ap link sat mat ban lam moc 1 + thuoc vuong lam moc 2), doc lai:
+
+  khop        rotor-side (code dung)   sau 8:1    phia khop
+  base                1.000              --        0.125
+  shoulder            8.000             1.000      0.125
+  elbow              -1.000              --       -0.125
+
+Sai so do 5-10 do khong sao -- chi can phan biet he so 8.
+Kiem chung DAU cua elbow: xoay elbow theo chieu duong cua quy uoc URDF (chieu
+slider sang phai trong display.launch.py). Delta turns phai AM. Neu ra duong
+thi invert_direction sai va tay may se di nguoc chieu lenh.
+
+NEU SO KHONG KHOP GIA THUYET NAO TRONG +-10%: DUNG, khong ghi limit nao.
+Luc do gear_ratios_ trong code sai, phai sua code truoc.
+
+--- BUOC 1: CHONG SAP (lam TRUOC khi cap 24V) ---
+Max |g(q)| tai khop (Pinocchio): base 1.18 Nm, shoulder 4.11 Nm, elbow 1.52 Nm.
+Ca 3 khop deu chiu tai trong luc -- base_joint truc gan NAM NGANG chu khong
+dung nhu ten goi goi y.
+  - Ke xop/go duoi upper_arm_link va lower_arm_link sao cho khi mat luc hoan
+    toan tay may chi ha vai mm la de len vat ke. Day la bien phap duy nhat that
+    su hieu qua: moi co che mem trong on_activate() deu vo hieu vi mit_kp = 0.0.
+  - Buoc tam (zip tie) 2 khop khong dang do.
+  - THAO BUT/TOOL -- dau tool cung dam vao ban la hong pho bien nhat khi do bien.
+  - Cong tac nguon 24V trong tam tay con lai.
+  - KHONG chay ROS/CAN song song voi viec do bang odrivetool.
+
+--- BUOC 2: DO TUNG KHOP, thu tu elbow -> shoulder -> base ---
+Do tu NGOAI vao TRONG: khop dang do phai o IDLE (khong luc), va moi thu phia
+sau no se roi.
+  elbow    truoc: chi lower_arm_link (0.847 kg) roi, mot ban tay do la du
+  shoulder thu 2: roi upper+lower arm (2.0 kg), nhung qua 64:1 nen ma sat giu
+                  lai phan lon
+  base     cuoi : roi ca tay may qua 8:1 -> sap nhanh nhat. Do khi tay may da
+                  GAP THU GON de giam canh tay don.
+
+Cam 1 USB tai mot thoi diem:
+
+python
+dump_errors(odrv0); odrv0.clear_errors()
+odrv0.axis0.requested_state = AXIS_STATE_IDLE   # xac nhan current_state == 1
+odrv0.axis0.config.can.node_id                  # 0=base 1=shoulder 2=elbow
+odrv0.axis0.encoder.config.index_offset         # GHI LAI -- so quan trong nhat
+odrv0.axis0.encoder.pos_estimate                # tai tu the "0", phai ~ 0
+
+(firmware 0.6.x thi duong dan la odrv0.axis0.pos_estimate, khong co .encoder)
+
+Roi moi chieu: quay RAT CHAM bang tay toi khi cam nhan chan cung -> LUI LAI
+1-2 do -> doc pos_estimate -> LAP 3 LAN, tiep can tu hai phia khac nhau (khe ho
+hop so 8:1 se hien ra o day, thuong 0.5-2 do tai khop).
+
+CHI GHI la gioi han khi xac dinh duoc VAT GI chan. Ba loai, lay loai chat nhat:
+  (a) hard stop co khi / vo motor va nhau -- chan dot ngot, khong nhun
+  (b) TU VA giua cac link -- phu thuoc tu the 2 khop con lai
+  (c) DAY CAN + day nguon cang -- nhun, mem, de tuong con quay duoc. Loai nay
+      hay bi bo qua nhat va gay hong dat nhat. PHAI do voi toan bo day di dung
+      nhu luc van hanh.
+
+BAY GHEP KHOP: <limit> la hop chu nhat doc lap tung khop, khong dien ta duoc va
+cham phu thuoc tu the. Voi elbow va shoulder, do 2 LAN: mot lan o tu the 2 khop
+kia thoai mai nhat, mot lan o tu the chat nhat (tay gap vao trong), roi LAY SO
+CHAT HON. Neu hai lan lech > 0.15 rad thi ban chat la rang buoc ghep khop --
+can self-collision trong SRDF, dung co nhet vao <limit>.
+
+RIENG SHOULDER (64:1): back-drive qua 64:1 rat nang va co rui ro troc rang banh
+hanh tinh -> DUNG khi cam thay nang bat thuong, dung don luc vao chan cung. Neu
+khong quay noi bang tay thi xac dinh bien bang mat (nhin tu the nao bat dau tu
+va / cang day, lui 3-5 do).
+
+BAY KHI THAO TAC ODRIVETOOL:
+  - Day tay khi dang closed-loop -> loi following-error -> axis tu ve IDLE ->
+    TAY MAY SAP TUC THI. Luon IDLE truoc khi cham tay.
+  - save_configuration() lam driver reboot -> mat luc. Chi save khi da IDLE va
+    da ke do.
+  - current_lim dang la 30 A: o base (8:1) du sinh ~20 Nm tai khop, thua suc be
+    hard stop hoac kep tay. Do o IDLE nen khong dung toi, nhung dung vo tinh
+    vao closed-loop.
+
+--- BUOC 3: MAU GHI CHEP (moi khop 1 khoi) ---
+  khop:            elbow | shoulder | base
+  node_id:         (doc tu axis0.config.can.node_id)
+  index_offset:    ...        <-- LIMIT CHI DUNG VOI OFFSET NAY
+  pos_estimate tai tu the "0":  ...   (phai ~ 0, ghi so THAT)
+  stop A: turns = ..., ..., ...  (3 lan)   vat chan: hard stop / tu va / day
+  stop B: turns = ..., ..., ...  (3 lan)   vat chan: ...
+  tu the 2 khop con lai luc do: ...
+
+--- BUOC 4: AP VAO URDF ---
+  lower = min(rad_A, rad_B), upper = max(...)   -> elbow tu dung dau
+  TRU BIEN AN TOAN 0.05 rad MOI DAU:
+     lower_urdf = lower_do + 0.05 ; upper_urdf = upper_do - 0.05
+  Chon 0.05 vi: du trum khe ho hop so 8:1 + sai so do tay 1-2 do; trung dung
+  nguong replay_trajectory.py dung de bao "SAT GIOI HAN" nen hai tang canh bao
+  khong chong nhau; va tranh lap lai benh cua base_joint lower="0" hien tai (da
+  ghi la gay ket IK, xem docstring gim_arm_kinematics.py).
+  Voi shoulder can nhac 0.08 rad vi Kp 12-bit rat tho (1 LSB = 7.81 Nm/rad tai
+  khop) nen no overshoot nhieu hon khi tune.
+
+  TRAN MIT_CONTROL CUA SHOULDER: field pos la +-12.5 rad o phia sau hop so noi
+  bo; send_mit_command() nhan r = 8 cho shoulder => gioi han CUNG cua goc khop
+  shoulder la +-1.5625 rad. Vuot muc nay thi lenh bi encode_range() KEP IM LANG
+  trong khi read() van bao goc that -> bieu hien y het "khop khong toi dich".
+  base/elbow co r=1 nen khong vuong.
+
+  Sua 2 file NGUON (giu nguyen effort="5" velocity="12.5"):
+    src/gim_arm_description/urdf/gim_arm.urdf         (3 the <limit>)
+    src/gim_arm_description/urdf/gim_arm_origin.urdf  (dan CUNG so -- day la
+      bien the dong hoc doc lap cho origin_display.launch.py, co <origin rpy>
+      khac that nen phai sua tay, khong regenerate duoc)
+  Ghi kem comment so THO + index_offset ngay tren moi <limit>, de limit khong
+  bao gio tach khoi bang chung cua no.
+
+--- BUOC 5: VERIFY, MO PHONG TRUOC PHAN CUNG SAU ---
+  1) python3 -c "import pinocchio as pin; m=pin.buildModelFromUrdf('src/gim_arm_description/urdf/gim_arm.urdf'); print(m.lowerPositionLimit, m.upperPositionLimit)"
+  2) colcon build --packages-select gim_arm_description
+     grep -n "<limit" install/gim_arm_description/share/gim_arm_description/urdf/gim_arm.urdf
+  3) ros2 launch gim_arm_description display.launch.py
+     Keo tung slider toi hai dau, so tu the RViz voi ANH CHUP tu the chan that
+     o Buoc 2. Day la cach duy nhat phat hien sai dau / trao lower-upper cua
+     elbow TRUOC KHI CAP LUC. Dung bo buoc nay.
+  4) python3 kinematics_test/fit_drawable_circle.py   -- tim lai vung ve duoc
+  5) Neu chu O vo (< 60/60 hoac du bien < 0.05 rad): sua CA HAI cho duplicate
+     src/gim_arm_control/gim_control/draw_trajectory.py  (path_o)
+     src/gim_arm_mujoco/replay_trajectory.py            (SHAPE_KW)
+  6) python3 src/gim_arm_mujoco/replay_trajectory.py --no-viewer
+     Doc muc 2 (du bien moi khop) va muc 3 (tau <= 5 Nm, |qd| <= 12.5)
+  7) cd src/gim_arm_mujoco && python3 test_mujoco.py   -- regenerate gim_arm.xml
+     roi grep range= gim_arm.xml de xac nhan da doi
+  8) config/initial_positions.yaml dang la 0/0/0. Neu limit moi LOAI 0 ra khoi
+     dai (rat de xay ra voi base, hien lower=0) thi MoveIt khoi dong
+     out-of-bounds -> planning fail "Start state out of bounds", va trieu chung
+     nay rat de bi chan doan sai thanh "limit moi sai". Doi sang giua dai.
+     joint_limits.yaml KHONG can sua (chi override velocity/accel).
+  9) Chi den day moi toi phan cung. Truoc khi launch: doc lai index_offset ca 3
+     driver va SO voi so da ghi trong comment URDF (khac nhau => limit vo
+     nghia, do lai); dat lai mit_kp > 0 (hien 0.0 = cau hinh phep thu "troi tu
+     do", tay may limp khi activate); xac nhan log co du 3 dong
+     "CHOT vi tri that"; cho tay may di toi tung bien mot, cham, tay tren e-stop.
+
+--- LUU Y: 2 ban copy tay se lech ---
+src/gim_arm_mujoco/gim_arm.urdf va kinematics_test/gim_arm.urdf la copy thu
+cong, duoc 7 file hardcode duong dan tuong doi nen khong xoa duoc. Sau khi sua
+limit phai sua tay ca 2 ban nay cho khop. Cach sua goc la doi chung thanh
+symlink tro vao src/gim_arm_description/urdf/gim_arm.urdf.
+
+--- CON THIEU: khong co tang nao enforce limit luc chay ---
+gim_arm_system.cpp khong clamp, JTC khong cau hinh limiter, clamp duy nhat la
++-12.5 rad cua giao thuc CAN -- rong gap 8-16 lan limit that. Viec do limit chi
+co gia tri BAO VE khi them std::clamp vao write() theo
+info_.joints[i].command_interfaces[].min/max (ros2_control da parse san <limit>
+vao do).

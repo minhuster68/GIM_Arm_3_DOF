@@ -128,7 +128,10 @@
     <parent link="shoulder_link" />
     <child link="upper_arm_link" />
     <axis xyz="0 -1 0" />
-    <limit lower="-1.1811" upper="1.2002" effort="5" velocity="12.5" />
+    <!-- Số đo thật trên phần cứng 2026-08-13 bằng odrivetool. Bằng chứng đầy đủ
+         (turns thô, hệ số quy đổi, biên an toàn) ghi trong
+         src/gim_arm_description/urdf/gim_arm.urdf. GIỮ ĐỒNG BỘ với file đó. -->
+    <limit lower="-0.9328" upper="1.4388" effort="5" velocity="12.5" />
   </joint>
 
   <link name="lower_arm_link">
@@ -166,7 +169,10 @@
     <parent link="upper_arm_link" />
     <child link="lower_arm_link" />
     <axis xyz="0 0 -1" />
-    <limit lower="-1.6983" upper="1.1929" effort="5" velocity="12.5" />
+    <!-- Số đo thật trên phần cứng 2026-08-13 bằng odrivetool. Bằng chứng đầy đủ
+         (turns thô, hệ số quy đổi, biên an toàn) ghi trong
+         src/gim_arm_description/urdf/gim_arm.urdf. GIỮ ĐỒNG BỘ với file đó. -->
+    <limit lower="-0.6618" upper="1.6104" effort="5" velocity="12.5" />
   </joint>
 
 <!-- param cho node_id + CAN interface + state velocity + gear_ratio + invert_direction -->
