@@ -1,9 +1,0 @@
-In file included from [01m[K/home/minh/gim60108_ws/src/gim_arm_hardware/include/gim_arm_hardware/gim_arm_system.hpp:17[m[K,
-                 from [01m[K/home/minh/gim60108_ws/src/gim_arm_hardware/src/gim_arm_system.cpp:1[m[K:
-[01m[K/opt/ros/humble/include/pinocchio/parsers/urdf.hpp:19:10:[m[K [01;31m[Kfatal error: [m[KEigen/Core: No such file or directory
-   19 | #include [01;31m[K<Eigen/Core>[m[K
-      |          [01;31m[K^~~~~~~~~~~~[m[K
-compilation terminated.
-gmake[2]: *** [CMakeFiles/gim_arm_system_hardware.dir/build.make:79: CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o] Error 1
-gmake[1]: *** [CMakeFiles/Makefile2:153: CMakeFiles/gim_arm_system_hardware.dir/all] Error 2
-gmake: *** [Makefile:146: all] Error 2

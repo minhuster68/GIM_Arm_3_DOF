@@ -13,9 +13,6 @@
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp_lifecycle</depend>
-  <!-- Tính g(q) bù trọng lực cho MIT mode -->
-  <depend>pinocchio</depend>
-  <depend>eigen</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

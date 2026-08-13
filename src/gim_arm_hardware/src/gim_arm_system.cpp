@@ -14,9 +14,6 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "pinocchio/parsers/urdf.hpp"
-#include "pinocchio/algorithm/rnea.hpp"
-
 namespace gim_arm_hardware
 {
 
@@ -32,12 +29,9 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   hw_states_position_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_states_velocity_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   can_node_ids_.resize(n_joints, 0);
-  gear_ratios_.resize(n_joints, gim6010::kInternalGearRatio);
-  external_ratios_.resize(n_joints, 1.0);
+  gear_ratios_.resize(n_joints, 8.0);
   directions_.resize(n_joints, 1.0);
   zero_offsets_rad_.resize(n_joints, 0.0);
-  mit_kp_.resize(n_joints, 2.0);   // mac dinh RAT THAN TRONG, chua tune
-  mit_kd_.resize(n_joints, 0.1);   // mac dinh RAT THAN TRONG, chua tune
 
   // node_id riêng từng khớp: khai trong URDF <joint><param name="can_node_id">N</param>
   for (size_t i = 0; i < n_joints; ++i) {
@@ -61,23 +55,11 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
     if (it != info_.joints[i].parameters.end()) {
       gear_ratios_[i] = std::stod(it->second);
     }
-    if (!(gear_ratios_[i] >= gim6010::kInternalGearRatio)) {
-      // Nhỏ hơn hộp số nội bộ là vô nghĩa vật lý, và sẽ cho external_ratio < 1
-      // -> quy đổi mô-men sai theo chiều KHUẾCH ĐẠI. Chặn ngay, đừng để chạy.
-      RCLCPP_FATAL(
-        rclcpp::get_logger("GimArmSystemHardware"),
-        "Khớp '%s': gear_ratio = %.3f không hợp lệ -- phải >= %.1f (hộp số nội bộ của "
-        "GIM6010-8). Giá trị khai là tỉ số TỔNG (nội bộ x ngoài).",
-        info_.joints[i].name.c_str(), gear_ratios_[i], gim6010::kInternalGearRatio);
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-    external_ratios_[i] = gear_ratios_[i] / gim6010::kInternalGearRatio;
     RCLCPP_INFO(
       rclcpp::get_logger("GimArmSystemHardware"),
-      "Khớp '%s': gear_ratio = %.3f%s -> hộp số ngoài = %.3f",
+      "Khớp '%s': gear_ratio = %.3f%s",
       info_.joints[i].name.c_str(), gear_ratios_[i],
-      it == info_.joints[i].parameters.end() ? " (mặc định, không khai trong URDF)" : "",
-      external_ratios_[i]);
+      it == info_.joints[i].parameters.end() ? " (mặc định, không khai trong URDF)" : "");
   }
 
   // Dấu chiều quay: khai <param name="invert_direction">true</param>, không
@@ -108,117 +90,6 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
       it == info_.joints[i].parameters.end() ? " (mặc định, không khai trong URDF)" : "");
   }
 
-  // Kp/Kd riêng từng khớp cho Mit_Control: khai <param name="mit_kp">/"mit_kd">,
-  // không bắt buộc -- thiếu thì dùng mặc định RẤT THẬN TRỌNG (2.0/0.1).
-  // BẮT BUỘC tune lại bằng thực nghiệm trước khi tin tưởng số này cho việc gì
-  // quan trọng -- đây không phải pos_gain/vel_gain đã tune trước đó, khác cơ
-  // chế hoàn toàn (xem giải thích trong .hpp).
-  for (size_t i = 0; i < n_joints; ++i) {
-    const auto it_kp = info_.joints[i].parameters.find("mit_kp");
-    if (it_kp != info_.joints[i].parameters.end()) {
-      mit_kp_[i] = std::stod(it_kp->second);
-    }
-    const auto it_kd = info_.joints[i].parameters.find("mit_kd");
-    if (it_kd != info_.joints[i].parameters.end()) {
-      mit_kd_[i] = std::stod(it_kd->second);
-    }
-    // Độ cứng CẢM NHẬN Ở KHỚP = mit_kp * r^2 (xem .hpp) -- log ra để khi tune
-    // biết mình đang thật sự đặt bao nhiêu, đừng so mit_kp thô giữa các khớp.
-    const double r2 = external_ratios_[i] * external_ratios_[i];
-    RCLCPP_INFO(
-      rclcpp::get_logger("GimArmSystemHardware"),
-      "Khớp '%s': mit_kp=%.3f, mit_kd=%.3f%s -> quy đổi Ở KHỚP: Kp=%.3f Nm/rad, "
-      "Kd=%.3f Nm*s/rad",
-      info_.joints[i].name.c_str(), mit_kp_[i], mit_kd_[i],
-      (it_kp == info_.joints[i].parameters.end()) ? " (CHƯA TUNE, dùng mặc định)" : "",
-      mit_kp_[i] * r2, mit_kd_[i] * r2);
-
-    // Field Kp/Kd của Mit_Control chỉ 12 bit (Kp 0..500, Kd 0..5), nên bước
-    // lượng tử là 500/4095 và 5/4095. Đặt giá trị nhỏ hơn 1 bước thì firmware
-    // nhận đúng 0 -> khớp MẤT HẲN vòng phản hồi vị trí, chỉ còn torque bù
-    // trọng lực (hở vòng, sẽ trôi/rơi). Đây là kiểu hỏng rất dễ tưởng là
-    // "tune chưa tới", nên cảnh báo thẳng.
-    const double kp_lsb = (gim6010::kKpMax - gim6010::kKpMin) / 4095.0;
-    const double kd_lsb = (gim6010::kKdMax - gim6010::kKdMin) / 4095.0;
-    if (mit_kp_[i] > 0.0 && mit_kp_[i] < kp_lsb) {
-      RCLCPP_WARN(
-        rclcpp::get_logger("GimArmSystemHardware"),
-        "Khớp '%s': mit_kp=%.5f NHỎ HƠN 1 bước lượng tử (%.5f) -> firmware nhận Kp=0, "
-        "khớp sẽ KHÔNG giữ vị trí. Dùng mit_kp >= %.5f.",
-        info_.joints[i].name.c_str(), mit_kp_[i], kp_lsb, kp_lsb);
-    }
-    if (mit_kd_[i] > 0.0 && mit_kd_[i] < kd_lsb) {
-      RCLCPP_WARN(
-        rclcpp::get_logger("GimArmSystemHardware"),
-        "Khớp '%s': mit_kd=%.5f NHỎ HƠN 1 bước lượng tử (%.5f) -> firmware nhận Kd=0 "
-        "(không giảm chấn). Dùng mit_kd >= %.5f.",
-        info_.joints[i].name.c_str(), mit_kd_[i], kd_lsb, kd_lsb);
-    }
-  }
-
-  // Nạp mô hình Pinocchio để tính g(q) mỗi chu kỳ write() -- cần đường dẫn
-  // TUYỆT ĐỐI tới file URDF (Pinocchio không hiểu package://, giống hệt bài
-  // học đã gặp với MuJoCo trước đây).
-  {
-    const auto it_urdf = info_.hardware_parameters.find("urdf_path");
-    if (it_urdf == info_.hardware_parameters.end()) {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("GimArmSystemHardware"),
-        "Thiếu <hardware><param name=\"urdf_path\">/đường/dẫn/tuyệt/đối/gim_arm.urdf</param> "
-        "-- bắt buộc để tính g(q) bù trọng lực qua Pinocchio.");
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-    try {
-      pin_model_ = std::make_unique<pinocchio::Model>();
-      pinocchio::urdf::buildModel(it_urdf->second, *pin_model_);
-      pin_data_ = std::make_unique<pinocchio::Data>(*pin_model_);
-      RCLCPP_INFO(
-        rclcpp::get_logger("GimArmSystemHardware"),
-        "Đã nạp mô hình Pinocchio từ '%s' (%d khớp) để tính g(q).",
-        it_urdf->second.c_str(), pin_model_->njoints - 1);
-    } catch (const std::exception & e) {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("GimArmSystemHardware"),
-        "Lỗi nạp URDF vào Pinocchio từ '%s': %s", it_urdf->second.c_str(), e.what());
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-
-    // Tra cứu chỉ số q của Pinocchio theo TÊN khớp -- xem giải thích dài ở
-    // khai báo pin_q_index_ trong .hpp (tuyệt đối không giả định trùng thứ tự).
-    pin_q_index_.resize(n_joints);
-    for (size_t i = 0; i < n_joints; ++i) {
-      const std::string & jname = info_.joints[i].name;
-      if (!pin_model_->existJointName(jname)) {
-        RCLCPP_FATAL(
-          rclcpp::get_logger("GimArmSystemHardware"),
-          "Khớp '%s' khai trong <ros2_control> nhưng KHÔNG có trong mô hình Pinocchio nạp từ "
-          "'%s' -- sai tên khớp, hoặc khớp đó là 'fixed' trong URDF.",
-          jname.c_str(), it_urdf->second.c_str());
-        return hardware_interface::CallbackReturn::ERROR;
-      }
-      const auto jid = pin_model_->getJointId(jname);
-      pin_q_index_[i] = pin_model_->joints[jid].idx_q();
-      RCLCPP_INFO(
-        rclcpp::get_logger("GimArmSystemHardware"),
-        "Khớp '%s': ros2_control[%zu] -> pinocchio q[%ld]",
-        jname.c_str(), i, static_cast<long>(pin_q_index_[i]));
-    }
-
-    // Số bậc tự do phải khớp: nếu URDF có khớp revolute/prismatic KHÁC ngoài 3
-    // khớp khai trong <ros2_control> (vd thêm gripper), q sẽ thiếu phần tử và
-    // computeGeneralizedGravity() ném exception NGAY TRONG write() -- tức là
-    // giữa vòng lặp thời gian thực, lúc tay máy đang mang lực. Chặn ngay ở đây.
-    if (pin_model_->nq != static_cast<int>(n_joints)) {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("GimArmSystemHardware"),
-        "Mô hình Pinocchio có nq=%d nhưng <ros2_control> khai %zu khớp -- không khớp. "
-        "Mọi khớp chuyển động trong URDF đều phải được khai trong <ros2_control>.",
-        pin_model_->nq, n_joints);
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-    pin_q_ = Eigen::VectorXd::Zero(pin_model_->nq);
-  }
-
   // Tên interface CAN: <ros2_control><hardware><param name="can_interface">can0</param>
   can_interface_name_ = info_.hardware_parameters.count("can_interface")
     ? info_.hardware_parameters.at("can_interface")
@@ -247,33 +118,29 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_configure(
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-void GimArmSystemHardware::send_mit_command(
-  size_t i, double pos_rad, double vel_rad_s, double kp, double kd, double torque_ff_nm)
+void GimArmSystemHardware::send_position_command(size_t i, double position_rad)
 {
-  // Mit_Control nhận giá trị phía trục ra SAU HỘP SỐ NỘI BỘ 8:1, KHÔNG phải
-  // góc khớp thật -- nên vẫn phải quy đổi qua hộp số NGOÀI. Xem giải thích dài
-  // ở external_ratios_ trong .hpp. Với base/elbow ratio = 1.0 nên không đổi gì;
-  // chỉ shoulder (ratio 8.0) thực sự bị quy đổi.
-  //
-  // directions_[i]: quy ước DẤU vật lý của cách lắp motor, không phụ thuộc lệnh
-  // CAN nào đang dùng.
-  //
-  // zero_offsets_rad_[i]: pos_rad đến từ hw_commands_ (không gian góc khớp
-  // URDF, read() ĐÃ TRỪ offset đi), nên ở chiều ngược lại phải CỘNG LẠI để về
-  // không gian thô của encoder -- đúng như send_position_command() cũ đã làm.
-  // Hiện offset mặc định 0.0 nên không cộng cũng chưa sai, nhưng thiếu dòng
-  // này thì cơ chế offset (vẫn giữ để dự phòng) sẽ hỏng IM LẶNG khi dùng lại:
-  // read() trừ mà write() không cộng -> lệch đúng bằng offset.
-  const double r = external_ratios_[i];
-  const double pos_signed = (pos_rad + zero_offsets_rad_[i]) * directions_[i] * r;
-  const double vel_signed = vel_rad_s * directions_[i] * r;
-  // Mô-men CHIA cho r: hộp số ngoài nhân mô-men lên r lần trên đường ra khớp,
-  // nên muốn khớp nhận đúng torque_ff_nm thì firmware chỉ được cấp 1/r.
-  const double torque_signed = torque_ff_nm * directions_[i] / r;
+  // position_rad đến từ hw_commands_ (không gian URDF, đã trừ zero_offset_rad_)
+  // -- cộng lại offset để ra đúng "rad thô" khớp với quy ước encoder thật,
+  // TRƯỚC KHI áp dụng gear_ratio/direction như cũ.
+  const double position_rad_raw = position_rad + zero_offsets_rad_[i];
+
+  // Set_Input_Pos dùng đơn vị REV, không phải RAD (manual 4.1.2) -- nhân
+  // gear_ratios_[i] (tỉ số truyền TỔNG của riêng khớp này), đã xác nhận đúng
+  // bằng test thật (lệnh -3.14 rad -> quay đúng 180 độ trên elbow, gear_ratio=8).
+  // gear_ratios_[i] quy đổi rad<->rev; directions_[i] (+1/-1) bù chiều lắp
+  // đặt vật lý thật của motor, không liên quan tới <axis> trong URDF.
+  const double pos_rev = (position_rad_raw * directions_[i] / (2.0 * M_PI)) * gear_ratios_[i];
+  const float pos_rev_f = static_cast<float>(pos_rev);
+  const int16_t vel_ff = 0;     // chưa dùng feedforward ở bước bench-test này
+  const int16_t torque_ff = 0;
 
   uint8_t data[8];
-  gim6010::pack_mit_control(data, pos_signed, vel_signed, kp, kd, torque_signed);
-  can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::MitControl), data, 8);
+  std::memcpy(&data[0], &pos_rev_f, 4);
+  std::memcpy(&data[4], &vel_ff, 2);
+  std::memcpy(&data[6], &torque_ff, 2);
+
+  can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetInputPos), data, 8);
 }
 
 hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
@@ -284,10 +151,9 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
   // 1) Đặt controller mode.
   for (size_t i = 0; i < info_.joints.size(); ++i) {
     uint8_t data[8];
-    // control_mode=3 (position), input_mode=9 (Mit_Control) -- chuyển hẳn
-    // sang MIT mode để có kênh torque_ff (bù trọng lực), khác input_mode=3
-    // (Filtered Position) đã dùng suốt giai đoạn tune PID trước đây.
-    gim6010::pack_u32_le(data, /*control_mode=*/3, /*input_mode=*/9);
+    // control_mode=3 (position), input_mode=3 (filtered position) -- manual
+    // 3.1.6. CHƯA dùng Mit_Control ở bước bench-test này.
+    gim6010::pack_u32_le(data, /*control_mode=*/3, /*input_mode=*/3);
     can_bus_.send(
       gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetControllerMode), data, 8);
   }
@@ -334,11 +200,7 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
         const double pos_rad = pos_rad_raw - zero_offsets_rad_[i];  // trừ offset "điểm 0"
         hw_commands_[i] = pos_rad;
         hw_states_position_[i] = pos_rad;
-        // Chốt setpoint ngay, chặn trôi tiếp -- torque_ff=0 ở ĐÚNG thời điểm
-        // này vì chưa chắc đã có đủ vị trí thật của cả 3 khớp để tính g(q)
-        // đúng (mỗi khớp về closed-loop KHÔNG cùng lúc). write() ngay sau
-        // đây sẽ tính g(q) đầy đủ mỗi chu kỳ khi đã có đủ dữ liệu.
-        send_mit_command(i, pos_rad, /*vel_rad_s=*/0.0, mit_kp_[i], mit_kd_[i], /*torque_ff_nm=*/0.0);
+        send_position_command(i, pos_rad);  // chốt setpoint ngay, chặn trôi tiếp
         corrected[i] = true;
         RCLCPP_INFO(
           rclcpp::get_logger("GimArmSystemHardware"),
@@ -446,38 +308,11 @@ hardware_interface::return_type GimArmSystemHardware::read(
 hardware_interface::return_type GimArmSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  // Pinocchio cần ĐỦ cả 3 vị trí thật mới tính g(q) có nghĩa -- thiếu 1 khớp
-  // (vd chưa kịp đọc CAN lần đầu) sẽ làm sai cho cả 3, không chỉ khớp thiếu.
-  bool have_full_state = true;
-  for (size_t i = 0; i < info_.joints.size(); ++i) {
-    if (std::isnan(hw_states_position_[i])) {
-      have_full_state = false;
-      break;
-    }
-  }
-
-  if (have_full_state) {
-    for (size_t i = 0; i < info_.joints.size(); ++i) {
-      // Dùng VỊ TRÍ THẬT (hw_states_position_), không phải desired -- trọng
-      // lực tác động theo cấu hình vật lý THẬT của tay máy ngay lúc này.
-      // hw_states_position_ đã ở quy ước góc khớp của URDF (đã áp directions_
-      // và zero_offsets_rad_ trong read()), đúng hệ quy chiếu Pinocchio cần.
-      pin_q_[pin_q_index_[i]] = hw_states_position_[i];
-    }
-    // Trả về tham chiếu tới pin_data_->g, không cấp phát -- nhận bằng const &.
-    pinocchio::computeGeneralizedGravity(*pin_model_, *pin_data_, pin_q_);
-  }
-
   for (size_t i = 0; i < info_.joints.size(); ++i) {
     if (std::isnan(hw_commands_[i])) {
       continue;  // chưa có lệnh hợp lệ, đừng gửi rác xuống CAN
     }
-    // g(q) là mô-men cần cấp để GIỮ tay máy chống trọng lực (phương trình
-    // động lực học M*qdd + C + g = tau), nên bù trọng lực là CỘNG +g(q).
-    const double torque_ff = have_full_state ? pin_data_->g[pin_q_index_[i]] : 0.0;
-    // vel_rad_s=0: command_interfaces hiện chỉ có "position", chưa có
-    // velocity feedforward -- để dành cải tiến sau nếu cần bám nhanh hơn.
-    send_mit_command(i, hw_commands_[i], /*vel_rad_s=*/0.0, mit_kp_[i], mit_kd_[i], torque_ff);
+    send_position_command(i, hw_commands_[i]);
   }
 
   return hardware_interface::return_type::OK;

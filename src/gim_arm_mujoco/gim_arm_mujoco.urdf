@@ -18,8 +18,7 @@
   <joint name="base_footprint_to_base_link" type="fixed">
     <parent link="base_footprint"/>
     <child link="base_link"/>
-    <origin xyz="0 0 0" rpy="0.083 0 0"/>
-    <!-- <origin xyz="0 0 0" rpy="0.1 0 0"/> -->
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
   <link name="base_link">
@@ -37,7 +36,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="/home/minh/gim60108_ws/src/gim_arm_mujoco/meshes/base_link.STL" />
+        <mesh filename="meshes/base_link.STL" />
       </geometry>
       <material name="base_link_color">
         <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
@@ -46,7 +45,7 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="/home/minh/gim60108_ws/src/gim_arm_mujoco/meshes/base_link.STL" />
+        <mesh filename="meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -66,7 +65,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="/home/minh/gim60108_ws/src/gim_arm_mujoco/meshes/shoulder_link.STL" />
+        <mesh filename="meshes/shoulder_link.STL" />
       </geometry>
       <material name="shoulder_link_color">
         <color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
@@ -75,7 +74,7 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="/home/minh/gim60108_ws/src/gim_arm_mujoco/meshes/shoulder_link.STL" />
+        <mesh filename="meshes/shoulder_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -86,16 +85,9 @@
        "1 0 0"), nên xác nhận lại với CAD xem đây là lệch thật hay nhiễu mate. -->
   <joint name="base_joint" type="revolute">
     <origin xyz="0.031381 -0.48621 0.64846" rpy="1.4637 1.364 1.4753" />
-        <!-- <origin xyz="0.031381 -0.48621 0.64846" rpy="1.4637 1.364/1.744 1.4753" /> -->
     <parent link="base_link" />
     <child link="shoulder_link" />
     <axis xyz="0.99932 -0.031099 -0.019999" />
-    <!-- CHƯA ĐO TRÊN PHẦN CỨNG: 0 và 1.57 (= pi/2) là số CAD, khác với
-         shoulder/elbow đã đo bằng odrivetool 2026-08-13. Ngoài ra lower="0"
-         nằm ĐÚNG biên nên là điểm khởi đầu IK xấu (xem docstring
-         gim_arm_kinematics.py). Khi đo được thật thì nhớ trừ biên an toàn
-         0.05 rad để lower > 0. node_id 0, gear_ratio 8, dir +1,
-         hệ số quy đổi +0.7853982 rad / 1 turn rotor. -->
     <limit lower="0" upper="1.57" effort="5" velocity="12.5" />
   </joint>
 
@@ -114,7 +106,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="/home/minh/gim60108_ws/src/gim_arm_mujoco/meshes/upper_arm_link.STL" />
+        <mesh filename="meshes/upper_arm_link.STL" />
       </geometry>
       <material name="upper_arm_link_color">
         <color rgba="0.545098039215686 0 0.870588235294118 1" />
@@ -123,32 +115,17 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="/home/minh/gim60108_ws/src/gim_arm_mujoco/meshes/upper_arm_link.STL" />
+        <mesh filename="meshes/upper_arm_link.STL" />
       </geometry>
     </collision>
   </link>
 
   <joint name="shoulder_joint" type="revolute">
-    <origin xyz="-0.049966 0.001555 0.00099995" rpy="-1.375708549 0.010247217 1.396947503" />
-        <!-- <origin xyz="-0.049966 0.001555 0.00099995" rpy="-1.3842 -0.058173 1.7475" /> -->
+    <origin xyz="-0.049966 0.001555 0.00099995" rpy="-1.3842 -0.058173 1.7475" />
     <parent link="shoulder_link" />
     <child link="upper_arm_link" />
     <axis xyz="0 -1 0" />
-    <!-- ĐO THẬT trên phần cứng 2026-08-13 bằng odrivetool (không còn là số CAD).
-         node_id 1, gear_ratio 64 (hộp giảm tốc 1:8 gắn NGOÀI + 8:1 nội bộ).
-         stop A: +15.165777 turns -> +1.488897 rad (+85.31 deg)
-         stop B: -10.011408 turns -> -0.982868 rad (-56.31 deg)
-         Dải đo được 2.4718 rad = 141.6 deg. Đã trừ biên an toàn 0.05 rad mỗi
-         đầu, làm tròn VÀO TRONG.
-         Trần Mit_Control của khớp này là 12.5/8 = 1.5625 rad (field pos ±12.5
-         rad ở phía sau hộp số nội bộ, send_mit_command nhân r=8) -> upper mới
-         còn dư 0.1236 rad. ĐỪNG nới upper quá 1.5625 nếu không lệnh vị trí sẽ
-         bị encode_range() kẹp IM LẶNG mà read() vẫn báo góc thật.
-         CHƯA GHI index_offset của driver; limit chỉ đúng với đúng bộ offset
-         lúc đo. Nếu chạy erase_configuration() hoặc
-         ENCODER_OFFSET_CALIBRATION thì PHẢI ĐO LẠI, không tầng nào phát hiện
-         được lệch. -->
-    <limit lower="-0.9328" upper="1.4388" effort="5" velocity="12.5" />
+    <limit lower="-0.2" upper="1.57" effort="5" velocity="12.5" />
   </joint>
 
   <link name="lower_arm_link">
@@ -166,7 +143,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="/home/minh/gim60108_ws/src/gim_arm_mujoco/meshes/lower_arm_link.STL" />
+        <mesh filename="meshes/lower_arm_link.STL" />
       </geometry>
       <material name="lower_arm_link_color">
         <color rgba="1 0.509803921568627 0.196078431372549 1" />
@@ -175,122 +152,17 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="/home/minh/gim60108_ws/src/gim_arm_mujoco/meshes/lower_arm_link.STL" />
+        <mesh filename="meshes/lower_arm_link.STL" />
       </geometry>
     </collision>
   </link>
 
   <joint name="elbow_joint" type="revolute">
-    <origin xyz="-0.014232 0 -0.21358" rpy="1.570809721 1.469492654 -3.141575913" />
-        <!-- <origin xyz="-0.014232 0 -0.21358" rpy="-1.5708 1.1931 0" /> -->
+    <origin xyz="-0.014232 0 -0.21358" rpy="-1.5708 1.1931 0" />
     <parent link="upper_arm_link" />
     <child link="lower_arm_link" />
     <axis xyz="0 0 -1" />
-    <!-- ĐO THẬT trên phần cứng 2026-08-13 bằng odrivetool (không còn là số CAD).
-         node_id 2, gear_ratio 8, invert_direction=true nên dir = -1.
-         stop A: -2.114138 turns -> +1.660440 rad (+95.14 deg)
-         stop B: +0.906352 turns -> -0.711847 rad (-40.79 deg)
-         Vì dir = -1, lower/upper ĐÃ TRÁO so với thứ tự đo trong không gian
-         turns: turns âm nhất cho ra góc DƯƠNG nhất. Cách chống sai dấu là quy
-         đổi cả hai biên sang rad rồi lấy lower=min, upper=max.
-         Dải đo được 2.3723 rad = 135.9 deg. Đã trừ biên an toàn 0.05 rad mỗi
-         đầu, làm tròn VÀO TRONG.
-         CHƯA GHI index_offset của driver; limit chỉ đúng với đúng bộ offset
-         lúc đo. Nếu chạy erase_configuration() hoặc
-         ENCODER_OFFSET_CALIBRATION thì PHẢI ĐO LẠI, không tầng nào phát hiện
-         được lệch. -->
-    <limit lower="-0.6618" upper="1.6104" effort="5" velocity="12.5" />
+    <limit lower="0" upper="1.57" effort="5" velocity="12.5" />
   </joint>
-
-<!-- param cho node_id + CAN interface + state velocity + gear_ratio + invert_direction -->
-<ros2_control name="GimArmSystem" type="system">
-  <hardware>
-    <plugin>gim_arm_hardware/GimArmSystemHardware</plugin>
-    <param name="can_interface">can0</param>
-    <!-- Đường dẫn TUYỆT ĐỐI tới chính file này. Pinocchio nạp lại để tính
-         g(q) bù trọng lực; không dùng package:// (Pinocchio không hiểu).
-         Param này PHẢI nằm trong hardware BÊN TRONG ros2_control:
-         ros2_control chỉ parse phần bên trong thẻ ros2_control, mọi thẻ
-         hardware đặt ngoài đó bị bỏ qua IM LẶNG (không báo lỗi). -->
-    <param name="urdf_path">/home/minh/gim60108_ws/src/gim_arm_description/urdf/gim_arm.urdf</param>
-  </hardware>
-  <!-- ===================================================================
-       CAU HINH HIEN TAI = PHEP THU "TROI TU DO" (mit_kp = 0), KHONG PHAI
-       CAU HINH VAN HANH. Doc het khoi nay truoc khi launch.
-
-       Muc dich: kiem tra g(q) tinh tu URDF nay co dung khoi luong/tam khoi
-       thuc te khong. Dat mit_kp = 0 -> BO HOAN TOAN vong phan hoi vi tri,
-       khop chi con nhan dung torque_ff = g(q). Neu URDF dung, tay may se LO
-       LUNG o moi tu the: day nhe bang tay thi di chuyen roi dung lai.
-         - Sut xuong  => bu THIEU (mass/com trong URDF nho hon that)
-         - Tu nang len => bu QUA
-       Da xac nhan g(q) dung ve mat toan hoc (2 duong doc lap lech 2.3e-9 Nm),
-       nen sai lech quan sat duoc o day la sai lech VAT LY cua URDF.
-
-       NGUY HIEM, doc ky truoc khi cap nguon:
-       Voi mit_kp = 0, co che chong giat o buoc 3 cua on_activate() thanh VO
-       HIEU: no gui frame voi mit_kp_[i] = 0 VA torque_ff = 0, tuc khong giu
-       gi ca. Tay may MAT HOAN TOAN LUC tu luc vao closed-loop den khi write()
-       chay lan dau (~10..50ms neu on_activate chot du 3 khop). Binh thuong
-       mit_kp > 0 che duoc khoang ho nay; o day thi khong.
-
-       Neu MOT khop khong duoc chot trong 300ms (chi ra WARN, on_activate van
-       tra SUCCESS) thi co 2 hau qua khac nhau:
-         a) Khop chi CHAM: read() se dien hw_states_position_ o chu ky sau nen
-            have_full_state tu lanh, torque_ff ve lai g(q). Khong nghiem trong.
-         b) Khop KHONG BAO GIO bao (sai node_id / dut day CAN): hw_commands_[i]
-            giu NaN, va read() chi ghi hw_states_ chu KHONG ghi hw_commands_,
-            nen write() bo qua khop do hoan toan (`if (isnan(hw_commands_[i]))
-            continue`). Khop AY KHONG NHAN FRAME Mit_Control NAO tu ROS, nhung
-            buoc 2 cua on_activate DA day no vao closed-loop. No se chap hanh
-            setpoint MIT con sot trong firmware: trang thai KHONG XAC DINH,
-            khong phai limp. Setpoint cu co the o goc khac han hien tai.
-            Dong thoi have_full_state = false vinh vien nen CA 2 khop con lai
-            bi torque_ff = 0, tuc limp that.
-       => PHAI do tay may bang tay khi activate, bat dau tu tu the thap gan
-          gioi han duoi, va xac nhan log co du 3 dong "CHOT vi tri that"
-          truoc khi tha tay. Thieu dong nao thi e-stop, dung doi xem sao.
-
-       Vi sao mit_kd khac nhau giua cac khop: field Kd chi 12 bit tren khoang
-       0..5 nen 1 LSB = 5/4095 = 0.001221. Do cung/giam chan CAM NHAN O KHOP
-       bang gia tri tho nhan r^2 (r = hop so NGOAI = gear_ratio/8). Shoulder
-       co r = 8 nen r^2 = 64. Nham ~0.1 Nm*s/rad o khop cho ca 3:
-         base/elbow (r^2=1):  0.1    -> 81 LSB -> 0.0989 Nm*s/rad o khop
-         shoulder   (r^2=64): 0.0025 ->  2 LSB -> 0.1563 Nm*s/rad o khop
-       Shoulder khong the mem hon nhieu: 1 LSB da la 0.078 Nm*s/rad o khop.
-       Chon 2 LSB vi day la khop nang nhat, them giam chan thi an toan hon.
-
-       SAU KHI THU XONG, truoc khi tune MIT: dat lai mit_kp > 0. Luu y buoc
-       Kp o khop cua shoulder la 0.1221 * 64 = 7.81 Nm/rad: KHONG dat duoc
-       do cung shoulder nam giua 0 va 7.81, tune shoulder se tho, day la gioi
-       han 12 bit cua giao thuc chu khong phai code sai.
-       =================================================================== -->
-  <joint name="base_joint">
-    <command_interface name="position"/>
-    <state_interface name="position"/>
-    <state_interface name="velocity"/>
-    <param name="can_node_id">0</param>
-    <param name="mit_kp">0.0</param>
-    <param name="mit_kd">0.1</param>
-  </joint>
-  <joint name="shoulder_joint">
-    <command_interface name="position"/>
-    <state_interface name="position"/>
-    <state_interface name="velocity"/>
-    <param name="can_node_id">1</param>
-    <param name="gear_ratio">64.0</param>
-    <param name="mit_kp">0.0</param>
-    <param name="mit_kd">0.0025</param>
-  </joint>
-  <joint name="elbow_joint">
-    <command_interface name="position"/>
-    <state_interface name="position"/>
-    <state_interface name="velocity"/>
-    <param name="can_node_id">2</param>
-    <param name="invert_direction">true</param>
-    <param name="mit_kp">0.0</param>
-    <param name="mit_kd">0.1</param>
-  </joint>
-</ros2_control>
 
 </robot>
