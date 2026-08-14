@@ -57,10 +57,10 @@ RM = /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E rm -
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/minh/gim60108_ws/src/gim_arm_moveit_config
+CMAKE_SOURCE_DIR = /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_moveit_config
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/minh/gim60108_ws/build/gim_arm_moveit_config
+CMAKE_BINARY_DIR = /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -142,9 +142,9 @@ install/strip/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles /home/minh/gim60108_ws/build/gim_arm_moveit_config//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

@@ -20,6 +20,15 @@ events:
     names:
       - "uname"
     candidate_directories:
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/bin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/sbin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/bin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/sbin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/bin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/sbin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/bin/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/sbin/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/"
@@ -74,6 +83,15 @@ events:
       - "/usr/local/games/"
       - "/snap/bin/"
     searched_directories:
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/bin/uname"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/sbin/uname"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/uname"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/bin/uname"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/sbin/uname"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/uname"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/bin/uname"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/sbin/uname"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/uname"
       - "/home/minh/gim60108_ws/install/gim_arm_description/bin/uname"
       - "/home/minh/gim60108_ws/install/gim_arm_description/sbin/uname"
       - "/home/minh/gim60108_ws/install/gim_arm_description/uname"
@@ -124,6 +142,9 @@ events:
     found: "/usr/bin/uname"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -151,7 +172,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "message-v1"
     backtrace:
@@ -180,6 +201,15 @@ events:
       - "make"
       - "smake"
     candidate_directories:
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/bin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/sbin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/bin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/sbin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/bin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/sbin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/bin/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/sbin/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/"
@@ -234,6 +264,15 @@ events:
       - "/usr/local/games/"
       - "/snap/bin/"
     searched_directories:
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/bin/gmake"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/sbin/gmake"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/gmake"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/bin/gmake"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/sbin/gmake"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/gmake"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/bin/gmake"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/sbin/gmake"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/gmake"
       - "/home/minh/gim60108_ws/install/gim_arm_description/bin/gmake"
       - "/home/minh/gim60108_ws/install/gim_arm_description/sbin/gmake"
       - "/home/minh/gim60108_ws/install/gim_arm_description/gmake"
@@ -284,6 +323,9 @@ events:
     found: "/usr/bin/gmake"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -311,7 +353,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -338,6 +380,15 @@ events:
       - "icx"
       - "clang"
     candidate_directories:
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/bin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/sbin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/bin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/sbin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/bin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/sbin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/bin/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/sbin/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/"
@@ -392,6 +443,15 @@ events:
       - "/usr/local/games/"
       - "/snap/bin/"
     searched_directories:
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/bin/cc"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/sbin/cc"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/cc"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/bin/cc"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/sbin/cc"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/cc"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/bin/cc"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/sbin/cc"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/cc"
       - "/home/minh/gim60108_ws/install/gim_arm_description/bin/cc"
       - "/home/minh/gim60108_ws/install/gim_arm_description/sbin/cc"
       - "/home/minh/gim60108_ws/install/gim_arm_description/cc"
@@ -442,6 +502,9 @@ events:
     found: "/usr/bin/cc"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -469,7 +532,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -497,6 +560,9 @@ events:
     found: "/home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCCompilerId.c.in"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -524,7 +590,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "message-v1"
     backtrace:
@@ -545,7 +611,7 @@ events:
       Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
       
       The C compiler identification is GNU, found in:
-        /home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/4.1.3/CompilerIdC/a.out
+        /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/4.1.3/CompilerIdC/a.out
       
   -
     kind: "find-v1"
@@ -581,6 +647,9 @@ events:
     found: "/usr/bin/ar"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -608,7 +677,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -643,6 +712,9 @@ events:
     found: "/usr/bin/ranlib"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -670,7 +742,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -705,6 +777,9 @@ events:
     found: "/usr/bin/strip"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -732,7 +807,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -767,6 +842,9 @@ events:
     found: "/usr/bin/ld"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -794,7 +872,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -829,6 +907,9 @@ events:
     found: "/usr/bin/nm"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -856,7 +937,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -891,6 +972,9 @@ events:
     found: "/usr/bin/objdump"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -918,7 +1002,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -953,6 +1037,9 @@ events:
     found: "/usr/bin/objcopy"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -980,7 +1067,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -1015,6 +1102,9 @@ events:
     found: "/usr/bin/readelf"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1042,7 +1132,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -1089,6 +1179,9 @@ events:
     found: false
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1116,7 +1209,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -1151,6 +1244,9 @@ events:
     found: "/usr/bin/addr2line"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1178,7 +1274,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -1225,6 +1321,9 @@ events:
     found: false
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1252,7 +1351,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -1302,6 +1401,9 @@ events:
     found: "/usr/bin/gcc-ar-11"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1329,7 +1431,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -1379,6 +1481,9 @@ events:
     found: "/usr/bin/gcc-ranlib-11"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1406,7 +1511,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -1440,6 +1545,9 @@ events:
     found: "/usr/bin/c++"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1467,7 +1575,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -1495,6 +1603,9 @@ events:
     found: "/home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCXXCompilerId.cpp.in"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1522,7 +1633,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "message-v1"
     backtrace:
@@ -1543,7 +1654,7 @@ events:
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
       
       The CXX compiler identification is GNU, found in:
-        /home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/4.1.3/CompilerIdCXX/a.out
+        /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/4.1.3/CompilerIdCXX/a.out
       
   -
     kind: "find-v1"
@@ -1594,6 +1705,9 @@ events:
     found: "/usr/bin/gcc-ar-11"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1621,7 +1735,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "find-v1"
     backtrace:
@@ -1671,6 +1785,9 @@ events:
     found: "/usr/bin/gcc-ranlib-11"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -1698,7 +1815,7 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
   -
     kind: "try_compile-v1"
     backtrace:
@@ -1708,8 +1825,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-K420aN"
-      binary: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-K420aN"
+      source: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-Q2l2NB"
+      binary: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-Q2l2NB"
     cmakeVariables:
       CMAKE_C_FLAGS: ""
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -1718,13 +1835,13 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-K420aN'
+        Change Dir: '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-Q2l2NB'
         
-        Run Build Command(s): /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_a1d78/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_a1d78.dir/build.make CMakeFiles/cmTC_a1d78.dir/build
-        gmake[1]: Entering directory '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-K420aN'
-        Building C object CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o
-        /usr/bin/cc   -v -o CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o -c /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCCompilerABI.c
+        Run Build Command(s): /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_0c6a0/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_0c6a0.dir/build.make CMakeFiles/cmTC_0c6a0.dir/build
+        gmake[1]: Entering directory '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-Q2l2NB'
+        Building C object CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o
+        /usr/bin/cc   -v -o CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o -c /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCCompilerABI.c
         Using built-in specs.
         COLLECT_GCC=/usr/bin/cc
         OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa
@@ -1734,8 +1851,8 @@ events:
         Thread model: posix
         Supported LTO compression algorithms: zlib zstd
         gcc version 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04.3) 
-        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a1d78.dir/'
-         /usr/lib/gcc/x86_64-linux-gnu/11/cc1 -quiet -v -imultiarch x86_64-linux-gnu /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_a1d78.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/ccM1ZCKB.s
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c6a0.dir/'
+         /usr/lib/gcc/x86_64-linux-gnu/11/cc1 -quiet -v -imultiarch x86_64-linux-gnu /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_0c6a0.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/ccp0SOKw.s
         GNU C17 (Ubuntu 11.4.0-1ubuntu1~22.04.3) version 11.4.0 (x86_64-linux-gnu)
         	compiled by GNU C version 11.4.0, GMP version 6.2.1, MPFR version 4.1.0, MPC version 1.2.1, isl version isl-0.24-GMP
         
@@ -1755,14 +1872,14 @@ events:
         
         GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
         Compiler executable checksum: 46ebede1f5b795a957a1e85cb61af9d8
-        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a1d78.dir/'
-         as -v --64 -o CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o /tmp/ccM1ZCKB.s
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c6a0.dir/'
+         as -v --64 -o CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o /tmp/ccp0SOKw.s
         GNU assembler version 2.38 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.38
         COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.'
-        Linking C executable cmTC_a1d78
-        /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a1d78.dir/link.txt --verbose=1
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.'
+        Linking C executable cmTC_0c6a0
+        /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0c6a0.dir/link.txt --verbose=1
         Using built-in specs.
         COLLECT_GCC=/usr/bin/cc
         COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper
@@ -1775,14 +1892,14 @@ events:
         gcc version 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04.3) 
         COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_a1d78' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_a1d78.'
-         /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cckiAVJJ.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_a1d78 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0c6a0' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_0c6a0.'
+         /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccmwdhft.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_0c6a0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
         collect2 version 11.4.0
-        /usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cckiAVJJ.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_a1d78 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+        /usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccmwdhft.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_0c6a0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
         GNU ld (GNU Binutils for Ubuntu) 2.38
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_a1d78' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_a1d78.'
-        /usr/bin/cc  -v -Wl,-v CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o -o cmTC_a1d78
-        gmake[1]: Leaving directory '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-K420aN'
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0c6a0' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_0c6a0.'
+        /usr/bin/cc  -v -Wl,-v CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o -o cmTC_0c6a0
+        gmake[1]: Leaving directory '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-Q2l2NB'
         
       exitCode: 0
   -
@@ -1817,13 +1934,13 @@ events:
       Parsed C implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-K420aN']
+        ignore line: [Change Dir: '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-Q2l2NB']
         ignore line: []
-        ignore line: [Run Build Command(s): /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_a1d78/fast]
-        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_a1d78.dir/build.make CMakeFiles/cmTC_a1d78.dir/build]
-        ignore line: [gmake[1]: Entering directory '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-K420aN']
-        ignore line: [Building C object CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o]
-        ignore line: [/usr/bin/cc   -v -o CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o -c /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCCompilerABI.c]
+        ignore line: [Run Build Command(s): /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_0c6a0/fast]
+        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_0c6a0.dir/build.make CMakeFiles/cmTC_0c6a0.dir/build]
+        ignore line: [gmake[1]: Entering directory '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-Q2l2NB']
+        ignore line: [Building C object CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o]
+        ignore line: [/usr/bin/cc   -v -o CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o -c /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCCompilerABI.c]
         ignore line: [Using built-in specs.]
         ignore line: [COLLECT_GCC=/usr/bin/cc]
         ignore line: [OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa]
@@ -1833,8 +1950,8 @@ events:
         ignore line: [Thread model: posix]
         ignore line: [Supported LTO compression algorithms: zlib zstd]
         ignore line: [gcc version 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04.3) ]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a1d78.dir/']
-        ignore line: [ /usr/lib/gcc/x86_64-linux-gnu/11/cc1 -quiet -v -imultiarch x86_64-linux-gnu /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_a1d78.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/ccM1ZCKB.s]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c6a0.dir/']
+        ignore line: [ /usr/lib/gcc/x86_64-linux-gnu/11/cc1 -quiet -v -imultiarch x86_64-linux-gnu /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_0c6a0.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/ccp0SOKw.s]
         ignore line: [GNU C17 (Ubuntu 11.4.0-1ubuntu1~22.04.3) version 11.4.0 (x86_64-linux-gnu)]
         ignore line: [	compiled by GNU C version 11.4.0  GMP version 6.2.1  MPFR version 4.1.0  MPC version 1.2.1  isl version isl-0.24-GMP]
         ignore line: []
@@ -1854,14 +1971,14 @@ events:
         ignore line: []
         ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
         ignore line: [Compiler executable checksum: 46ebede1f5b795a957a1e85cb61af9d8]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a1d78.dir/']
-        ignore line: [ as -v --64 -o CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o /tmp/ccM1ZCKB.s]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c6a0.dir/']
+        ignore line: [ as -v --64 -o CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o /tmp/ccp0SOKw.s]
         ignore line: [GNU assembler version 2.38 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.38]
         ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/]
         ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.']
-        ignore line: [Linking C executable cmTC_a1d78]
-        ignore line: [/home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a1d78.dir/link.txt --verbose=1]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.']
+        ignore line: [Linking C executable cmTC_0c6a0]
+        ignore line: [/home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0c6a0.dir/link.txt --verbose=1]
         ignore line: [Using built-in specs.]
         ignore line: [COLLECT_GCC=/usr/bin/cc]
         ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper]
@@ -1874,13 +1991,13 @@ events:
         ignore line: [gcc version 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04.3) ]
         ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/]
         ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_a1d78' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_a1d78.']
-        link line: [ /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cckiAVJJ.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_a1d78 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_0c6a0' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_0c6a0.']
+        link line: [ /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccmwdhft.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_0c6a0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/collect2] ==> ignore
           arg [-plugin] ==> ignore
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so] ==> ignore
           arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper] ==> ignore
-          arg [-plugin-opt=-fresolution=/tmp/cckiAVJJ.res] ==> ignore
+          arg [-plugin-opt=-fresolution=/tmp/ccmwdhft.res] ==> ignore
           arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
           arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
           arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -1898,7 +2015,7 @@ events:
           arg [-znow] ==> ignore
           arg [-zrelro] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_a1d78] ==> ignore
+          arg [cmTC_0c6a0] ==> ignore
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o]
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o]
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o]
@@ -1911,7 +2028,7 @@ events:
           arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
           arg [-L/usr/lib/gcc/x86_64-linux-gnu/11/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/11/../../..]
           arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o] ==> ignore
+          arg [CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o] ==> ignore
           arg [-lgcc] ==> lib [gcc]
           arg [--push-state] ==> ignore
           arg [--as-needed] ==> ignore
@@ -1926,7 +2043,7 @@ events:
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o]
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
         ignore line: [collect2 version 11.4.0]
-        ignore line: [/usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cckiAVJJ.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_a1d78 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_a1d78.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
+        ignore line: [/usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccmwdhft.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_0c6a0 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_0c6a0.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
         linker tool for 'C': /usr/bin/ld
         collapse obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o] ==> [/usr/lib/x86_64-linux-gnu/Scrt1.o]
         collapse obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o] ==> [/usr/lib/x86_64-linux-gnu/crti.o]
@@ -1964,8 +2081,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-O0XhpR"
-      binary: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-O0XhpR"
+      source: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-AsGwaw"
+      binary: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-AsGwaw"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -1975,13 +2092,13 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-O0XhpR'
+        Change Dir: '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-AsGwaw'
         
-        Run Build Command(s): /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_c4be6/fast
-        /usr/bin/gmake  -f CMakeFiles/cmTC_c4be6.dir/build.make CMakeFiles/cmTC_c4be6.dir/build
-        gmake[1]: Entering directory '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-O0XhpR'
-        Building CXX object CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o
-        /usr/bin/c++   -v -o CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o -c /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp
+        Run Build Command(s): /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_12571/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_12571.dir/build.make CMakeFiles/cmTC_12571.dir/build
+        gmake[1]: Entering directory '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-AsGwaw'
+        Building CXX object CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/c++   -v -o CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o -c /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp
         Using built-in specs.
         COLLECT_GCC=/usr/bin/c++
         OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa
@@ -1991,8 +2108,8 @@ events:
         Thread model: posix
         Supported LTO compression algorithms: zlib zstd
         gcc version 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04.3) 
-        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_c4be6.dir/'
-         /usr/lib/gcc/x86_64-linux-gnu/11/cc1plus -quiet -v -imultiarch x86_64-linux-gnu -D_GNU_SOURCE /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_c4be6.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/ccYActIY.s
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_12571.dir/'
+         /usr/lib/gcc/x86_64-linux-gnu/11/cc1plus -quiet -v -imultiarch x86_64-linux-gnu -D_GNU_SOURCE /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_12571.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/cc1fFgUJ.s
         GNU C++17 (Ubuntu 11.4.0-1ubuntu1~22.04.3) version 11.4.0 (x86_64-linux-gnu)
         	compiled by GNU C version 11.4.0, GMP version 6.2.1, MPFR version 4.1.0, MPC version 1.2.1, isl version isl-0.24-GMP
         
@@ -2016,14 +2133,14 @@ events:
         
         GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
         Compiler executable checksum: ac7fa628ee459f217e6fdb88b3db0bde
-        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_c4be6.dir/'
-         as -v --64 -o CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccYActIY.s
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_12571.dir/'
+         as -v --64 -o CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc1fFgUJ.s
         GNU assembler version 2.38 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.38
         COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.'
-        Linking CXX executable cmTC_c4be6
-        /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c4be6.dir/link.txt --verbose=1
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.'
+        Linking CXX executable cmTC_12571
+        /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_12571.dir/link.txt --verbose=1
         Using built-in specs.
         COLLECT_GCC=/usr/bin/c++
         COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper
@@ -2036,14 +2153,14 @@ events:
         gcc version 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04.3) 
         COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/
         LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c4be6' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_c4be6.'
-         /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccl9xpJy.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_c4be6 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_12571' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_12571.'
+         /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cc78Q6tV.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_12571 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
         collect2 version 11.4.0
-        /usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccl9xpJy.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_c4be6 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
+        /usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cc78Q6tV.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_12571 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o
         GNU ld (GNU Binutils for Ubuntu) 2.38
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c4be6' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_c4be6.'
-        /usr/bin/c++  -v -Wl,-v CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_c4be6
-        gmake[1]: Leaving directory '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-O0XhpR'
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_12571' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_12571.'
+        /usr/bin/c++  -v -Wl,-v CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_12571
+        gmake[1]: Leaving directory '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-AsGwaw'
         
       exitCode: 0
   -
@@ -2084,13 +2201,13 @@ events:
       Parsed CXX implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-O0XhpR']
+        ignore line: [Change Dir: '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-AsGwaw']
         ignore line: []
-        ignore line: [Run Build Command(s): /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_c4be6/fast]
-        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_c4be6.dir/build.make CMakeFiles/cmTC_c4be6.dir/build]
-        ignore line: [gmake[1]: Entering directory '/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-O0XhpR']
-        ignore line: [Building CXX object CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o]
-        ignore line: [/usr/bin/c++   -v -o CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o -c /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Run Build Command(s): /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_12571/fast]
+        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_12571.dir/build.make CMakeFiles/cmTC_12571.dir/build]
+        ignore line: [gmake[1]: Entering directory '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/CMakeScratch/TryCompile-AsGwaw']
+        ignore line: [Building CXX object CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/usr/bin/c++   -v -o CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o -c /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp]
         ignore line: [Using built-in specs.]
         ignore line: [COLLECT_GCC=/usr/bin/c++]
         ignore line: [OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa]
@@ -2100,8 +2217,8 @@ events:
         ignore line: [Thread model: posix]
         ignore line: [Supported LTO compression algorithms: zlib zstd]
         ignore line: [gcc version 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04.3) ]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_c4be6.dir/']
-        ignore line: [ /usr/lib/gcc/x86_64-linux-gnu/11/cc1plus -quiet -v -imultiarch x86_64-linux-gnu -D_GNU_SOURCE /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_c4be6.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/ccYActIY.s]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_12571.dir/']
+        ignore line: [ /usr/lib/gcc/x86_64-linux-gnu/11/cc1plus -quiet -v -imultiarch x86_64-linux-gnu -D_GNU_SOURCE /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_12571.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/cc1fFgUJ.s]
         ignore line: [GNU C++17 (Ubuntu 11.4.0-1ubuntu1~22.04.3) version 11.4.0 (x86_64-linux-gnu)]
         ignore line: [	compiled by GNU C version 11.4.0  GMP version 6.2.1  MPFR version 4.1.0  MPC version 1.2.1  isl version isl-0.24-GMP]
         ignore line: []
@@ -2125,14 +2242,14 @@ events:
         ignore line: []
         ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
         ignore line: [Compiler executable checksum: ac7fa628ee459f217e6fdb88b3db0bde]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_c4be6.dir/']
-        ignore line: [ as -v --64 -o CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccYActIY.s]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_12571.dir/']
+        ignore line: [ as -v --64 -o CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc1fFgUJ.s]
         ignore line: [GNU assembler version 2.38 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.38]
         ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/]
         ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.']
-        ignore line: [Linking CXX executable cmTC_c4be6]
-        ignore line: [/home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c4be6.dir/link.txt --verbose=1]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.']
+        ignore line: [Linking CXX executable cmTC_12571]
+        ignore line: [/home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E cmake_link_script CMakeFiles/cmTC_12571.dir/link.txt --verbose=1]
         ignore line: [Using built-in specs.]
         ignore line: [COLLECT_GCC=/usr/bin/c++]
         ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper]
@@ -2145,13 +2262,13 @@ events:
         ignore line: [gcc version 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04.3) ]
         ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/]
         ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/11/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/11/../../../:/lib/:/usr/lib/]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c4be6' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_c4be6.']
-        link line: [ /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccl9xpJy.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_c4be6 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_12571' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_12571.']
+        link line: [ /usr/lib/gcc/x86_64-linux-gnu/11/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cc78Q6tV.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_12571 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/collect2] ==> ignore
           arg [-plugin] ==> ignore
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so] ==> ignore
           arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper] ==> ignore
-          arg [-plugin-opt=-fresolution=/tmp/ccl9xpJy.res] ==> ignore
+          arg [-plugin-opt=-fresolution=/tmp/cc78Q6tV.res] ==> ignore
           arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
           arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
           arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -2169,7 +2286,7 @@ events:
           arg [-znow] ==> ignore
           arg [-zrelro] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_c4be6] ==> ignore
+          arg [cmTC_12571] ==> ignore
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o]
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o]
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o]
@@ -2182,7 +2299,7 @@ events:
           arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
           arg [-L/usr/lib/gcc/x86_64-linux-gnu/11/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/11/../../..]
           arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
           arg [-lstdc++] ==> lib [stdc++]
           arg [-lm] ==> lib [m]
           arg [-lgcc_s] ==> lib [gcc_s]
@@ -2193,7 +2310,7 @@ events:
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o]
           arg [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
         ignore line: [collect2 version 11.4.0]
-        ignore line: [/usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/ccl9xpJy.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_c4be6 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_c4be6.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
+        ignore line: [/usr/bin/ld -plugin /usr/lib/gcc/x86_64-linux-gnu/11/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper -plugin-opt=-fresolution=/tmp/cc78Q6tV.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_12571 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/11 -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/11/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/11/../../.. -v CMakeFiles/cmTC_12571.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crtn.o]
         linker tool for 'CXX': /usr/bin/ld
         collapse obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o] ==> [/usr/lib/x86_64-linux-gnu/Scrt1.o]
         collapse obj [/usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o] ==> [/usr/lib/x86_64-linux-gnu/crti.o]
@@ -2260,11 +2377,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_librariesConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_librariesConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_libraries-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_libraries-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_librariesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_libraries-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_librariesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_libraries-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_librariesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_libraries-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -2401,6 +2542,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -2428,13 +2572,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -2462,6 +2606,15 @@ events:
     names:
       - "python3"
     candidate_directories:
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/bin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/sbin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/bin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/sbin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/bin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/sbin/"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/bin/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/sbin/"
       - "/home/minh/gim60108_ws/install/gim_arm_description/"
@@ -2526,9 +2679,9 @@ events:
       - "/home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/"
       - "/home/minh/.local/lib/python3.10/site-packages/cmake/data/sbin/"
       - "/home/minh/.local/lib/python3.10/site-packages/cmake/data/"
-      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/bin/"
-      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/sbin/"
-      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config/bin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config/sbin/"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config/"
       - "/usr/X11R6/bin/"
       - "/usr/X11R6/sbin/"
       - "/usr/X11R6/"
@@ -2539,6 +2692,15 @@ events:
       - "/opt/sbin/"
       - "/opt/"
     searched_directories:
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/bin/python3"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/sbin/python3"
+      - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/python3"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/bin/python3"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/sbin/python3"
+      - "/home/minh/gim60108_ws/install/gim_arm_moveit_config/python3"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/bin/python3"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/sbin/python3"
+      - "/home/minh/gim60108_ws/install/gim_arm_hardware/python3"
       - "/home/minh/gim60108_ws/install/gim_arm_description/bin/python3"
       - "/home/minh/gim60108_ws/install/gim_arm_description/sbin/python3"
       - "/home/minh/gim60108_ws/install/gim_arm_description/python3"
@@ -2589,6 +2751,9 @@ events:
     found: "/usr/bin/python3"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -2616,13 +2781,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -2664,11 +2829,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_coreConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_coreConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_core-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_core-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_coreConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_core-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_coreConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_core-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_coreConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_core-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -2805,6 +2994,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -2832,13 +3024,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -2880,11 +3072,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_definitionsConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_definitionsConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_definitions-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_definitions-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_definitionsConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_definitions-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_definitionsConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_definitions-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_definitionsConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_definitions-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -3021,6 +3237,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -3048,13 +3267,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -3096,11 +3315,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_dependenciesConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_dependenciesConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_dependencies-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_dependencies-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_dependenciesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_dependencies-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_dependenciesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_dependencies-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_dependenciesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_dependencies-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -3237,6 +3480,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -3264,13 +3510,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -3312,11 +3558,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_include_directoriesConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_include_directoriesConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_include_directories-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_include_directories-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_include_directoriesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_include_directories-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_include_directoriesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_include_directories-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_include_directoriesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_include_directories-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -3453,6 +3723,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -3480,13 +3753,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -3528,11 +3801,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_interfacesConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_interfacesConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_interfaces-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_interfaces-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_interfacesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_interfaces-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_interfacesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_interfaces-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_interfacesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_interfaces-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -3669,6 +3966,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -3696,13 +3996,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -3744,11 +4044,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_librariesConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_librariesConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_libraries-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_libraries-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_librariesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_libraries-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_librariesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_libraries-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_librariesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_libraries-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -3885,6 +4209,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -3912,13 +4239,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -3960,11 +4287,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_link_flagsConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_link_flagsConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_link_flags-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_link_flags-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_link_flagsConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_link_flags-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_link_flagsConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_link_flags-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_link_flagsConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_link_flags-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -4101,6 +4452,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -4128,13 +4482,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -4176,11 +4530,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_targetsConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_targetsConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_targets-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_export_targets-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_targetsConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_export_targets-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_targetsConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_export_targets-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_targetsConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_export_targets-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -4317,6 +4695,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -4344,13 +4725,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -4392,11 +4773,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_gen_version_hConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_gen_version_hConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_gen_version_h-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_gen_version_h-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_gen_version_hConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_gen_version_h-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_gen_version_hConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_gen_version_h-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_gen_version_hConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_gen_version_h-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -4533,6 +4938,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -4560,13 +4968,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -4608,11 +5016,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_pythonConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_pythonConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_python-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_python-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_pythonConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_python-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_pythonConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_python-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_pythonConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_python-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -4749,6 +5181,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -4776,13 +5211,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -4826,11 +5261,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_include_directoriesConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_include_directoriesConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_include_directories-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_include_directories-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_include_directoriesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_include_directories-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_include_directoriesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_include_directories-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_include_directoriesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_include_directories-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -4967,6 +5426,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -4994,13 +5456,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -5042,11 +5504,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_target_dependenciesConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_target_dependenciesConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_target_dependencies-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_target_dependencies-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_target_dependenciesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_target_dependencies-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_target_dependenciesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_target_dependencies-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_target_dependenciesConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_target_dependencies-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -5183,6 +5669,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -5210,13 +5699,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -5258,11 +5747,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_testConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_testConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_test-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_test-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_testConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_test-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_testConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_test-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_testConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_test-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -5399,6 +5912,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -5426,13 +5942,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -5474,11 +5990,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_versionConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_versionConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_version-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake_version-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_versionConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake_version-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_versionConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake_version-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_versionConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake_version-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -5615,6 +6155,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -5642,13 +6185,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"
@@ -5688,11 +6231,35 @@ events:
         CMAKE_FIND_ROOT_PATH_MODE: "BOTH"
     candidates:
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmakeConfig.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmakeConfig.cmake"
         mode: "config"
         reason: "no_exist"
       -
-        path: "/home/minh/gim60108_ws/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake-config.cmake"
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/CMakeFiles/pkgRedirects/ament_cmake-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmakeConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/ament_cmake-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmakeConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_moveit_config/ament_cmake-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmakeConfig.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/home/minh/gim60108_ws/install/gim_arm_hardware/ament_cmake-config.cmake"
         mode: "config"
         reason: "no_exist"
       -
@@ -6077,6 +6644,9 @@ events:
       version: "1.3.14"
     search_context:
       ENV{CMAKE_PREFIX_PATH}:
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description"
+        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/gim60108_ws/install/gim_arm_hardware"
         - "/home/minh/gim60108_ws/install/gim_arm_description"
         - "/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control"
         - "/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins"
@@ -6104,13 +6674,13 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+      CMAKE_INSTALL_PREFIX: "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "/usr/local"
         - "/usr"
         - "/"
         - "/home/minh/.local/lib/python3.10/site-packages/cmake/data"
-        - "/home/minh/gim60108_ws/install/gim_arm_moveit_config"
+        - "/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"
         - "/usr/X11R6"
         - "/usr/pkg"
         - "/opt"

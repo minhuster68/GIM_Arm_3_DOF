@@ -53,10 +53,10 @@ RM = /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E rm -
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/minh/gim60108_ws/src/gim_arm_hardware
+CMAKE_SOURCE_DIR = /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/minh/gim60108_ws/build/gim_arm_hardware
+CMAKE_BINARY_DIR = /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware
 
 # Utility rule file for gim_arm_hardware_uninstall.
 
@@ -67,7 +67,7 @@ include CMakeFiles/gim_arm_hardware_uninstall.dir/compiler_depend.make
 include CMakeFiles/gim_arm_hardware_uninstall.dir/progress.make
 
 CMakeFiles/gim_arm_hardware_uninstall:
-	/home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -P /home/minh/gim60108_ws/build/gim_arm_hardware/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
+	/home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -P /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
 
 CMakeFiles/gim_arm_hardware_uninstall.dir/codegen:
 .PHONY : CMakeFiles/gim_arm_hardware_uninstall.dir/codegen
@@ -85,6 +85,6 @@ CMakeFiles/gim_arm_hardware_uninstall.dir/clean:
 .PHONY : CMakeFiles/gim_arm_hardware_uninstall.dir/clean
 
 CMakeFiles/gim_arm_hardware_uninstall.dir/depend:
-	cd /home/minh/gim60108_ws/build/gim_arm_hardware && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/minh/gim60108_ws/src/gim_arm_hardware /home/minh/gim60108_ws/src/gim_arm_hardware /home/minh/gim60108_ws/build/gim_arm_hardware /home/minh/gim60108_ws/build/gim_arm_hardware /home/minh/gim60108_ws/build/gim_arm_hardware/CMakeFiles/gim_arm_hardware_uninstall.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware/CMakeFiles/gim_arm_hardware_uninstall.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : CMakeFiles/gim_arm_hardware_uninstall.dir/depend
 

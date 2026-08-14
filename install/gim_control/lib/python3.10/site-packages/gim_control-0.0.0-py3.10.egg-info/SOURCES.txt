@@ -10,11 +10,12 @@ setup.py
 ../../build/gim_control/gim_control.egg-info/zip-safe
 config/controllers.yaml
 gim_control/__init__.py
-gim_control/draw_trajectory.py
+gim_control/gim6010_mujoco_sim.py
 gim_control/gim_arm_kinematics.py
 gim_control/motor_test_all_modes.py
+gim_control/origin_draw_trajectory.py
 gim_control/shapes.py
-launch/gim_arm_control.launch.py
+launch/origin_gim_arm_control.launch.py
 resource/gim_control
 test/test_copyright.py
 test/test_flake8.py

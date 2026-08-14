@@ -1,0 +1,34 @@
+[0.459s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_control': AMENT_PREFIX_PATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:${CMAKE_PREFIX_PATH} PYTHONPATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/gim_control build --build-base /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build install --record /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/install.log --install-scripts $base/lib/gim_control --single-version-externally-managed install_data
+[0.615s] running egg_info
+[0.625s] writing ../../build/gim_control/gim_control.egg-info/PKG-INFO
+[0.625s] writing dependency_links to ../../build/gim_control/gim_control.egg-info/dependency_links.txt
+[0.625s] writing entry points to ../../build/gim_control/gim_control.egg-info/entry_points.txt
+[0.626s] writing requirements to ../../build/gim_control/gim_control.egg-info/requires.txt
+[0.626s] writing top-level names to ../../build/gim_control/gim_control.egg-info/top_level.txt
+[0.645s] reading manifest file '../../build/gim_control/gim_control.egg-info/SOURCES.txt'
+[0.646s] writing manifest file '../../build/gim_control/gim_control.egg-info/SOURCES.txt'
+[0.646s] running build
+[0.646s] running build_py
+[0.647s] copying gim_control/__init__.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.647s] copying gim_control/origin_draw_trajectory.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.647s] copying gim_control/shapes.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.647s] copying gim_control/gim_arm_kinematics.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.647s] copying gim_control/motor_test_all_modes.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.647s] copying gim_control/gim6010_mujoco_sim.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.647s] running install
+[0.650s] running install_lib
+[0.659s] copying /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control/gim6010_mujoco_sim.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control
+[0.659s] byte-compiling /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/gim6010_mujoco_sim.py to gim6010_mujoco_sim.cpython-310.pyc
+[0.662s] running install_data
+[0.662s] copying resource/gim_control -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/ament_index/resource_index/packages
+[0.663s] copying package.xml -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/gim_control
+[0.663s] copying launch/origin_gim_arm_control.launch.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/gim_control/launch
+[0.663s] copying config/controllers.yaml -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/gim_control/config
+[0.663s] running install_egg_info
+[0.673s] removing '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control-0.0.0-py3.10.egg-info' (and everything under it)
+[0.673s] Copying ../../build/gim_control/gim_control.egg-info to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control-0.0.0-py3.10.egg-info
+[0.673s] running install_scripts
+[0.695s] Installing motor_test_all_modes script to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control
+[0.695s] Installing origin_draw_trajectory script to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control
+[0.695s] writing list of installed files to '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/install.log'
+[0.715s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_control' returned '0': AMENT_PREFIX_PATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:${CMAKE_PREFIX_PATH} PYTHONPATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/gim_control build --build-base /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build install --record /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/install.log --install-scripts $base/lib/gim_control --single-version-externally-managed install_data

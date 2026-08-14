@@ -1,7 +1,7 @@
 CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o: \
- /home/minh/gim60108_ws/src/gim_arm_hardware/src/gim_arm_system.cpp \
+ /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp \
  /usr/include/stdc-predef.h \
- /home/minh/gim60108_ws/src/gim_arm_hardware/include/gim_arm_hardware/gim_arm_system.hpp \
+ /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/include/gim_arm_hardware/gim_arm_system.hpp \
  /usr/include/c++/11/cstdint \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -328,9 +328,9 @@ CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o: \
  /opt/ros/humble/include/rclcpp_lifecycle/rclcpp_lifecycle/visibility_control.h \
  /opt/ros/humble/include/rclcpp/rclcpp/node_interfaces/detail/node_interfaces_helpers.hpp \
  /opt/ros/humble/include/rclcpp/rclcpp/macros.hpp \
- /home/minh/gim60108_ws/src/gim_arm_hardware/include/gim_arm_hardware/gim6010_can_protocol.hpp \
+ /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/include/gim_arm_hardware/gim6010_can_protocol.hpp \
  /usr/include/c++/11/cstring \
- /home/minh/gim60108_ws/src/gim_arm_hardware/include/gim_arm_hardware/socketcan_bus.hpp \
+ /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/include/gim_arm_hardware/socketcan_bus.hpp \
  /usr/include/fcntl.h /usr/include/x86_64-linux-gnu/bits/fcntl.h \
  /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \

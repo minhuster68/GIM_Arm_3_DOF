@@ -1,7 +1,1 @@
-from moveit_configs_utils import MoveItConfigsBuilder
-from moveit_configs_utils.launches import generate_rsp_launch
-
-
-def generate_launch_description():
-    moveit_config = MoveItConfigsBuilder("gim_arm", package_name="gim_arm_moveit_config").to_moveit_configs()
-    return generate_rsp_launch(moveit_config)
+/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_moveit_config/launch/rsp.launch.py

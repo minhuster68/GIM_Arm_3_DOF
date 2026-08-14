@@ -54,10 +54,10 @@ RM = /home/minh/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E rm -
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/minh/gim60108_ws/src/gim_arm_description
+CMAKE_SOURCE_DIR = /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_description
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/minh/gim60108_ws/build/gim_arm_description
+CMAKE_BINARY_DIR = /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -86,14 +86,14 @@ clean: CMakeFiles/gim_arm_description_uninstall.dir/clean
 CMakeFiles/uninstall.dir/all: CMakeFiles/gim_arm_description_uninstall.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uninstall.dir/build.make CMakeFiles/uninstall.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uninstall.dir/build.make CMakeFiles/uninstall.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/minh/gim60108_ws/build/gim_arm_description/CMakeFiles --progress-num= "Built target uninstall"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description/CMakeFiles --progress-num= "Built target uninstall"
 .PHONY : CMakeFiles/uninstall.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/uninstall.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/gim60108_ws/build/gim_arm_description/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description/CMakeFiles 0
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/uninstall.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/gim60108_ws/build/gim_arm_description/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description/CMakeFiles 0
 .PHONY : CMakeFiles/uninstall.dir/rule
 
 # Convenience name for target.
@@ -103,7 +103,7 @@ uninstall: CMakeFiles/uninstall.dir/rule
 # codegen rule for target.
 CMakeFiles/uninstall.dir/codegen: CMakeFiles/gim_arm_description_uninstall.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/uninstall.dir/build.make CMakeFiles/uninstall.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/minh/gim60108_ws/build/gim_arm_description/CMakeFiles --progress-num= "Finished codegen for target uninstall"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description/CMakeFiles --progress-num= "Finished codegen for target uninstall"
 .PHONY : CMakeFiles/uninstall.dir/codegen
 
 # clean rule for target.
@@ -118,14 +118,14 @@ CMakeFiles/uninstall.dir/clean:
 CMakeFiles/gim_arm_description_uninstall.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gim_arm_description_uninstall.dir/build.make CMakeFiles/gim_arm_description_uninstall.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gim_arm_description_uninstall.dir/build.make CMakeFiles/gim_arm_description_uninstall.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/minh/gim60108_ws/build/gim_arm_description/CMakeFiles --progress-num= "Built target gim_arm_description_uninstall"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description/CMakeFiles --progress-num= "Built target gim_arm_description_uninstall"
 .PHONY : CMakeFiles/gim_arm_description_uninstall.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/gim_arm_description_uninstall.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/gim60108_ws/build/gim_arm_description/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description/CMakeFiles 0
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/gim_arm_description_uninstall.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/gim60108_ws/build/gim_arm_description/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description/CMakeFiles 0
 .PHONY : CMakeFiles/gim_arm_description_uninstall.dir/rule
 
 # Convenience name for target.
@@ -135,7 +135,7 @@ gim_arm_description_uninstall: CMakeFiles/gim_arm_description_uninstall.dir/rule
 # codegen rule for target.
 CMakeFiles/gim_arm_description_uninstall.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/gim_arm_description_uninstall.dir/build.make CMakeFiles/gim_arm_description_uninstall.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/minh/gim60108_ws/build/gim_arm_description/CMakeFiles --progress-num= "Finished codegen for target gim_arm_description_uninstall"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description/CMakeFiles --progress-num= "Finished codegen for target gim_arm_description_uninstall"
 .PHONY : CMakeFiles/gim_arm_description_uninstall.dir/codegen
 
 # clean rule for target.

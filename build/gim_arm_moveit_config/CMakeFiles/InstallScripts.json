@@ -1,7 +1,7 @@
 {
 	"InstallScripts" : 
 	[
-		"/home/minh/gim60108_ws/build/gim_arm_moveit_config/cmake_install.cmake"
+		"/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

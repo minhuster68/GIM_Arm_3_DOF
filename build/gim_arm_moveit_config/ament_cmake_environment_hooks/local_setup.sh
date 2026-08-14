@@ -2,7 +2,7 @@
 
 # since this file is sourced use either the provided AMENT_CURRENT_PREFIX
 # or fall back to the destination set at configure time
-: ${AMENT_CURRENT_PREFIX:="/home/minh/gim60108_ws/install/gim_arm_moveit_config"}
+: ${AMENT_CURRENT_PREFIX:="/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config"}
 if [ ! -d "$AMENT_CURRENT_PREFIX" ]; then
   if [ -z "$COLCON_CURRENT_PREFIX" ]; then
     echo "The compile time prefix path '$AMENT_CURRENT_PREFIX' doesn't " \

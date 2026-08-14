@@ -1,1 +1,1 @@
-prepend-non-duplicate;AMENT_PREFIX_PATH;
+/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_moveit_config/ament_cmake_environment_hooks/ament_prefix_path.dsv

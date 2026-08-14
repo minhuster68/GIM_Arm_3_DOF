@@ -153,7 +153,7 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
     uint8_t data[8];
     // control_mode=3 (position), input_mode=3 (filtered position) -- manual
     // 3.1.6. CHƯA dùng Mit_Control ở bước bench-test này.
-    gim6010::pack_u32_le(data, /*control_mode=*/3, /*input_mode=*/3);
+    gim6010::pack_u32_le(data, /*control_mode=*/3, /*input_mode=*/1);
     can_bus_.send(
       gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetControllerMode), data, 8);
   }

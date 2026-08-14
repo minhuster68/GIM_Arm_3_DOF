@@ -1,6 +1,1 @@
-# Default initial positions for gim_arm's ros2_control fake system
-
-initial_positions:
-  base_joint: 0
-  elbow_joint: 0
-  shoulder_joint: 0
+/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_moveit_config/config/initial_positions.yaml

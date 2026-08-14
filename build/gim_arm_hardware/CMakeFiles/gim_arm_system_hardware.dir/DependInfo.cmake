@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/minh/gim60108_ws/src/gim_arm_hardware/src/gim_arm_system.cpp" "CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o" "gcc" "CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o.d"
+  "/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp" "CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o" "gcc" "CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

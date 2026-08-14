@@ -1,9 +1,1 @@
-<library path="gim_arm_system_hardware">
-  <class name="gim_arm_hardware/GimArmSystemHardware"
-         type="gim_arm_hardware::GimArmSystemHardware"
-         base_class_type="hardware_interface::SystemInterface">
-    <description>
-      Hardware Interface for GIM6010-8 using SocketCAN.
-    </description>
-  </class>
-</library>
+/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/gim_arm_hardware.xml

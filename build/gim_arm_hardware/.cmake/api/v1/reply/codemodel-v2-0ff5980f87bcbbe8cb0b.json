@@ -1,0 +1,79 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-ee7f2bdbad635dd7812e.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "gim_arm_hardware",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "gim_arm_hardware_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-gim_arm_hardware_uninstall-6e38a7263a8ad0e94be4.json",
+					"name" : "gim_arm_hardware_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "gim_arm_system_hardware::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-gim_arm_system_hardware-600c21fea2e830f8235f.json",
+					"name" : "gim_arm_system_hardware",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-f963e97a02f577d1e51e.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware",
+		"source" : "/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 8
+	}
+}
