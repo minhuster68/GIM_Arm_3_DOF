@@ -16,7 +16,7 @@
       <geom type="mesh" rgba="0.752941 0.752941 0.752941 1" mesh="shoulder_link"/>
       <body name="upper_arm_link" pos="-0.049966 0.001555 0.00099995" quat="0.589584 -0.488746 -0.405223 0.499311">
         <inertial pos="-0.0207367 0.102616 -0.0918424" quat="0.663565 -0.00524028 0.0607563 0.745629" mass="1.15563" diaginertia="0.00533537 0.00465501 0.00100501"/>
-        <joint name="shoulder_joint" pos="0 0 0" axis="0 -1 0" range="-1.1811 1.2002" actuatorfrcrange="-5 5"/>
+        <joint name="shoulder_joint" pos="0 0 0" axis="0 -1 0" range="-1.1811 1.2002" actuatorfrcrange="-40 40"/>
         <geom type="mesh" rgba="0.545098 0 0.870588 1" mesh="upper_arm_link"/>
         <body name="lower_arm_link" pos="-0.014232 0 -0.21358" quat="-0.474042 0.474045 -0.524673 -0.524674">
           <inertial pos="0.18527 0.00970989 0.0463326" quat="0.0339146 0.77458 0.0270247 0.630988" mass="0.846777" diaginertia="0.00187451 0.00160639 0.00058703"/>

@@ -1,25 +1,42 @@
-# joint_limits.yaml allows the dynamics properties specified in the URDF to be overwritten or augmented as needed
+# joint_limits.yaml — GIỚI HẠN VẬN HÀNH AN TOÀN, khác với giới hạn PHẦN CỨNG.
+#
+# Phân vai rõ ràng, đừng lẫn 2 thứ:
+#   - URDF <limit effort/velocity>: khả năng THẬT của phần cứng, suy từ
+#     datasheet GIM6010-8 + gear_ratio từng khớp (base/elbow 15.708 rad/s,
+#     shoulder 1.963 rad/s). Xem comment trong gim_arm.urdf.
+#   - File này: mức TRẦN cho phép MoveIt lập kế hoạch. Đây là thiết bị đeo lên
+#     tay người, nên trần đặt theo mức người chịu được, thấp hơn phần cứng rất
+#     nhiều -- 15.708 rad/s = 900 độ/s là con số động cơ làm được, KHÔNG phải
+#     con số được phép cho lên tay người.
+#
+# TRƯỚC ĐÂY: has_velocity_limits: false cho cả 3 khớp -> MoveIt lập kế hoạch
+# KHÔNG có bất kỳ giới hạn vận tốc nào (max_velocity: 0 cũng không có tác
+# dụng khi has_*_limits = false). Sửa URDF mà để nguyên chỗ này thì giới hạn
+# mới vẫn bị bỏ qua hoàn toàn.
+#
+# 1.0 rad/s ~ 57 độ/s: đủ nhanh để tập luyện, vẫn dừng kịp bằng tay. Quỹ đạo
+# quét hiện tại (sweep_trajectory.py) chỉ dùng 0.118 rad/s nên còn rất nhiều
+# dư địa. Gia tốc 2.0 rad/s^2 -> đạt trần vận tốc trong 0.5s, êm.
+# Phần cứng còn dư nhiều: gia tốc khả dụng thật (mô-men định mức trừ mô-men
+# trọng lực, chia quán tính khớp, tính trên cả quỹ đạo) là 38 / 273 / 112
+# rad/s^2 -- gia tốc KHÔNG phải chỗ bị phần cứng bó, người đeo mới là chỗ bó.
 
-# For beginners, we downscale velocity and acceleration limits.
-# You can always specify higher scaling factors (<= 1.0) in your motion requests.  # Increase the values below to 1.0 to always move at maximum speed.
 default_velocity_scaling_factor: 0.1
 default_acceleration_scaling_factor: 0.1
 
-# Specific joint properties can be changed with the keys [max_position, min_position, max_velocity, max_acceleration]
-# Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]
 joint_limits:
   base_joint:
-    has_velocity_limits: false
-    max_velocity: 0
-    has_acceleration_limits: false
-    max_acceleration: 0
-  elbow_joint:
-    has_velocity_limits: false
-    max_velocity: 0
-    has_acceleration_limits: false
-    max_acceleration: 0
+    has_velocity_limits: true
+    max_velocity: 1.0
+    has_acceleration_limits: true
+    max_acceleration: 2.0
   shoulder_joint:
-    has_velocity_limits: false
-    max_velocity: 0
-    has_acceleration_limits: false
-    max_acceleration: 0
+    has_velocity_limits: true
+    max_velocity: 1.0        # phần cứng tối đa 1.963 (gear 64) -> vẫn dưới trần
+    max_acceleration: 2.0
+    has_acceleration_limits: true
+  elbow_joint:
+    has_velocity_limits: true
+    max_velocity: 1.0
+    has_acceleration_limits: true
+    max_acceleration: 2.0

@@ -46,7 +46,13 @@ TRANSITION_TIME = 5.0  # giây để đi êm từ tư thế hiện tại về đ
 MAX_ERR_MM = 0.1
 MAX_COND = 15.0
 MIN_JOINT_MARGIN_RAD = 0.05
-MAX_JOINT_SPEED_RAD_S = 0.5
+
+# Tốc độ khớp tối đa cho phép, tính theo TỈ LỆ so với <limit velocity> của
+# từng khớp trong URDF (base/elbow 15.708 rad/s, shoulder chỉ 1.963 rad/s vì
+# gear 64). So theo tỉ lệ chứ không theo 1 con số chung, vì 3 khớp có trần
+# phần cứng lệch nhau tới 8 lần: một con số chung sẽ vừa quá lỏng cho
+# base/elbow vừa quá chặt cho shoulder.
+MAX_JOINT_SPEED_FRACTION = 0.25
 
 
 def build_positions(n_points: int = N_POINTS):
@@ -77,8 +83,11 @@ def safety_report(kin, positions, results, dt: float = DT):
     err_mm = max(r.position_error_m for r in results) * 1000
     conds = np.array([np.linalg.cond(kin.jacobian(q)[:3, :]) for q in qs])
     margin = float(min((qs - lo).min(), (hi - qs).min()))
-    step = np.abs(np.diff(np.vstack([qs, qs[:1]]), axis=0)).max()
-    speed = step / dt
+    # tốc độ TỪNG khớp: chênh lệch góc lớn nhất giữa 2 điểm liền kề / dt
+    speeds = np.abs(np.diff(np.vstack([qs, qs[:1]]), axis=0)).max(axis=0) / dt
+    vel_limit = np.asarray(kin.model.velocityLimit, dtype=float)
+    allowed = MAX_JOINT_SPEED_FRACTION * vel_limit
+    used_frac = speeds / vel_limit
 
     lines = [
         f"Kích thước: rộng {(P[:,0].max()-P[:,0].min())*100:.0f}cm (trái-phải) x "
@@ -93,8 +102,10 @@ def safety_report(kin, positions, results, dt: float = DT):
         f"cách giới hạn khớp gần nhất {margin:.3f} rad (ngưỡng {MIN_JOINT_MARGIN_RAD})",
         f"  biên độ mỗi khớp (độ): {np.degrees(qs.max(axis=0)-qs.min(axis=0)).round(1)} "
         f"-> {kin.joint_names}",
-        f"  tốc độ khớp lớn nhất {speed:.3f} rad/s = {np.degrees(speed):.1f} độ/s "
-        f"(ngưỡng {MAX_JOINT_SPEED_RAD_S} rad/s, dt={dt}s)",
+        f"  tốc độ khớp (rad/s, dt={dt}s): {speeds.round(3)} | "
+        f"trần URDF: {vel_limit.round(3)} | "
+        f"dùng {(used_frac*100).round(1)}% (cho phép "
+        f"{MAX_JOINT_SPEED_FRACTION*100:.0f}%)",
     ]
 
     fails = []
@@ -106,8 +117,13 @@ def safety_report(kin, positions, results, dt: float = DT):
         fails.append(f"cond(J) {conds.max():.1f} > {MAX_COND} (quá gần singularity)")
     if margin < MIN_JOINT_MARGIN_RAD:
         fails.append(f"chỉ cách giới hạn khớp {margin:.3f} rad < {MIN_JOINT_MARGIN_RAD}")
-    if speed > MAX_JOINT_SPEED_RAD_S:
-        fails.append(f"tốc độ khớp {speed:.3f} rad/s > {MAX_JOINT_SPEED_RAD_S} -- tăng dt")
+    over = np.where(speeds > allowed)[0]
+    for i in over:
+        fails.append(
+            f"khớp {kin.joint_names[i]} chạy {speeds[i]:.3f} rad/s, vượt "
+            f"{MAX_JOINT_SPEED_FRACTION*100:.0f}% trần {vel_limit[i]:.3f} rad/s "
+            f"-- tăng dt hoặc giảm biên độ"
+        )
 
     if fails:
         lines.append("KHÔNG ĐẠT: " + "; ".join(fails))

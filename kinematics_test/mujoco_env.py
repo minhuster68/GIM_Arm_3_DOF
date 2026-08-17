@@ -9,8 +9,9 @@ Task #9 (Setup Actuator & System Dynamics) đã tích hợp vào đây:
   dùng trong gim_arm_hardware/gim_arm_system.cpp, không phải số bừa.
 - ctrlrange = giới hạn mô-men THẬT tại khớp, theo datasheet GIM6010-8 (rated
   5Nm ở tỉ số 8:1 gốc của motor). Với shoulder có thêm hộp ngoài 8:1, mô-men
-  khả dụng THẬT tại khớp cuối là 5 * (64/8) = 40Nm, không phải 5Nm như URDF
-  đang khai (URDF hiện khai thấp hơn khả năng thật, xem ghi chú trong code).
+  khả dụng THẬT tại khớp cuối là 5 * (64/8) = 40Nm. URDF trước đây khai 5Nm
+  cho cả 3 khớp (thiếu 8 lần ở shoulder); đã sửa lại đúng 5/40/5 Nm nên
+  ctrlrange tính ở đây giờ KHỚP với <limit effort> trong URDF.
 - ctrl ở đây đại diện cho MÔ-MEN (Nm) tại khớp, KHÔNG phải dòng điện -- nên
   actuator "gear" (hệ số scale ctrl->force của MuJoCo) để =1 (pass-through).
 
