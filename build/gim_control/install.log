@@ -2,12 +2,14 @@
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/origin_draw_trajectory.py
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/shapes.py
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/gim_arm_kinematics.py
+/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/sweep_trajectory.py
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/motor_test_all_modes.py
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/gim6010_mujoco_sim.py
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/__init__.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/origin_draw_trajectory.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/shapes.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/gim_arm_kinematics.cpython-310.pyc
+/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/sweep_trajectory.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/motor_test_all_modes.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/gim6010_mujoco_sim.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/ament_index/resource_index/packages/gim_control

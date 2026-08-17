@@ -20,6 +20,7 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 from gim_arm_kinematics import GimArmKinematics
+import sweep_trajectory
 
 
 class DrawTrajectoryNode(Node):
@@ -29,10 +30,17 @@ class DrawTrajectoryNode(Node):
             self, FollowJointTrajectory, "/gim_arm_group_controller/follow_joint_trajectory"
         )
 
-    def send_trajectory(self, joint_names, q_list, dt: float):
+    def send_trajectory(self, joint_names, q_list, dt: float,
+                        lead_in: float = sweep_trajectory.TRANSITION_TIME):
+        """lead_in: thời gian dành cho điểm ĐẦU TIÊN. Bản này không đọc
+        /joint_states nên không biết tay đang ở đâu; cho điểm đầu hẳn vài giây
+        để controller nội suy ÊM từ tư thế hiện tại về điểm đầu, thay vì ép đi
+        hết quãng đường đó trong đúng 1 dt (giật mạnh, nguy hiểm với thiết bị
+        đeo trên người). Bản trong package (origin_draw_trajectory.py) đọc
+        /joint_states nên dựng được đoạn chuyển tiếp chuẩn hơn."""
         goal = FollowJointTrajectory.Goal()
         goal.trajectory.joint_names = joint_names
-        t = 0.0
+        t = lead_in
         for q in q_list:
             pt = JointTrajectoryPoint()
             pt.positions = [float(x) for x in q]
@@ -65,22 +73,19 @@ def main():
     urdf_path = os.path.join(
         get_package_share_directory("gim_arm_description"), "urdf", "gim_arm.urdf"
     )
-    kin = GimArmKinematics(urdf_path, tool_offset_xyz=(0.4031, 0.049, -0.029))
+    kin = GimArmKinematics(urdf_path, tool_offset_xyz=sweep_trajectory.TOOL_OFFSET)
 
-    from shapes import letter_o, discretize
-
-    path_o = letter_o(center=(-0.045, 0.7), radius=0.07, plane="x", plane_value=0.2)
-    positions = discretize(path_o, n_points=60, close_loop=True)
-
-    results = kin.solve_trajectory(positions)
-    n_bad = sum(not r.converged for r in results)
-    if n_bad > 0:
-        print(f"CẢNH BÁO: {n_bad}/{len(results)} điểm không giải được IK -- kiểm tra lại trước khi gửi.")
+    positions, results = sweep_trajectory.solve(kin)
+    ok, lines = sweep_trajectory.safety_report(kin, positions, results)
+    for line in lines:
+        print(line)
+    if not ok:
+        print("DỪNG: không gửi quỹ đạo chưa đạt ngưỡng an toàn xuống tay thật.")
         return
 
     node = DrawTrajectoryNode()
     q_list = [r.q for r in results]
-    node.send_trajectory(kin.joint_names, q_list, dt=0.3)
+    node.send_trajectory(kin.joint_names, q_list, dt=sweep_trajectory.DT)
 
     node.destroy_node()
     rclpy.shutdown()

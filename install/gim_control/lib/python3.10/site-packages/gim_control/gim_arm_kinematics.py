@@ -123,6 +123,29 @@ class GimArmKinematics:
         final_err = float(np.linalg.norm(target_pos - self.fk_position(q)))
         return IKResult(q=q, converged=False, iterations=max_iter, position_error_m=final_err)
 
+    def seed_from_scan(self, target_pos, n_grid: int = 12) -> np.ndarray:
+        """Chọn điểm khởi đầu q cho IK bằng cách quét lưới thô toàn dải khớp và
+        lấy cấu hình có FK gần target nhất.
+
+        Vì sao cần (đã gặp thật, không phải phòng xa): ik_position() dùng
+        Newton + np.clip vào giới hạn khớp. Nếu điểm khởi đầu ở "phía sai",
+        bước Newton đẩy q ra ngoài giới hạn -> clip dán q vào ĐÚNG góc của hộp
+        giới hạn và mọi vòng lặp sau đều bị dán lại y chỗ đó (err đứng im hàng
+        trăm mm dù Jacobian không hề singular). Quỹ đạo vươn xa ra trước mặt
+        rơi vào bẫy này khi khởi đầu từ mid_q. Lưới FK được cache lại nên chỉ
+        tốn thời gian ở lần gọi đầu tiên."""
+        cache = getattr(self, "_scan_cache", None)
+        if cache is None or cache[0] != n_grid:
+            axes = [np.linspace(self.model.lowerPositionLimit[i],
+                                self.model.upperPositionLimit[i], n_grid)
+                    for i in range(self.model.nq)]
+            qs = np.stack(np.meshgrid(*axes, indexing="ij"), axis=-1).reshape(-1, self.model.nq)
+            pts = np.array([self.fk_position(q) for q in qs])
+            cache = (n_grid, qs, pts)
+            self._scan_cache = cache
+        _, qs, pts = cache
+        return qs[np.linalg.norm(pts - np.asarray(target_pos, dtype=float), axis=1).argmin()].copy()
+
     def check_singularity(self, q, threshold: float = 50.0) -> bool:
         """True nếu Jacobian vị trí gần mất hạng (condition number vượt ngưỡng)
         -- vùng này IK sẽ hội tụ chậm/không ổn định, nên tránh khi chọn vùng vẽ."""
@@ -133,11 +156,23 @@ class GimArmKinematics:
     def solve_trajectory(self, positions: list, q_init=None) -> list:
         """Giải IK cho 1 chuỗi điểm (x,y,z) liên tiếp -- dùng nghiệm điểm
         trước làm điểm khởi đầu cho điểm sau (warm start), vừa nhanh vừa ổn
-        định hơn nhiều so với luôn bắt đầu từ 1 điểm cố định."""
+        định hơn nhiều so với luôn bắt đầu từ 1 điểm cố định.
+
+        Điểm ĐẦU TIÊN (khi không truyền q_init) được gieo bằng seed_from_scan()
+        thay vì mid_q, và bất kỳ điểm nào không hội tụ đều được giải lại bằng
+        hạt giống quét -- xử lý đúng cái bẫy "kẹt ở góc giới hạn khớp" mô tả
+        trong seed_from_scan()."""
         results = []
-        q_current = self.mid_q.copy() if q_init is None else np.array(q_init, dtype=float)
+        if q_init is None:
+            q_current = self.seed_from_scan(positions[0]) if len(positions) else self.mid_q.copy()
+        else:
+            q_current = np.array(q_init, dtype=float)
         for pos in positions:
             res = self.ik_position(pos, q_init=q_current)
+            if not res.converged:
+                retry = self.ik_position(pos, q_init=self.seed_from_scan(pos))
+                if retry.position_error_m < res.position_error_m:
+                    res = retry
             results.append(res)
             q_current = res.q  # warm start cho điểm tiếp theo
         return results

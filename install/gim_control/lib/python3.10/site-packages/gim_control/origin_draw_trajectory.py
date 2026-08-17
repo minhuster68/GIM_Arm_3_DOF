@@ -8,6 +8,10 @@ Tự đọc vị trí khớp hiện tại qua /joint_states, tự chèn 1 đoạ
 về điểm đầu quỹ đạo vẽ trước khi vẽ thật. Có đồ thị REAL-TIME (actual vs
 desired, 3 khớp) cập nhật liên tục ngay trong lúc tay máy đang chạy.
 
+Quỹ đạo lấy từ gim_control/sweep_trajectory.py -- ĐÚNG file mà
+kinematics_test/test_sweep_mujoco.py dùng để mô phỏng, nên cái đã xem trong
+MuJoCo chính là cái chạy trên tay thật.
+
 Đặt trong gim_control/gim_control/ (cùng chỗ với gim_arm_kinematics.py và
 shapes.py) -- import bên dưới dùng đúng đường dẫn package `gim_control.xxx`.
 """
@@ -16,7 +20,6 @@ import time
 
 import numpy as np
 import matplotlib.pyplot as plt
-from gim_control.shapes import letter_o
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
@@ -28,6 +31,7 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 from gim_control.gim_arm_kinematics import GimArmKinematics
+from gim_control import sweep_trajectory
 
 
 class DrawTrajectoryNode(Node):
@@ -194,22 +198,22 @@ def main():
     urdf_path = os.path.join(
         get_package_share_directory("gim_arm_description"), "urdf", "gim_arm.urdf"
     )
-    kin = GimArmKinematics(urdf_path, tool_offset_xyz=(0.4031, 0.049, -0.029))
+    kin = GimArmKinematics(urdf_path, tool_offset_xyz=sweep_trajectory.TOOL_OFFSET)
 
-    from gim_control.shapes import letter_o, discretize
-
-    path_o = letter_o(center=(-0.219, -0.618), radius=0.07, plane="z", plane_value=0.21)
-    positions = discretize(path_o, n_points=60, close_loop=True)
-
-    results = kin.solve_trajectory(positions)
-    n_bad = sum(not r.converged for r in results)
-    if n_bad > 0:
-        print(f"CẢNH BÁO: {n_bad}/{len(results)} điểm không giải được IK -- kiểm tra lại trước khi gửi.")
+    positions, results = sweep_trajectory.solve(kin)
+    ok, lines = sweep_trajectory.safety_report(kin, positions, results)
+    for line in lines:
+        print(line)
+    if not ok:
+        print("DỪNG: không gửi quỹ đạo chưa đạt ngưỡng an toàn xuống tay thật.")
         return
 
     node = DrawTrajectoryNode()
     q_list = [r.q for r in results]
-    node.send_trajectory(kin.joint_names, q_list, dt=0.3, transition_time=3.0, live_plot=True)
+    node.send_trajectory(
+        kin.joint_names, q_list, dt=sweep_trajectory.DT,
+        transition_time=sweep_trajectory.TRANSITION_TIME, live_plot=True,
+    )
 
     node.destroy_node()
     rclpy.shutdown()
