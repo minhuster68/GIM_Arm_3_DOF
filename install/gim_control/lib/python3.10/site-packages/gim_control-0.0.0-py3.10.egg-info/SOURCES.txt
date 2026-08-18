@@ -10,6 +10,7 @@ setup.py
 ../../build/gim_control/gim_control.egg-info/zip-safe
 config/controllers.yaml
 gim_control/__init__.py
+gim_control/check_gravity_model.py
 gim_control/gim6010_mujoco_sim.py
 gim_control/gim_arm_kinematics.py
 gim_control/motor_test_all_modes.py

@@ -220,6 +220,7 @@
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">0</param>
+    <param name="invert_direction">true</param>       <!-- them -->
   </joint>
   <joint name="shoulder_joint">
     <command_interface name="position"/>

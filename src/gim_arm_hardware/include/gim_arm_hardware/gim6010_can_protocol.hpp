@@ -101,6 +101,15 @@ inline void pack_set_input_pos(
   std::memcpy(&data[4], &vel_i, 2);
   std::memcpy(&data[6], &trq_i, 2);
 }
+// ---- Set_Input_Torque (cmd_id 0x00E), manual 4.1.2 ----
+// 8 byte: [0..3] Input_Torque float32, [4..7] không dùng.
+// ĐƠN VỊ PHÍA ROTOR (Nm trước hộp số), giống 0x00C và khác 0x008. Bên gọi phải
+// CHIA gear_ratio -- nhân nhầm là shoulder lệch 64 lần.
+inline void pack_set_input_torque(uint8_t data[8], double torque_rotor_nm) {
+  const float t = static_cast<float>(torque_rotor_nm);
+  std::memset(data, 0, 8);
+  std::memcpy(&data[0], &t, 4);
+}
 
 // ---- Mit_Control (cmd_id 0x008) fixed-point ranges, manual 4.1.2 ----
 constexpr double kPosMin = -12.5, kPosMax = 12.5;  // rad, output shaft, 16 bit
