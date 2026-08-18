@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 
+#include <pinocchio/multibody/data.hpp>
+#include <pinocchio/multibody/model.hpp>
+
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
@@ -55,12 +58,26 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  // Gửi 1 lệnh Set_Input_Pos cho khớp `i` với vị trí `position_rad` (đơn vị RAD,
-  // phía trục ra) -- dùng chung bởi write() và on_activate().
-  void send_position_command(size_t i, double position_rad);
+  // Gửi 1 lệnh Set_Input_Pos cho khớp `i`. position_rad / velocity_rad_s /
+  // torque_ff_joint_nm đều ở KHÔNG GIAN KHỚP (URDF); hàm này lo phần quy đổi
+  // sang phía rotor. Dùng chung bởi write() và on_activate() -- on_activate gọi
+  // với 2 tham số sau = 0 (lúc chốt setpoint thì không feedforward gì cả).
+  void send_position_command(
+    size_t i, double position_rad, double velocity_rad_s = 0.0,
+    double torque_ff_joint_nm = 0.0);
+
+  // Tính G(q) -- mô-men chống trọng lực tại từng khớp (Nm, phía khớp) bằng
+  // Pinocchio, từ VỊ TRÍ LỆNH. Trả về false nếu mô hình chưa nạp được.
+  bool compute_gravity_torque(
+    const std::vector<double> & q_joint, std::vector<double> & tau_out);
 
   // Các mảng lưu trữ giá trị cho 3 khớp (base, shoulder, elbow) -- đơn vị RAD, phía trục ra
   std::vector<double> hw_commands_;
+
+  // Lệnh vận tốc (rad/s, phía khớp). Chỉ tồn tại khi URDF khai
+  // <command_interface name="velocity"/> VÀ controller khai velocity trong
+  // command_interfaces -- nếu không, mảng này ở nguyên NaN và bị bỏ qua.
+  std::vector<double> hw_commands_velocity_;
   std::vector<double> hw_states_position_;
   std::vector<double> hw_states_velocity_;
 
@@ -92,6 +109,30 @@ private:
 
   // Tên interface CAN (vd "can0") -- đọc từ <hardware><param name="can_interface">
   std::string can_interface_name_;
+
+  // ---- Feedforward (xem ghi chú pack_set_input_pos trong gim6010_can_protocol.hpp) ----
+  // MẶC ĐỊNH TẮT CẢ HAI. Cố ý: build lại plugin KHÔNG được âm thầm đổi hành vi
+  // của một thiết bị đang đeo trên tay người. Muốn bật thì khai rõ trong URDF:
+  //   <param name="velocity_feedforward">true</param>
+  //   <param name="gravity_feedforward">true</param>
+  bool velocity_feedforward_{false};
+  bool gravity_feedforward_{false};
+
+  // Trần cho Torque_FF, PHÍA ROTOR (Nm). 0.625 = mô-men định mức phía rotor
+  // (5 Nm ở trục ra hộp số nội bộ 8:1). Đây là dây bảo hiểm: nếu mô hình sai
+  // hoặc q lệch bất thường thì feedforward cũng không đẩy quá mức định mức.
+  // Trọng lực thật lớn nhất trên quỹ đạo chỉ ~0.057 Nm rotor, nên trần này rất
+  // rộng -- siết lại được qua <param name="max_torque_ff_rotor_nm">.
+  double max_torque_ff_rotor_nm_{0.625};
+
+  // Mô hình Lagrange để tính G(q). Nạp 1 lần ở on_init từ chính URDF.
+  bool model_ready_{false};
+  pinocchio::Model model_;
+  std::unique_ptr<pinocchio::Data> model_data_;
+  // info_.joints[i] -> chỉ số trong q / v của Pinocchio (thứ tự khớp của
+  // Pinocchio KHÔNG bắt buộc trùng thứ tự khai trong <ros2_control>).
+  std::vector<int> pin_idx_q_;
+  std::vector<int> pin_idx_v_;
 
   SocketCanBus can_bus_;
 };

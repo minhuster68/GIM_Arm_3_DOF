@@ -3,6 +3,7 @@ from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -16,7 +17,17 @@ def generate_launch_description():
             FindPackageShare("gim_arm_description"), "urdf", "gim_arm.urdf"
         ]),
     ])
-    robot_description = {"robot_description": robot_description_content}
+    # ParameterValue(..., value_type=str) là BẮT BUỘC, không phải trang trí.
+    # Thiếu nó thì launch_ros tự đoán kiểu tham số bằng cách YAML-parse chuỗi
+    # URDF. URDF không phải YAML, nên việc nó "chạy được" chỉ là ăn may: hễ
+    # trong file có một dòng comment kết thúc bằng dấu hai chấm rồi dòng sau
+    # dạng "abc: def" là YAML coi đó là mapping lồng nhau và ném
+    #     "Unable to parse the value of parameter robot_description as yaml"
+    # -- lỗi chỉ ra ở launch, không hề chỉ tới dòng comment thật sự gây ra.
+    # Ép kiểu str thì URDF muốn viết comment gì cũng được.
+    robot_description = {
+        "robot_description": ParameterValue(robot_description_content, value_type=str)
+    }
 
     robot_controllers = PathJoinSubstitution([
         FindPackageShare("gim_control"), "config", "controllers.yaml"

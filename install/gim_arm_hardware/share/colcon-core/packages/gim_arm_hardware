@@ -1,1 +1,1 @@
-hardware_interface:pluginlib:rclcpp:rclcpp_lifecycle
+ament_index_cpp:hardware_interface:pinocchio:pluginlib:rclcpp:rclcpp_lifecycle

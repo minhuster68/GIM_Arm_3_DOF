@@ -37,6 +37,33 @@ AMENT_TEST_RESULTS_DIR:PATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_ha
 //Build the testing tree.
 BUILD_TESTING:BOOL=ON
 
+//Boost filesystem library (debug)
+Boost_FILESYSTEM_LIBRARY_DEBUG:FILEPATH=/usr/lib/x86_64-linux-gnu/libboost_filesystem.so
+
+//Boost filesystem library (release)
+Boost_FILESYSTEM_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libboost_filesystem.so
+
+//Path to a file.
+Boost_INCLUDE_DIR:PATH=/usr/include
+
+//Boost library directory DEBUG
+Boost_LIBRARY_DIR_DEBUG:PATH=/usr/lib/x86_64-linux-gnu
+
+//Boost library directory RELEASE
+Boost_LIBRARY_DIR_RELEASE:PATH=/usr/lib/x86_64-linux-gnu
+
+//Boost python310 library (debug)
+Boost_PYTHON310_LIBRARY_DEBUG:FILEPATH=/usr/lib/x86_64-linux-gnu/libboost_python310.so
+
+//Boost python310 library (release)
+Boost_PYTHON310_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libboost_python310.so
+
+//Boost serialization library (debug)
+Boost_SERIALIZATION_LIBRARY_DEBUG:FILEPATH=/usr/lib/x86_64-linux-gnu/libboost_serialization.so
+
+//Boost serialization library (release)
+Boost_SERIALIZATION_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libboost_serialization.so
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 
@@ -244,6 +271,18 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 //The directory containing a CMake configuration file for CycloneDDS.
 CycloneDDS_DIR:PATH=/opt/ros/humble/lib/x86_64-linux-gnu/cmake/CycloneDDS
 
+//Set CMAKE_CXX_STANDARD if a dependency require it
+ENFORCE_MINIMAL_CXX_STANDARD:BOOL=OFF
+
+//The directory containing a CMake configuration file for Eigen3.
+Eigen3_DIR:PATH=/usr/share/eigen3/cmake
+
+//Enable Debian-style Python package layout
+PYTHON_DEB_LAYOUT:BOOL=OFF
+
+//Enable standard Python package layout
+PYTHON_STANDARD_LAYOUT:BOOL=ON
+
 //Path to a program.
 Python3_EXECUTABLE:FILEPATH=/usr/bin/python3
 
@@ -325,11 +364,17 @@ builtin_interfaces_DIR:PATH=/opt/ros/humble/share/builtin_interfaces/cmake
 //The directory containing a CMake configuration file for class_loader.
 class_loader_DIR:PATH=/opt/ros/humble/share/class_loader/cmake
 
+//The directory containing a CMake configuration file for coal.
+coal_DIR:PATH=/opt/ros/humble/lib/x86_64-linux-gnu/cmake/coal
+
 //The directory containing a CMake configuration file for console_bridge.
 console_bridge_DIR:PATH=/usr/lib/x86_64-linux-gnu/console_bridge/cmake
 
 //The directory containing a CMake configuration file for control_msgs.
 control_msgs_DIR:PATH=/opt/ros/humble/share/control_msgs/cmake
+
+//The directory containing a CMake configuration file for eigenpy.
+eigenpy_DIR:PATH=/opt/ros/humble/lib/x86_64-linux-gnu/cmake/eigenpy
 
 //The directory containing a CMake configuration file for fastcdr.
 fastcdr_DIR:PATH=/opt/ros/humble/lib/cmake/fastcdr
@@ -353,7 +398,7 @@ gim_arm_hardware_IS_TOP_LEVEL:STATIC=ON
 gim_arm_hardware_SOURCE_DIR:STATIC=/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware
 
 //Dependencies for the target
-gim_arm_system_hardware_LIB_DEPENDS:STATIC=general;rclcpp::rclcpp;general;hardware_interface::fake_components;general;hardware_interface::mock_components;general;hardware_interface::hardware_interface;general;rclcpp_lifecycle::rclcpp_lifecycle;
+gim_arm_system_hardware_LIB_DEPENDS:STATIC=general;rclcpp::rclcpp;general;hardware_interface::fake_components;general;hardware_interface::mock_components;general;hardware_interface::hardware_interface;general;rclcpp_lifecycle::rclcpp_lifecycle;general;ament_index_cpp::ament_index_cpp;general;pinocchio::pinocchio_default;general;pinocchio::pinocchio_parsers;
 
 //The directory containing a CMake configuration file for hardware_interface.
 hardware_interface_DIR:PATH=/opt/ros/humble/share/hardware_interface/cmake
@@ -375,6 +420,18 @@ libyaml_vendor_DIR:PATH=/opt/ros/humble/share/libyaml_vendor/cmake
 
 //The directory containing a CMake configuration file for lifecycle_msgs.
 lifecycle_msgs_DIR:PATH=/opt/ros/humble/share/lifecycle_msgs/cmake
+
+//The directory containing a CMake configuration file for octomap.
+octomap_DIR:PATH=/opt/ros/humble/share/octomap
+
+//Path to a library.
+onelib:FILEPATH=/opt/ros/humble/lib/x86_64-linux-gnu/liburdfdom_world.so
+
+//Path to a library.
+onelibd:FILEPATH=onelibd-NOTFOUND
+
+//The directory containing a CMake configuration file for pinocchio.
+pinocchio_DIR:PATH=/opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio
 
 //The directory containing a CMake configuration file for pluginlib.
 pluginlib_DIR:PATH=/opt/ros/humble/share/pluginlib/cmake
@@ -496,6 +553,12 @@ trajectory_msgs_DIR:PATH=/opt/ros/humble/share/trajectory_msgs/cmake
 //The directory containing a CMake configuration file for unique_identifier_msgs.
 unique_identifier_msgs_DIR:PATH=/opt/ros/humble/share/unique_identifier_msgs/cmake
 
+//The directory containing a CMake configuration file for urdfdom.
+urdfdom_DIR:PATH=/opt/ros/humble/lib/x86_64-linux-gnu/urdfdom/cmake
+
+//The directory containing a CMake configuration file for urdfdom_headers.
+urdfdom_headers_DIR:PATH=/opt/ros/humble/lib/x86_64-linux-gnu/urdfdom_headers/cmake
+
 //The directory containing a CMake configuration file for yaml.
 yaml_DIR:PATH=/opt/ros/humble/cmake
 
@@ -504,6 +567,24 @@ yaml_DIR:PATH=/opt/ros/humble/cmake
 # INTERNAL cache entries
 ########################
 
+//ADVANCED property for variable: Boost_FILESYSTEM_LIBRARY_DEBUG
+Boost_FILESYSTEM_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_FILESYSTEM_LIBRARY_RELEASE
+Boost_FILESYSTEM_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_INCLUDE_DIR
+Boost_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_LIBRARY_DIR_DEBUG
+Boost_LIBRARY_DIR_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_LIBRARY_DIR_RELEASE
+Boost_LIBRARY_DIR_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_PYTHON310_LIBRARY_DEBUG
+Boost_PYTHON310_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_PYTHON310_LIBRARY_RELEASE
+Boost_PYTHON310_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_SERIALIZATION_LIBRARY_DEBUG
+Boost_SERIALIZATION_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: Boost_SERIALIZATION_LIBRARY_RELEASE
+Boost_SERIALIZATION_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_ADDR2LINE
 CMAKE_ADDR2LINE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_AR
@@ -653,24 +734,50 @@ CMAKE_TAPI-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//Details about finding Boost
+FIND_PACKAGE_MESSAGE_DETAILS_Boost:INTERNAL=[/usr/include][found components: serialization filesystem ][v1.74.0()]
 //Details about finding Python3
-FIND_PACKAGE_MESSAGE_DETAILS_Python3:INTERNAL=[/usr/bin/python3][found components: Interpreter ][v3.10.12()]
+FIND_PACKAGE_MESSAGE_DETAILS_Python3:INTERNAL=[/usr/bin/python3][/usr/include/python3.10][/home/minh/.local/lib/python3.10/site-packages/numpy/core/include][found components: Interpreter Development.Module NumPy ][v3.10.12()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //ADVANCED property for variable: TINYXML2_INCLUDE_DIR
 TINYXML2_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: TINYXML2_LIBRARY
 TINYXML2_LIBRARY-ADVANCED:INTERNAL=1
+//Components requested for this build tree.
+_Boost_COMPONENTS_SEARCHED:INTERNAL=filesystem;python310;serialization
+//Last used Boost_INCLUDE_DIR value.
+_Boost_INCLUDE_DIR_LAST:INTERNAL=/usr/include
+//Last used Boost_LIBRARY_DIR_DEBUG value.
+_Boost_LIBRARY_DIR_DEBUG_LAST:INTERNAL=/usr/lib/x86_64-linux-gnu
+//Last used Boost_LIBRARY_DIR_RELEASE value.
+_Boost_LIBRARY_DIR_RELEASE_LAST:INTERNAL=/usr/lib/x86_64-linux-gnu
+//Last used Boost_NAMESPACE value.
+_Boost_NAMESPACE_LAST:INTERNAL=boost
+//Last used Boost_USE_MULTITHREADED value.
+_Boost_USE_MULTITHREADED_LAST:INTERNAL=ON
+//Last used Boost_USE_STATIC_LIBS value.
+_Boost_USE_STATIC_LIBS_LAST:INTERNAL=OFF
+_MINIMAL_CXX_STANDARD:INTERNAL=17
 //Compiler reason failure
 _Python3_Compiler_REASON_FAILURE:INTERNAL=
+_Python3_DEVELOPMENT_MODULE_SIGNATURE:INTERNAL=4bc14a0ea6a21ea267e38aa660e9b54b
 //Development reason failure
 _Python3_Development_REASON_FAILURE:INTERNAL=
 _Python3_EXECUTABLE:INTERNAL=/usr/bin/python3
+_Python3_INCLUDE_DIR:INTERNAL=/usr/include/python3.10
 //Python3 Properties
-_Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;10;12;64;32;<none>;cpython-310-x86_64-linux-gnu;abi3;/usr/lib/python3.10;/usr/lib/python3.10;/usr/local/lib/python3.10/dist-packages;/usr/local/lib/python3.10/dist-packages
+_Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;10;12;64;<none>;cpython-310-x86_64-linux-gnu;abi3;/usr/lib/python3.10;/usr/lib/python3.10;/usr/local/lib/python3.10/dist-packages;/usr/local/lib/python3.10/dist-packages
 _Python3_INTERPRETER_SIGNATURE:INTERNAL=0f3e53742e142b1d9e50e4ca5b901dd8
-//NumPy reason failure
-_Python3_NumPy_REASON_FAILURE:INTERNAL=
+//Interpreter reason failure
+_Python3_Interpreter_REASON_FAILURE:INTERNAL=
+_Python3_NUMPY_SIGNATURE:INTERNAL=2c9f54926079e6790283292d6d849f51
+//Path to a file.
+_Python3_NumPy_INCLUDE_DIR:INTERNAL=/home/minh/.local/lib/python3.10/site-packages/numpy/core/include
 //Index for unique symlink install targets
 __AMENT_CMAKE_SYMLINK_INSTALL_TARGETS_INDEX:INTERNAL=1
+//Result of TRY_COMPILE
+_cxx_standard_build_status:INTERNAL=TRUE
+//Result of try_run()
+_cxx_standard_run_status:INTERNAL=0
 

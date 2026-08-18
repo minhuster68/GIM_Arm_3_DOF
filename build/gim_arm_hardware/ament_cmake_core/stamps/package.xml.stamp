@@ -13,6 +13,9 @@
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp_lifecycle</depend>
+  <depend>ament_index_cpp</depend>
+  <!-- Tính G(q) cho Torque_FF của Set_Input_Pos -->
+  <depend>pinocchio</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

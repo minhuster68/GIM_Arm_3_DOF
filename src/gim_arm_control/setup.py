@@ -26,6 +26,8 @@ setup(
         'console_scripts': [
             'motor_test_all_modes = gim_control.motor_test_all_modes:main',
             'origin_draw_trajectory = gim_control.origin_draw_trajectory:main',
+            'sniff_can_ff = gim_control.sniff_can_ff:main',
+            'check_gravity_model = gim_control.check_gravity_model:main',
         ],
     },
 )

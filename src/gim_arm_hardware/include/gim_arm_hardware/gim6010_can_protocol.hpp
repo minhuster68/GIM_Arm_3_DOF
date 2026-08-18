@@ -21,6 +21,7 @@
 // Both are plain little-endian uint32 pairs -- see pack_u32_le() below.
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 
@@ -68,6 +69,37 @@ inline uint32_t make_can_id(uint8_t node_id, CmdId cmd) {
 inline void pack_u32_le(uint8_t data[8], uint32_t field0, uint32_t field1 = 0) {
   std::memcpy(&data[0], &field0, 4);
   std::memcpy(&data[4], &field1, 4);
+}
+
+// ---- Set_Input_Pos (cmd_id 0x00C), manual 4.1.2 ----
+// Layout 8 byte: [0..3] Input_Pos float32 (rev), [4..5] Vel_FF int16, [6..7]
+// Torque_FF int16. Hai trường FF là số nguyên thang 0.001 -- tức Vel_FF đếm
+// theo 0.001 rev/s và Torque_FF theo 0.001 Nm.
+//
+// KHÁC Mit_Control: cả 3 trường ở đây là PHÍA ROTOR (trước hộp số), giống
+// odrivetool/USB. Bên gọi phải tự chia gear_ratio * direction. Đừng lẫn với
+// ghi chú "output shaft" phía trên -- ghi chú đó CHỈ đúng cho 0x008.
+//
+// Vì sao 2 trường FF đáng quan tâm: vòng P vị trí của driver phải duy trì một
+// sai số thường trực e = v / pos_gain mới sinh ra được lệnh vận tốc -- đó là
+// nguồn trễ bám chính, và KHÔNG mất đi khi đổi input_mode. Điền Vel_FF khiến
+// vòng P không phải "kiếm" vận tốc từ sai số nữa; điền Torque_FF = G(q) khiến
+// nó không phải kiếm mô-men chống trọng lực từ sai số. Đo trong mô phỏng
+// (kinematics_test/compare_architectures.py): sai số đầu tay 2.066mm -> 0.437mm
+// khi thêm Vel_FF, -> 0.266mm khi thêm cả Torque_FF = G(q).
+inline int16_t encode_milli_i16(double x) {
+  const double scaled = std::round(x * 1000.0);
+  return static_cast<int16_t>(std::clamp(scaled, -32768.0, 32767.0));
+}
+
+inline void pack_set_input_pos(
+  uint8_t data[8], double pos_rev, double vel_ff_rev_s = 0.0, double torque_ff_nm = 0.0) {
+  const float pos_f = static_cast<float>(pos_rev);
+  const int16_t vel_i = encode_milli_i16(vel_ff_rev_s);
+  const int16_t trq_i = encode_milli_i16(torque_ff_nm);
+  std::memcpy(&data[0], &pos_f, 4);
+  std::memcpy(&data[4], &vel_i, 2);
+  std::memcpy(&data[6], &trq_i, 2);
 }
 
 // ---- Mit_Control (cmd_id 0x008) fixed-point ranges, manual 4.1.2 ----

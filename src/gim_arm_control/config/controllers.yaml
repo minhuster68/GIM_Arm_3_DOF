@@ -28,11 +28,15 @@ gim_arm_group_controller:
       - base_joint
       - shoulder_joint
       - elbow_joint
-    # Hardware interface hiện tại chỉ có command "position" (chưa có
-    # velocity/effort command) -- JTC vẫn chạy tốt ở chế độ chỉ-vị-trí,
-    # tự nội suy điểm trung gian, không cần velocity feedforward.
+    # position + velocity: JTC ghi CẢ vị trí lẫn vận tốc mong muốn xuống
+    # hardware. Vận tốc đó không dùng để điều khiển vận tốc -- plugin nhét nó
+    # vào trường Vel_FF của Set_Input_Pos để xoá sai số bám thường trực
+    # e = q̇/pos_gain của vòng P trong driver (nguồn trễ chính, xem
+    # gim6010_can_protocol.hpp). Driver VẪN ở control_mode = 3 (vị trí).
+    # Bỏ 'velocity' khỏi danh sách này là quay lại đúng hành vi cũ.
     command_interfaces:
       - position
+      - velocity
     state_interfaces:
       - position
       - velocity

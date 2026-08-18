@@ -11,6 +11,10 @@ find_package(rclcpp REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+# Pinocchio: dùng để tính G(q) cho Torque_FF. pinocchio_default = các thuật
+# toán (rnea/crba), pinocchio_parsers = đọc URDF. Cài sẵn qua ros-humble-pinocchio.
+find_package(pinocchio REQUIRED)
 
 # 2. Biên dịch file C++ thành thư viện động (Shared Library)
 add_library(gim_arm_system_hardware SHARED
@@ -28,6 +32,12 @@ ament_target_dependencies(gim_arm_system_hardware
   hardware_interface
   pluginlib
   rclcpp_lifecycle
+  ament_index_cpp
+)
+
+target_link_libraries(gim_arm_system_hardware
+  pinocchio::pinocchio_default
+  pinocchio::pinocchio_parsers
 )
 
 # 5. Khai báo file Plugin XML cho ROS 2
@@ -57,6 +67,8 @@ ament_export_dependencies(
   hardware_interface
   pluginlib
   rclcpp_lifecycle
+  ament_index_cpp
+  pinocchio
 )
 
 ament_package()

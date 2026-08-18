@@ -11,6 +11,10 @@
 #include <thread>
 #include <vector>
 
+#include <pinocchio/algorithm/rnea.hpp>
+#include <pinocchio/parsers/urdf.hpp>
+
+#include "ament_index_cpp/get_package_share_directory.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
@@ -26,6 +30,7 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
 
   const auto n_joints = info_.joints.size();
   hw_commands_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
+  hw_commands_velocity_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_states_position_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_states_velocity_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   can_node_ids_.resize(n_joints, 0);
@@ -95,7 +100,104 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
     ? info_.hardware_parameters.at("can_interface")
     : "can0";
 
+  // ---- Feedforward: mặc định TẮT, phải khai rõ trong URDF mới bật ----
+  const auto bool_param = [this](const std::string & key, bool fallback) {
+      const auto it = info_.hardware_parameters.find(key);
+      return it == info_.hardware_parameters.end() ? fallback : (it->second == "true");
+    };
+  velocity_feedforward_ = bool_param("velocity_feedforward", false);
+  gravity_feedforward_ = bool_param("gravity_feedforward", false);
+  if (info_.hardware_parameters.count("max_torque_ff_rotor_nm")) {
+    max_torque_ff_rotor_nm_ = std::stod(info_.hardware_parameters.at("max_torque_ff_rotor_nm"));
+  }
+
+  // ---- Nạp mô hình Lagrange để tính G(q) ----
+  // Chỉ nạp khi thật sự cần: không bật gravity_feedforward thì không đụng tới
+  // Pinocchio, và plugin chạy y hệt như trước.
+  if (gravity_feedforward_) {
+    std::string urdf_path;
+    if (info_.hardware_parameters.count("urdf_path")) {
+      urdf_path = info_.hardware_parameters.at("urdf_path");
+    } else {
+      try {
+        urdf_path = ament_index_cpp::get_package_share_directory("gim_arm_description") +
+          "/urdf/gim_arm.urdf";
+      } catch (const std::exception & e) {
+        RCLCPP_ERROR(
+          rclcpp::get_logger("GimArmSystemHardware"),
+          "Không tìm được gim_arm_description để nạp URDF: %s", e.what());
+      }
+    }
+
+    try {
+      pinocchio::urdf::buildModel(urdf_path, model_);
+      model_data_ = std::make_unique<pinocchio::Data>(model_);
+
+      // Khớp tên -> chỉ số q/v của Pinocchio. Thứ tự khớp trong <ros2_control>
+      // KHÔNG bắt buộc trùng thứ tự Pinocchio dựng cây, nên phải tra theo tên;
+      // giả định trùng thứ tự là đúng kiểu lỗi im lặng đẩy sai khớp.
+      pin_idx_q_.assign(n_joints, -1);
+      pin_idx_v_.assign(n_joints, -1);
+      bool all_found = true;
+      for (size_t i = 0; i < n_joints; ++i) {
+        const std::string & name = info_.joints[i].name;
+        if (!model_.existJointName(name)) {
+          RCLCPP_ERROR(
+            rclcpp::get_logger("GimArmSystemHardware"),
+            "URDF '%s' không có khớp '%s' -- tắt bù trọng lực.",
+            urdf_path.c_str(), name.c_str());
+          all_found = false;
+          break;
+        }
+        const auto jid = model_.getJointId(name);
+        pin_idx_q_[i] = static_cast<int>(model_.joints[jid].idx_q());
+        pin_idx_v_[i] = static_cast<int>(model_.joints[jid].idx_v());
+      }
+      model_ready_ = all_found;
+    } catch (const std::exception & e) {
+      RCLCPP_ERROR(
+        rclcpp::get_logger("GimArmSystemHardware"),
+        "Không nạp được mô hình từ '%s': %s -- tắt bù trọng lực.",
+        urdf_path.c_str(), e.what());
+      model_ready_ = false;
+    }
+
+    if (!model_ready_) {
+      gravity_feedforward_ = false;
+    }
+  }
+
+  RCLCPP_INFO(
+    rclcpp::get_logger("GimArmSystemHardware"),
+    "Feedforward: vel_ff = %s, torque_ff = G(q) %s (trần %.3f Nm phía rotor)",
+    velocity_feedforward_ ? "BẬT" : "tắt",
+    gravity_feedforward_ ? "BẬT" : "tắt",
+    max_torque_ff_rotor_nm_);
+
   return hardware_interface::CallbackReturn::SUCCESS;
+}
+
+bool GimArmSystemHardware::compute_gravity_torque(
+  const std::vector<double> & q_joint, std::vector<double> & tau_out)
+{
+  if (!model_ready_) {
+    return false;
+  }
+
+  // q của Pinocchio dựng từ chính URDF nên KHÔNG có zero_offset_rad ở đây --
+  // offset chỉ là phép dịch khi quy sang đơn vị encoder, xem send_position_command.
+  Eigen::VectorXd q = Eigen::VectorXd::Zero(model_.nq);
+  for (size_t i = 0; i < q_joint.size(); ++i) {
+    q[pin_idx_q_[i]] = q_joint[i];
+  }
+
+  pinocchio::computeGeneralizedGravity(model_, *model_data_, q);
+
+  tau_out.assign(q_joint.size(), 0.0);
+  for (size_t i = 0; i < q_joint.size(); ++i) {
+    tau_out[i] = model_data_->g[pin_idx_v_[i]];
+  }
+  return true;
 }
 
 hardware_interface::CallbackReturn GimArmSystemHardware::on_configure(
@@ -118,7 +220,8 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_configure(
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-void GimArmSystemHardware::send_position_command(size_t i, double position_rad)
+void GimArmSystemHardware::send_position_command(
+  size_t i, double position_rad, double velocity_rad_s, double torque_ff_joint_nm)
 {
   // position_rad đến từ hw_commands_ (không gian URDF, đã trừ zero_offset_rad_)
   // -- cộng lại offset để ra đúng "rad thô" khớp với quy ước encoder thật,
@@ -131,14 +234,23 @@ void GimArmSystemHardware::send_position_command(size_t i, double position_rad)
   // gear_ratios_[i] quy đổi rad<->rev; directions_[i] (+1/-1) bù chiều lắp
   // đặt vật lý thật của motor, không liên quan tới <axis> trong URDF.
   const double pos_rev = (position_rad_raw * directions_[i] / (2.0 * M_PI)) * gear_ratios_[i];
-  const float pos_rev_f = static_cast<float>(pos_rev);
-  const int16_t vel_ff = 0;     // chưa dùng feedforward ở bước bench-test này
-  const int16_t torque_ff = 0;
+
+  // Vel_FF: cùng phép quy đổi như vị trí, trừ zero_offset (đạo hàm của hằng
+  // số = 0, giống hệt lý do ở read()).
+  const double vel_ff_rev_s =
+    (velocity_rad_s * directions_[i] / (2.0 * M_PI)) * gear_ratios_[i];
+
+  // Torque_FF: quy từ mô-men KHỚP về mô-men ROTOR -- CHIA cho gear_ratio, ngược
+  // chiều với vị trí (vị trí NHÂN). Nhân nhầm ở đây là shoulder lệch 64 lần.
+  // directions_ vẫn phải có: khớp đảo chiều mà quên là feedforward đẩy ngược,
+  // chống lại chính vòng vị trí.
+  const double torque_ff_rotor_raw =
+    torque_ff_joint_nm / (gear_ratios_[i] * directions_[i]);
+  const double torque_ff_rotor =
+    std::clamp(torque_ff_rotor_raw, -max_torque_ff_rotor_nm_, max_torque_ff_rotor_nm_);
 
   uint8_t data[8];
-  std::memcpy(&data[0], &pos_rev_f, 4);
-  std::memcpy(&data[4], &vel_ff, 2);
-  std::memcpy(&data[6], &torque_ff, 2);
+  gim6010::pack_set_input_pos(data, pos_rev, vel_ff_rev_s, torque_ff_rotor);
 
   can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetInputPos), data, 8);
 }
@@ -263,6 +375,21 @@ std::vector<hardware_interface::CommandInterface> GimArmSystemHardware::export_c
   for (auto i = 0u; i < info_.joints.size(); i++) {
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]));
+
+    // Chỉ xuất "velocity" nếu URDF có khai <command_interface name="velocity"/>
+    // cho khớp đó. Xuất bừa một interface không khai trong URDF sẽ khiến
+    // resource_manager báo lỗi không khớp và controller_manager không nạp nổi
+    // hardware. Đây cũng là lý do giữ được tương thích ngược: URDF cũ (chỉ có
+    // position) vẫn chạy y như trước.
+    const auto & cmds = info_.joints[i].command_interfaces;
+    const bool has_velocity_cmd = std::any_of(
+      cmds.begin(), cmds.end(),
+      [](const auto & c) {return c.name == hardware_interface::HW_IF_VELOCITY;});
+    if (has_velocity_cmd) {
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        info_.joints[i].name, hardware_interface::HW_IF_VELOCITY,
+        &hw_commands_velocity_[i]));
+    }
   }
   return command_interfaces;
 }
@@ -308,11 +435,32 @@ hardware_interface::return_type GimArmSystemHardware::read(
 hardware_interface::return_type GimArmSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  for (size_t i = 0; i < info_.joints.size(); ++i) {
+  const size_t n = info_.joints.size();
+
+  // Bù trọng lực tính MỘT LẦN cho cả tay: G(q) là hàm của TOÀN BỘ cấu hình,
+  // không tách rời từng khớp được (mô-men giữ ở vai phụ thuộc cả góc khuỷu).
+  // Chỉ tính khi CẢ 3 lệnh đều hợp lệ -- thiếu 1 khớp là q sai, mà q sai thì
+  // G(q) sai ở cả 3 khớp chứ không riêng khớp thiếu.
+  std::vector<double> tau_gravity(n, 0.0);
+  if (gravity_feedforward_) {
+    const bool all_valid = std::none_of(
+      hw_commands_.begin(), hw_commands_.end(),
+      [](double c) {return std::isnan(c);});
+    if (all_valid) {
+      compute_gravity_torque(hw_commands_, tau_gravity);
+    }
+  }
+
+  for (size_t i = 0; i < n; ++i) {
     if (std::isnan(hw_commands_[i])) {
       continue;  // chưa có lệnh hợp lệ, đừng gửi rác xuống CAN
     }
-    send_position_command(i, hw_commands_[i]);
+    // Controller có thể chỉ claim "position" -> hw_commands_velocity_ ở nguyên
+    // NaN. Coi NaN là 0 chứ không bỏ qua cả frame: vị trí vẫn phải được gửi.
+    const double vel_cmd =
+      (velocity_feedforward_ && !std::isnan(hw_commands_velocity_[i]))
+      ? hw_commands_velocity_[i] : 0.0;
+    send_position_command(i, hw_commands_[i], vel_cmd, tau_gravity[i]);
   }
 
   return hardware_interface::return_type::OK;

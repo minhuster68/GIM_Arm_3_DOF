@@ -196,15 +196,34 @@
   <hardware>
     <plugin>gim_arm_hardware/GimArmSystemHardware</plugin>
     <param name="can_interface">can0</param>
+    <!-- Feedforward cho Set_Input_Pos (0x00C). Mặc định trong code là TẮT;
+         bật ở đây để việc bật/tắt là một dòng NHÌN THẤY ĐƯỢC trong URDF, không
+         phải hành vi ẩn trong plugin.
+         - velocity_feedforward: điền Vel_FF = q̇_ref. Xoá sai số bám thường
+           trực e = q̇/pos_gain của vòng P vị trí (nguồn trễ chính, KHÔNG mất đi
+           khi đổi input_mode). Cần <command_interface name="velocity"/> bên
+           dưới VÀ 'velocity' trong command_interfaces của controllers.yaml.
+         - gravity_feedforward: điền Torque_FF = G(q_lệnh), tính bằng Pinocchio
+           từ chính file URDF này.
+         Đo trong mô phỏng (kinematics_test/compare_architectures.py), sai số
+         bám đầu tay: 2.066mm -> 0.437mm (vel_ff) -> 0.266mm (thêm G(q)).
+         TẮT NHANH khi thử trên tay thật: đổi true thành false, không cần build
+         lại C++, chỉ cần colcon build gim_arm_description và chạy lại.
+         Vẫn giữ nguyên control_mode=3 (vị trí): driver giữ vòng vị trí của nó,
+         nên PC chết thì tay vẫn đứng, không rơi. -->
+    <param name="velocity_feedforward">false</param>
+    <param name="gravity_feedforward">false</param>
   </hardware>
   <joint name="base_joint">
     <command_interface name="position"/>
+    <command_interface name="velocity"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">0</param>
   </joint>
   <joint name="shoulder_joint">
     <command_interface name="position"/>
+    <command_interface name="velocity"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">1</param>
@@ -212,6 +231,7 @@
   </joint>
   <joint name="elbow_joint">
     <command_interface name="position"/>
+    <command_interface name="velocity"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">2</param>

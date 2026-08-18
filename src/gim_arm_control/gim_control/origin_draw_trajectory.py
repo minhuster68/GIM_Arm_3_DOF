@@ -27,6 +27,7 @@ from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
 from sensor_msgs.msg import JointState
+from control_msgs.msg import JointTrajectoryControllerState
 from ament_index_python.packages import get_package_share_directory
 import os
 
@@ -107,21 +108,53 @@ class DrawTrajectoryNode(Node):
         desired_q_arr = np.array(desired_q)
 
         # ---- Bắt đầu ghi actual + dựng đồ thị real-time ----
+        # Ghi thời gian TUYỆT ĐỐI, chưa trừ gốc. Gốc đúng là lúc goal được chấp
+        # nhận (t_start bên dưới) chứ KHÔNG phải lúc subscribe: giữa 2 mốc đó
+        # còn wait_for_server() có thể chờ lâu tuỳ lúc. Lấy gốc sai thì đồ thị
+        # actual bị trượt ngang so với desired, và sai số tính ra là sai số của
+        # phép trượt đó chứ không phải của bộ điều khiển.
         actual_t = []
         actual_q = []
-        t0_holder = [None]
+        t_start = [None]
 
         def state_callback(msg: JointState):
-            now = self.get_clock().now().nanoseconds / 1e9
-            if t0_holder[0] is None:
-                t0_holder[0] = now
             pos_dict = dict(zip(msg.name, msg.position))
             if not all(n in pos_dict for n in joint_names):
                 return
-            actual_t.append(now - t0_holder[0])
+            actual_t.append(self.get_clock().now().nanoseconds / 1e9)
             actual_q.append([pos_dict[n] for n in joint_names])
 
+        def rel_time():
+            """Thời gian actual quy về cùng gốc với desired."""
+            if not actual_t:
+                return np.array([])
+            base = t_start[0] if t_start[0] is not None else actual_t[0]
+            return np.array(actual_t) - base
+
         state_sub = self.create_subscription(JointState, "/joint_states", state_callback, 50)
+
+        # Sai số bám lấy TỪ CHÍNH JTC, không tự tính lại. JTC công bố
+        # error = reference - feedback tại đúng cùng một thời điểm bên trong
+        # vòng điều khiển, nên không dính bài toán căn trục thời gian giữa
+        # /joint_states và mốc bắt đầu quỹ đạo. Tự nội suy desired theo đồng hồ
+        # máy chủ thì chỉ lệch 0.3s là đã đẻ ra "sai số" 2 độ ở base_joint
+        # (khớp này chạy 6.7 độ/s) -- lớn hơn sai số thật hàng chục lần.
+        ctrl_err_t = []
+        ctrl_err_q = []
+
+        def ctrl_state_callback(msg: JointTrajectoryControllerState):
+            if not msg.error.positions:
+                return
+            idx = {n: k for k, n in enumerate(msg.joint_names)}
+            if not all(n in idx for n in joint_names):
+                return
+            stamp = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
+            ctrl_err_t.append(stamp)
+            ctrl_err_q.append([msg.error.positions[idx[n]] for n in joint_names])
+
+        ctrl_sub = self.create_subscription(
+            JointTrajectoryControllerState,
+            "/gim_arm_group_controller/controller_state", ctrl_state_callback, 50)
 
         fig = axes = actual_lines = None
         if live_plot:
@@ -149,12 +182,22 @@ class DrawTrajectoryNode(Node):
             plt.show(block=False)
             plt.pause(0.01)
 
-        def refresh_plot():
+        last_draw = [0.0]
+
+        def refresh_plot(force=False):
+            # Vẽ lại tối đa 5 lần/giây. Trước đây vẽ mỗi vòng lặp, mà mỗi lần vẽ
+            # tốn hơn cả spin_once -> vòng lặp chậm, spin_once xử lý được ít
+            # callback, và message bị rơi: đo được có ~6 mẫu/giây trong khi JTC
+            # phát 50 Hz. Ít mẫu thì không thấy được dao động tần số cao.
             if not live_plot or len(actual_t) == 0:
                 return
+            if not force and (time.time() - last_draw[0]) < 0.2:
+                return
+            last_draw[0] = time.time()
             aq = np.array(actual_q)
+            rt = rel_time()
             for i, line in enumerate(actual_lines):
-                line.set_data(actual_t, aq[:, i])
+                line.set_data(rt, aq[:, i])
             for ax in axes:
                 ax.relim()
                 ax.autoscale_view()
@@ -166,7 +209,7 @@ class DrawTrajectoryNode(Node):
 
         send_future = self._client.send_goal_async(goal)
         while not send_future.done():
-            rclpy.spin_once(self, timeout_sec=0.05)
+            rclpy.spin_once(self, timeout_sec=0.01)
             refresh_plot()
         goal_handle = send_future.result()
         if not goal_handle.accepted:
@@ -174,15 +217,22 @@ class DrawTrajectoryNode(Node):
             self.destroy_subscription(state_sub)
             return False
 
+        # Goal đã được nhận -> ĐÂY mới là t=0 của quỹ đạo.
+        t_start[0] = self.get_clock().now().nanoseconds / 1e9
+
         result_future = goal_handle.get_result_async()
         while not result_future.done():
-            rclpy.spin_once(self, timeout_sec=0.05)
+            rclpy.spin_once(self, timeout_sec=0.01)
             refresh_plot()
 
         result = result_future.result().result
         self.get_logger().info(f"Hoàn tất, error_code={result.error_code} (0 = thành công)")
         self.destroy_subscription(state_sub)
-        refresh_plot()
+        self.destroy_subscription(ctrl_sub)
+        refresh_plot(force=True)
+
+        self.print_tracking_error(
+            joint_names, ctrl_err_t, ctrl_err_q, t_start[0], transition_time)
 
         if live_plot:
             print("Vẽ xong -- đóng cửa sổ đồ thị để kết thúc chương trình.")
@@ -190,6 +240,48 @@ class DrawTrajectoryNode(Node):
             plt.show()
 
         return result.error_code == 0
+
+    def print_tracking_error(self, joint_names, err_t, err_q, t_start, transition_time):
+        """In SỐ ĐO sai số bám, lấy thẳng từ trường `error` của JTC.
+
+        Không có con số thì không tune được: mắt không phân biệt nổi 0.44mm với
+        0.27mm trên đồ thị.
+
+        Chỉ đo phần SAU đoạn chuyển tiếp -- đoạn đi từ tư thế hiện tại về điểm
+        đầu quỹ đạo không phải là bám quỹ đạo. Mốc cắt lấy theo t_start nên có
+        thể lệch vài trăm ms, nhưng điều đó chỉ đổi VÀI MẪU được tính, không
+        làm sai giá trị sai số của từng mẫu (khác hẳn cách tự nội suy desired).
+
+        Cách dùng để so sánh A/B: chạy 1 lần với feedforward tắt, 1 lần bật,
+        rồi so 2 bảng. Bật/tắt bằng gravity_feedforward / velocity_feedforward
+        trong gim_arm.urdf, không cần build lại C++."""
+        if len(err_t) < 10:
+            print("\nKhông nhận đủ /gim_arm_group_controller/controller_state "
+                  "để tính sai số bám.")
+            print("Kiểm: ros2 topic hz /gim_arm_group_controller/controller_state")
+            return
+
+        t = np.array(err_t)
+        e = np.array(err_q)
+        if t_start is not None:
+            keep = (t - t_start) >= transition_time
+            if keep.sum() >= 10:
+                t, e = t[keep], e[keep]
+
+        rms = np.degrees(np.sqrt((e ** 2).mean(axis=0)))
+        mx = np.degrees(np.abs(e).max(axis=0))
+        bias = np.degrees(e.mean(axis=0))
+
+        print("\n" + "=" * 62)
+        print(f"SAI SỐ BÁM (JTC tự tính, {len(t)} mẫu sau đoạn chuyển tiếp)")
+        print("=" * 62)
+        print(f"{'khớp':<18}{'RMS (độ)':>11}{'lớn nhất (độ)':>15}{'lệch TB (độ)':>15}")
+        for i, name in enumerate(joint_names):
+            print(f"{name:<18}{rms[i]:11.4f}{mx[i]:15.4f}{bias[i]:15.4f}")
+        print("=" * 62)
+        print("Lệch TB khác 0 nhiều = sai số CÓ HỆ THỐNG (võng trọng lực hoặc")
+        print("trễ bám) -- đúng loại mà feedforward xử lý được. RMS lớn mà lệch")
+        print("TB ~ 0 = dao động/nhiễu, phải xử lý bằng gain chứ không phải FF.")
 
 
 def main():
