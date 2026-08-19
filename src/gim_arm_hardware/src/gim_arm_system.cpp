@@ -39,6 +39,7 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   gear_ratios_.resize(n_joints, 8.0);
   directions_.resize(n_joints, 1.0);
   zero_offsets_rad_.resize(n_joints, 0.0);
+  max_torque_joint_nm_.resize(n_joints, 2.0);
 
   // node_id riêng từng khớp: khai trong URDF <joint><param name="can_node_id">N</param>
   for (size_t i = 0; i < n_joints; ++i) {
@@ -97,6 +98,22 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
       it == info_.joints[i].parameters.end() ? " (mặc định, không khai trong URDF)" : "");
   }
 
+  // Trần mô-men riêng từng khớp: khai <param name="max_torque_joint_nm">X</param>
+  // TRONG <joint>, không phải trong <hardware>. Thiếu thì mặc định 2.0 Nm --
+  // cố tình thấp, để việc quên khai biểu hiện thành tay chạy YẾU (dễ nhận ra,
+  // không hỏng gì) thay vì tay chạy quá mạnh.
+  for (size_t i = 0; i < n_joints; ++i) {
+    const auto it = info_.joints[i].parameters.find("max_torque_joint_nm");
+    if (it != info_.joints[i].parameters.end()) {
+      max_torque_joint_nm_[i] = std::stod(it->second);
+    }
+    RCLCPP_INFO(
+      rclcpp::get_logger("GimArmSystemHardware"),
+      "Khớp '%s': max_torque_joint_nm = %.3f%s",
+      info_.joints[i].name.c_str(), max_torque_joint_nm_[i],
+      it == info_.joints[i].parameters.end() ? " (mặc định, không khai trong URDF)" : "");
+  }
+
   // Tên interface CAN: <ros2_control><hardware><param name="can_interface">can0</param>
   can_interface_name_ = info_.hardware_parameters.count("can_interface")
     ? info_.hardware_parameters.at("can_interface")
@@ -111,9 +128,6 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   gravity_feedforward_ = bool_param("gravity_feedforward", false);
   if (info_.hardware_parameters.count("max_torque_ff_rotor_nm")) {
     max_torque_ff_rotor_nm_ = std::stod(info_.hardware_parameters.at("max_torque_ff_rotor_nm"));
-  }
-  if (info_.hardware_parameters.count("max_torque_joint_nm")) {
-    max_torque_joint_nm_ = std::stod(info_.hardware_parameters.at("max_torque_joint_nm"));
   }
   if (info_.hardware_parameters.count("effort_stale_cycles")) {
     effort_stale_limit_ = std::stoi(info_.hardware_parameters.at("effort_stale_cycles"));
@@ -207,10 +221,10 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   if (any_effort_cmd) {
     RCLCPP_INFO(
       rclcpp::get_logger("GimArmSystemHardware"),
-      "Chế độ mô-men KHẢ DỤNG (có command_interface 'effort'): trần %.3f Nm "
-      "phía khớp, torque_sign = %+.0f, watchdog %d chu kỳ. Chỉ kích hoạt khi "
-      "controller claim 'effort'.",
-      max_torque_joint_nm_, torque_sign_, effort_stale_limit_);
+      "Chế độ mô-men KHẢ DỤNG (có command_interface 'effort'): torque_sign = "
+      "%+.0f, watchdog %d chu kỳ. Trần mô-men xem các dòng per-joint phía trên. "
+      "Chỉ kích hoạt khi controller claim 'effort'.",
+      torque_sign_, effort_stale_limit_);
   }
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -298,7 +312,8 @@ void GimArmSystemHardware::send_torque_command(size_t i, double torque_joint_nm)
 {
   // Trần cứng phía KHỚP -- lớp bảo vệ độc lập với tau_scale của node Python.
   // Một lỗi tham số ROS không được phép đi xuyên qua đây.
-  const double tau = std::clamp(torque_joint_nm, -max_torque_joint_nm_, max_torque_joint_nm_);
+  const double tau = std::clamp(
+    torque_joint_nm, -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
 
   // CHIA gear_ratio -- NGƯỢC chiều với vị trí (vị trí NHÂN). Nhân nhầm ở đây là
   // shoulder lệch 64 lần. directions_ vẫn phải có: khớp đảo chiều mà quên là
@@ -633,12 +648,19 @@ hardware_interface::return_type GimArmSystemHardware::write(
       if (!compute_gravity_torque(hw_states_position_, tau)) {
         tau.assign(n, 0.0);
       }
-      RCLCPP_ERROR_THROTTLE(
-        rclcpp::get_logger("GimArmSystemHardware"), *rclcpp::Clock().get_clock(), 1000,
-        stale
-        ? "Lenh mo-men khong doi %d chu ky -- coi nhu nguon phat da chet. Tut ve bu trong luc."
-        : "Chua co lenh mo-men hop le (NaN). Tut ve bu trong luc. (%d)",
-        effort_stale_cycles_);
+      // Tách 2 nhánh thay vì dùng toán tử ba ngôi cho chuỗi định dạng: macro
+      // này có thuộc tính format của printf, nên chuỗi phải là string literal
+      // thật, không phải biểu thức chọn giữa 2 literal.
+      if (stale) {
+        RCLCPP_ERROR_THROTTLE(
+          rclcpp::get_logger("GimArmSystemHardware"), throttle_clock_, 1000,
+          "Lenh mo-men khong doi %d chu ky -- coi nhu nguon phat da chet. "
+          "Tut ve bu trong luc.", effort_stale_cycles_);
+      } else {
+        RCLCPP_ERROR_THROTTLE(
+          rclcpp::get_logger("GimArmSystemHardware"), throttle_clock_, 1000,
+          "Chua co lenh mo-men hop le (NaN). Tut ve bu trong luc.");
+      }
     }
 
     for (size_t i = 0; i < n; ++i) {

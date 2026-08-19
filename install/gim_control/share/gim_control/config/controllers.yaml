@@ -11,6 +11,13 @@ controller_manager:
     gim_arm_group_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
+    # ĐƯỜNG LQI. Khai thêm 1 controller KHÔNG ảnh hưởng đường PID: controller
+    # chỉ tác động khi được activate, và nó claim `effort` -- khác hẳn
+    # position/velocity mà JTC dùng. Chưa activate thì với phần cứng nó không
+    # tồn tại.
+    lqi_effort_controller:
+      type: forward_command_controller/ForwardCommandController
+
 forward_position_controller:
   ros__parameters:
     joints:
@@ -46,3 +53,106 @@ gim_arm_group_controller:
     constraints:
       stopped_velocity_tolerance: 0.01
       goal_time: 0.0
+
+# ─────────────────────────── ĐƯỜNG LQI ───────────────────────────
+# Cầu nối giữa lqi_node (tính mô-men bằng Pinocchio + scipy) và command
+# interface `effort` của plugin phần cứng. ros2_control KHÔNG cho một node bên
+# ngoài ghi trực tiếp vào command interface -- phải có controller claim nó, và
+# forward_command_controller là loại mỏng nhất: đọc topic, ghi thẳng, không
+# tính gì.
+#
+# Đây cũng chính là cơ chế khiến LQI và PID loại trừ nhau. Hai bên claim hai bộ
+# interface khác nhau, nên đổi qua lại bằng:
+#   ros2 control switch_controllers \
+#       --deactivate gim_arm_group_controller --activate lqi_effort_controller
+#
+# CẦN CÓ TRƯỚC: bản patch mô-men trong gim_arm_hardware (interface `effort` +
+# prepare/perform_command_mode_switch) và <command_interface name="effort"/>
+# trong gim_arm.urdf. Thiếu là controller này KHÔNG load được.
+lqi_effort_controller:
+  ros__parameters:
+    joints:
+      - base_joint
+      - shoulder_joint
+      - elbow_joint
+    # MÔ-MEN, đơn vị Nm PHÍA KHỚP. Plugin lo quy về phía rotor
+    # (CHIA gear_ratio × direction) trước khi đóng gói frame 0x00E.
+    interface_name: effort
+
+# Tham số mặc định cho lqi_node. controller_manager bỏ qua khối này (nó không
+# phải controller), nhưng để đây thì cả 2 đường điều khiển dùng chung 1 file
+# cấu hình. Node đọc được bằng:
+#   ros2 run gim_control lqi_node --ros-args \
+#       --params-file $(ros2 pkg prefix gim_control)/share/gim_control/config/controllers.yaml
+# Hoặc bỏ qua khối này và ghi đè lúc chạy: ros2 param set /lqi_node bandwidth 6.0
+lqi_node:
+  ros__parameters:
+    joints:
+      - base_joint
+      - shoulder_joint
+      - elbow_joint
+    control_hz: 100.0        # PHẢI khớp update_rate ở đầu file
+
+    # --- chọn hệ số: tune_mode quyết định tham số nào có tác dụng ---
+    # "weights"   (ĐANG DÙNG) -- khai trực tiếp Q, R rồi giải Riccati. Đây là
+    #     đường LQR đầy đủ: rộng hơn omega_lqr vì cho được 3 cực KHÁC nhau.
+    #     Bộ dưới đây ra cực [-28.77, -10.00, -8.52], không ω nào tái tạo được.
+    #     Bỏ qua: omega
+    # "omega_lqr" -- một nút vặn `omega`, NHƯNG đi qua Riccati thật:
+    #     Q = diag(ω⁶, 3ω⁴, 3ω²), R = 1  ->  K = [ω³, 3ω², 3ω]
+    #     Đã kiểm bằng số: trùng gán cực tới 1e-12. Dùng cái này khi báo cáo cần
+    #     trình bày đúng phương pháp LQR mà vẫn muốn vặn một số có đơn vị rad/s.
+    #     Bỏ qua: q_int, q_pos, q_vel, r
+    # "place"     -- gán cực trực tiếp, KHÔNG giải Riccati. Kết quả y hệt
+    #     omega_lqr. Bỏ qua: q_int, q_pos, q_vel, r
+    # Node in rõ mode đang chạy và liệt kê tham số bị bỏ qua, ngay lúc khởi động.
+    tune_mode: "weights"
+    omega: 5.0               # rad/s. Bảng tra ω -> Kp/Kd ở RUNBOOK mục TUNE 2.
+    # Viết dạng thập phân thường, KHÔNG dùng 6.0e6: YAML 1.1 (chuẩn mà ROS 2
+    # dùng) bắt buộc DẤU ở số mũ, nên `6.0e6` parse thành STRING và node sẽ
+    # ném InvalidParameterTypeException lúc khởi động. `6.0e+6` cũng được.
+    # BƯỚC B của thang nới (xem RUNBOOK). Cho 3 cực trùng tại -5 rad/s,
+    # t_xác_lập ≈ 0.80 s. Đây là điểm KHỞI ĐẦU, không phải điểm đích.
+    #   A: 4096     768    48    -> cực chậm 4.00, i_limit ≤ 0.043
+    #   B: 15625    1875   75    -> cực chậm 5.00, i_limit ≤ 0.022   <- đang dùng
+    #   C: 46656    3888   108   -> cực chậm 6.00, i_limit ≤ 0.013
+    #   D: 262144   12288  192   -> cực chậm 8.00, i_limit ≤ 0.0054
+    #   E: 6000000  150000 1000  -> cực chậm 8.52, i_limit ≤ 0.0011  (mặc định repo)
+    # Bước E là bộ đã quét lưới trong MÔ PHỎNG -- ở đó không có nhiễu encoder và
+    # không có trễ CAN. Kp tương đương ở base lên tới 100.8 Nm/rad, quá hung cho
+    # lần chạy đầu trên tay thật. Leo từ B lên, đừng nhảy thẳng vào E.
+    #
+    # Viết dạng thập phân thường, KHÔNG dùng 1.5e5: YAML 1.1 (chuẩn mà ROS 2
+    # dùng) bắt buộc DẤU ở số mũ, nên `1.5e5` parse thành STRING và node sẽ ném
+    # InvalidParameterTypeException lúc khởi động. `1.5e+5` cũng được.
+    q_int: 15625.0
+    q_pos: 1875.0
+    q_vel: 75.0
+    r: 1.0
+
+    i_limit: 0.02
+    friction_ff: false       # hai hệ số ma sát vẫn là số đặt tạm, chưa hiệu chỉnh
+
+    # --- an toàn: NỚI DẦN, đừng đặt cao ngay ---
+    # tau_scale: KHÔNG dưới 0.40. Mô-men THỰC SỰ cần trên quỹ đạo quét (phần
+    # feedforward đỉnh + phần phản hồi tối đa): base 1.58, shoulder 4.99,
+    # elbow 1.80 Nm. Chia cho trần URDF [5, 40, 5] ra tỉ lệ tối thiểu
+    # 0.32 / 0.13 / 0.36 -> khớp chặt nhất là elbow ở 0.36.
+    # 0.30 là THIẾU: elbow bị kẹp ở 1.5 Nm trong khi cần 1.80 -> võng ở khuỷu,
+    # rất dễ chẩn đoán nhầm thành lỗi dấu mô-men. 0.50 cho 39-58% dư địa.
+    # Trần này còn bị chặn lần nữa bởi max_torque_joint_nm per-joint trong URDF
+    # ([2.5, 7.5, 3.0] Nm) -- hai lớp độc lập, cố ý.
+    tau_scale: 0.50
+    # 0.05 cho những lần chạy đầu. Nếu dấu mô-men sai, vòng kín có cực dương
+    # +18.96 rad/s (w=5): ở 0.35 thì lúc abort kịp bắt, base đã có 6.0 rad/s và
+    # đập vào cữ ở tốc độ đó. Ở 0.05 thì bắt sau 44 ms với 2.3 rad/s.
+    # Nới lên 0.35 SAU khi đã chạy trọn 1 vòng không lỗi.
+    max_track_error_rad: 0.05
+    joint_margin_rad: 0.05
+    state_timeout: 0.25
+
+    # --- kịch bản ---
+    approach_time: 5.0       # bằng TRANSITION_TIME của đường PID
+    loops: 2.0
+    autostart: false         # false -> ở pha GRAVITY tới khi bạn bật
+    log_file: ""

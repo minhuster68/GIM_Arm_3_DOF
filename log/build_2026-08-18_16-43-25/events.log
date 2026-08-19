@@ -1,0 +1,262 @@
+[0.000000] (-) TimerEvent: {}
+[0.000271] (-) JobUnselected: {'identifier': 'gim_arm_description'}
+[0.000370] (-) JobUnselected: {'identifier': 'gim_arm_moveit_config'}
+[0.000397] (-) JobUnselected: {'identifier': 'gim_control'}
+[0.000420] (gim_arm_hardware) JobQueued: {'identifier': 'gim_arm_hardware', 'dependencies': OrderedDict()}
+[0.000456] (gim_arm_hardware) JobStarted: {'identifier': 'gim_arm_hardware'}
+[0.007843] (gim_arm_hardware) JobProgress: {'identifier': 'gim_arm_hardware', 'progress': 'cmake'}
+[0.008393] (gim_arm_hardware) Command: {'cmd': ['/home/minh/.local/bin/cmake', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware', '-DAMENT_CMAKE_SYMLINK_INSTALL=1', '-DCMAKE_INSTALL_PREFIX=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware'], 'cwd': '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'minh'), ('LC_TIME', 'vi_VN'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/lib:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins/lib:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation/lib:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface/lib:/home/minh/apriltag_ws/install/apriltag_ros/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/minh'), ('CYCLONEDDS_URI', '/home/minh/cyclonedds_config.xml'), ('OLDPWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF'), ('DESKTOP_SESSION', 'ubuntu-xorg'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/terminator.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'vi_VN'), ('ROS_IP', '10.136.6.217'), ('MANAGERPID', '2315'), ('SYSTEMD_EXEC_PID', '2592'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('TERMINATOR_DBUS_NAME', 'net.tenshu.Terminator21a9d5db22c73a993ff0b42f64b396873'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '4219'), ('COLCON_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install:/home/minh/rehab_robot_ver2_modified/install:/home/minh/apriltag_ws/install:/home/minh/moveit_ws/install'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'minh'), ('JOURNAL_STREAM', '8:23915'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'minh'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '1'), ('WINDOWPATH', '2'), ('PATH', '/opt/ros/humble/bin:/home/minh/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/minh-LOQ-15APH8:@/tmp/.ICE-unix/2568,unix/minh-LOQ-15APH8:/tmp/.ICE-unix/2568'), ('INVOCATION_ID', '8293c5eeae924ed8a51c342ede5ec4d5'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'vi_VN'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('TERMINATOR_DBUS_PATH', '/net/tenshu/Terminator2'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('IBUS_DISABLE_SNOOPER', '1'), ('LC_TELEPHONE', 'vi_VN'), ('RMW_IMPLEMENTATION', 'rmw_cyclonedds_cpp'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu-xorg'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'vi_VN'), ('TERMINATOR_UUID', 'urn:uuid:148d973a-1910-405b-bf7f-04a25a0495c0'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu-xorg'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'vi_VN'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('LC_IDENTIFICATION', 'vi_VN'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu-xorg:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu-xorg:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins/local/lib/python3.10/dist-packages:/home/minh/rehab_robot_ver2_modified/install/rehab_gui/lib/python3.10/site-packages:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin/lib/python3.10/site-packages:/home/minh/apriltag_ws/install/apriltag_ros/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'vi_VN'), ('LC_PAPER', 'vi_VN'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble')]), 'shell': False}
+[0.064516] (gim_arm_hardware) StderrLine: {'line': b'\x1b[0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):\n'}
+[0.064775] (gim_arm_hardware) StderrLine: {'line': b'  Compatibility with CMake < 3.10 will be removed from a future version of\n'}
+[0.064870] (gim_arm_hardware) StderrLine: {'line': b'  CMake.\n'}
+[0.064944] (gim_arm_hardware) StderrLine: {'line': b'\n'}
+[0.065012] (gim_arm_hardware) StderrLine: {'line': b'  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax\n'}
+[0.065077] (gim_arm_hardware) StderrLine: {'line': b'  to tell CMake that the project requires at least <min> but has been updated\n'}
+[0.065140] (gim_arm_hardware) StderrLine: {'line': b'  to work with policies introduced by <max> or earlier.\n'}
+[0.065223] (gim_arm_hardware) StderrLine: {'line': b'\n'}
+[0.065289] (gim_arm_hardware) StderrLine: {'line': b'\x1b[0m\n'}
+[0.068708] (gim_arm_hardware) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.092349] (gim_arm_hardware) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter\n'}
+[0.099428] (-) TimerEvent: {}
+[0.139601] (gim_arm_hardware) StdoutLine: {'line': b'-- Override CMake install command with custom implementation using symlinks instead of copying resources\n'}
+[0.145223] (gim_arm_hardware) StdoutLine: {'line': b'-- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[0.169496] (gim_arm_hardware) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.9 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[0.171254] (gim_arm_hardware) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.9 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.175805] (gim_arm_hardware) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.9 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[0.183420] (gim_arm_hardware) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.193212] (gim_arm_hardware) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.199557] (-) TimerEvent: {}
+[0.222373] (gim_arm_hardware) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[0.223597] (gim_arm_hardware) StdoutLine: {'line': b'-- Found rmw_cyclonedds_cpp: 1.3.4 (/opt/ros/humble/share/rmw_cyclonedds_cpp/cmake)\n'}
+[0.238868] (gim_arm_hardware) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_cyclonedds_cpp' as default\n"}
+[0.285862] (gim_arm_hardware) StdoutLine: {'line': b'-- Found hardware_interface: 2.54.0 (/opt/ros/humble/share/hardware_interface/cmake)\n'}
+[0.299625] (-) TimerEvent: {}
+[0.399904] (-) TimerEvent: {}
+[0.418303] (gim_arm_hardware) StderrLine: {'line': b'\x1b[33mCMake Warning (dev) at /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package):\n'}
+[0.418472] (gim_arm_hardware) StderrLine: {'line': b'  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake\n'}
+[0.418538] (gim_arm_hardware) StderrLine: {'line': b'  --help-policy CMP0167" for policy details.  Use the cmake_policy command to\n'}
+[0.418586] (gim_arm_hardware) StderrLine: {'line': b'  set the policy and suppress this warning.\n'}
+[0.418627] (gim_arm_hardware) StderrLine: {'line': b'\n'}
+[0.418661] (gim_arm_hardware) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[0.418689] (gim_arm_hardware) StderrLine: {'line': b'  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:183 (find_dependency)\n'}
+[0.418724] (gim_arm_hardware) StderrLine: {'line': b'  CMakeLists.txt:17 (find_package)\n'}
+[0.418751] (gim_arm_hardware) StderrLine: {'line': b'This warning is for project developers.  Use -Wno-dev to suppress it.\n'}
+[0.418786] (gim_arm_hardware) StderrLine: {'line': b'\x1b[0m\n'}
+[0.422230] (gim_arm_hardware) StdoutLine: {'line': b'-- Found Boost: /usr/include (found version "1.74.0") found components: filesystem serialization\n'}
+[0.423667] (gim_arm_hardware) StdoutLine: {'line': b'-- eigenpy FOUND. eigenpy at /opt/ros/humble/lib/x86_64-linux-gnu/libeigenpy.so\n'}
+[0.447797] (gim_arm_hardware) StdoutLine: {'line': b'-- Checking for NumPy\n'}
+[0.499993] (-) TimerEvent: {}
+[0.600219] (-) TimerEvent: {}
+[0.646622] (gim_arm_hardware) StdoutLine: {'line': b'--   NUMPY_INCLUDE_DIRS=/home/minh/.local/lib/python3.10/site-packages/numpy/core/include\n'}
+[0.700306] (-) TimerEvent: {}
+[0.731715] (gim_arm_hardware) StdoutLine: {'line': b'--   NUMPY_VERSION=1.26.4\n'}
+[0.800393] (-) TimerEvent: {}
+[0.900654] (-) TimerEvent: {}
+[0.947681] (gim_arm_hardware) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter Development.Module NumPy\n'}
+[0.948981] (gim_arm_hardware) StdoutLine: {'line': b'-- PythonLibraryDirs: \n'}
+[0.949066] (gim_arm_hardware) StdoutLine: {'line': b'-- PythonLibVersionString: 3.10.12\n'}
+[0.969746] (gim_arm_hardware) StdoutLine: {'line': b'-- Python site lib: lib/python3.10/site-packages\n'}
+[0.969941] (gim_arm_hardware) StdoutLine: {'line': b'-- Python include dirs: /usr/include/python3.10\n'}
+[1.000737] (-) TimerEvent: {}
+[1.012103] (gim_arm_hardware) StdoutLine: {'line': b'-- Checking for NumPy\n'}
+[1.100878] (-) TimerEvent: {}
+[1.114523] (gim_arm_hardware) StdoutLine: {'line': b'--   NUMPY_INCLUDE_DIRS=/home/minh/.local/lib/python3.10/site-packages/numpy/core/include\n'}
+[1.200999] (-) TimerEvent: {}
+[1.217137] (gim_arm_hardware) StdoutLine: {'line': b'--   NUMPY_VERSION=1.26.4\n'}
+[1.217288] (gim_arm_hardware) StdoutLine: {'line': b'-- NumPy include dir: /home/minh/.local/lib/python3.10/site-packages/numpy/core/include\n'}
+[1.217508] (gim_arm_hardware) StderrLine: {'line': b'\x1b[33mCMake Warning (dev) at /opt/ros/humble/lib/x86_64-linux-gnu/cmake/eigenpy/boost.cmake:146 (find_package):\n'}
+[1.217564] (gim_arm_hardware) StderrLine: {'line': b'  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake\n'}
+[1.217593] (gim_arm_hardware) StderrLine: {'line': b'  --help-policy CMP0167" for policy details.  Use the cmake_policy command to\n'}
+[1.217630] (gim_arm_hardware) StderrLine: {'line': b'  set the policy and suppress this warning.\n'}
+[1.217658] (gim_arm_hardware) StderrLine: {'line': b'\n'}
+[1.217686] (gim_arm_hardware) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[1.217713] (gim_arm_hardware) StderrLine: {'line': b'  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/eigenpy/eigenpyConfig.cmake:172 (SEARCH_FOR_BOOST_PYTHON)\n'}
+[1.217740] (gim_arm_hardware) StderrLine: {'line': b'  /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)\n'}
+[1.217767] (gim_arm_hardware) StderrLine: {'line': b'  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:184 (find_dependency)\n'}
+[1.217792] (gim_arm_hardware) StderrLine: {'line': b'  CMakeLists.txt:17 (find_package)\n'}
+[1.217818] (gim_arm_hardware) StderrLine: {'line': b'This warning is for project developers.  Use -Wno-dev to suppress it.\n'}
+[1.217843] (gim_arm_hardware) StderrLine: {'line': b'\x1b[0m\n'}
+[1.221613] (gim_arm_hardware) StdoutLine: {'line': b'-- Found Boost: /usr/include (found version "1.74.0") found components: python310\n'}
+[1.301090] (-) TimerEvent: {}
+[1.401397] (-) TimerEvent: {}
+[1.434107] (gim_arm_hardware) StdoutLine: {'line': b'-- Default C++ standard: 201703\n'}
+[1.434352] (gim_arm_hardware) StdoutLine: {'line': b'-- C++ standard sufficient: Minimal required 17, currently defined: 17\n'}
+[1.434406] (gim_arm_hardware) StdoutLine: {'line': b'-- CMAKE_CXX_STANDARD was not set: automatically set to currently defined standard 17\n'}
+[1.435841] (gim_arm_hardware) StdoutLine: {'line': b'-- coal FOUND. coal at /opt/ros/humble/lib/x86_64-linux-gnu/libcoal.so\n'}
+[1.436286] (gim_arm_hardware) StderrLine: {'line': b'\x1b[33mCMake Warning (dev) at /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package):\n'}
+[1.436381] (gim_arm_hardware) StderrLine: {'line': b'  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake\n'}
+[1.436432] (gim_arm_hardware) StderrLine: {'line': b'  --help-policy CMP0167" for policy details.  Use the cmake_policy command to\n'}
+[1.436477] (gim_arm_hardware) StderrLine: {'line': b'  set the policy and suppress this warning.\n'}
+[1.436516] (gim_arm_hardware) StderrLine: {'line': b'\n'}
+[1.436553] (gim_arm_hardware) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[1.436590] (gim_arm_hardware) StderrLine: {'line': b'  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/coal/coalConfig.cmake:154 (find_dependency)\n'}
+[1.436628] (gim_arm_hardware) StderrLine: {'line': b'  /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)\n'}
+[1.436665] (gim_arm_hardware) StderrLine: {'line': b'  /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:186 (find_dependency)\n'}
+[1.436702] (gim_arm_hardware) StderrLine: {'line': b'  CMakeLists.txt:17 (find_package)\n'}
+[1.436738] (gim_arm_hardware) StderrLine: {'line': b'This warning is for project developers.  Use -Wno-dev to suppress it.\n'}
+[1.436780] (gim_arm_hardware) StderrLine: {'line': b'\x1b[0m\n'}
+[1.440341] (gim_arm_hardware) StdoutLine: {'line': b'-- Found Boost: /usr/include (found version "1.74.0") found components: serialization filesystem\n'}
+[1.441517] (gim_arm_hardware) StdoutLine: {'line': b'-- C++ standard sufficient: Minimal required 17, currently defined: 17\n'}
+[1.442077] (gim_arm_hardware) StdoutLine: {'line': b'-- C++ standard sufficient: Minimal required 17, currently defined: 17\n'}
+[1.501503] (-) TimerEvent: {}
+[1.514453] (gim_arm_hardware) StdoutLine: {'line': b'-- Configuring done (1.5s)\n'}
+[1.526455] (gim_arm_hardware) StdoutLine: {'line': b'-- Generating done (0.0s)\n'}
+[1.528767] (gim_arm_hardware) StdoutLine: {'line': b'-- Build files have been written to: /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware\n'}
+[1.536814] (gim_arm_hardware) CommandEnded: {'returncode': 0}
+[1.537460] (gim_arm_hardware) JobProgress: {'identifier': 'gim_arm_hardware', 'progress': 'build'}
+[1.538221] (gim_arm_hardware) Command: {'cmd': ['/home/minh/.local/bin/cmake', '--build', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware', '--', '-j16', '-l16'], 'cwd': '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'minh'), ('LC_TIME', 'vi_VN'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/lib:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins/lib:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation/lib:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface/lib:/home/minh/apriltag_ws/install/apriltag_ros/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/minh'), ('CYCLONEDDS_URI', '/home/minh/cyclonedds_config.xml'), ('OLDPWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF'), ('DESKTOP_SESSION', 'ubuntu-xorg'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/terminator.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('LC_MONETARY', 'vi_VN'), ('ROS_IP', '10.136.6.217'), ('MANAGERPID', '2315'), ('SYSTEMD_EXEC_PID', '2592'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('TERMINATOR_DBUS_NAME', 'net.tenshu.Terminator21a9d5db22c73a993ff0b42f64b396873'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '4219'), ('COLCON_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install:/home/minh/rehab_robot_ver2_modified/install:/home/minh/apriltag_ws/install:/home/minh/moveit_ws/install'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'minh'), ('JOURNAL_STREAM', '8:23915'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'minh'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '1'), ('WINDOWPATH', '2'), ('PATH', '/opt/ros/humble/bin:/home/minh/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/minh-LOQ-15APH8:@/tmp/.ICE-unix/2568,unix/minh-LOQ-15APH8:/tmp/.ICE-unix/2568'), ('INVOCATION_ID', '8293c5eeae924ed8a51c342ede5ec4d5'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'vi_VN'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':0'), ('TERMINATOR_DBUS_PATH', '/net/tenshu/Terminator2'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('IBUS_DISABLE_SNOOPER', '1'), ('LC_TELEPHONE', 'vi_VN'), ('RMW_IMPLEMENTATION', 'rmw_cyclonedds_cpp'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu-xorg'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('ROS_DOMAIN_ID', '0'), ('AMENT_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'vi_VN'), ('TERMINATOR_UUID', 'urn:uuid:148d973a-1910-405b-bf7f-04a25a0495c0'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu-xorg'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'vi_VN'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('LC_IDENTIFICATION', 'vi_VN'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu-xorg:/etc/xdg'), ('XDG_DATA_DIRS', '/usr/share/ubuntu-xorg:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins/local/lib/python3.10/dist-packages:/home/minh/rehab_robot_ver2_modified/install/rehab_gui/lib/python3.10/site-packages:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin/lib/python3.10/site-packages:/home/minh/apriltag_ws/install/apriltag_ros/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'vi_VN'), ('LC_PAPER', 'vi_VN'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble')]), 'shell': False}
+[1.601611] (-) TimerEvent: {}
+[1.646879] (gim_arm_hardware) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o\x1b[0m\n'}
+[1.701712] (-) TimerEvent: {}
+[1.801956] (-) TimerEvent: {}
+[1.902216] (-) TimerEvent: {}
+[2.002422] (-) TimerEvent: {}
+[2.102679] (-) TimerEvent: {}
+[2.202912] (-) TimerEvent: {}
+[2.303219] (-) TimerEvent: {}
+[2.403519] (-) TimerEvent: {}
+[2.503828] (-) TimerEvent: {}
+[2.604169] (-) TimerEvent: {}
+[2.704562] (-) TimerEvent: {}
+[2.804921] (-) TimerEvent: {}
+[2.905266] (-) TimerEvent: {}
+[3.005709] (-) TimerEvent: {}
+[3.106029] (-) TimerEvent: {}
+[3.206357] (-) TimerEvent: {}
+[3.306690] (-) TimerEvent: {}
+[3.407073] (-) TimerEvent: {}
+[3.507552] (-) TimerEvent: {}
+[3.607957] (-) TimerEvent: {}
+[3.708278] (-) TimerEvent: {}
+[3.808621] (-) TimerEvent: {}
+[3.908944] (-) TimerEvent: {}
+[4.009288] (-) TimerEvent: {}
+[4.109677] (-) TimerEvent: {}
+[4.210094] (-) TimerEvent: {}
+[4.310527] (-) TimerEvent: {}
+[4.410879] (-) TimerEvent: {}
+[4.511298] (-) TimerEvent: {}
+[4.611716] (-) TimerEvent: {}
+[4.711996] (-) TimerEvent: {}
+[4.812306] (-) TimerEvent: {}
+[4.912687] (-) TimerEvent: {}
+[5.013114] (-) TimerEvent: {}
+[5.113475] (-) TimerEvent: {}
+[5.213882] (-) TimerEvent: {}
+[5.314225] (-) TimerEvent: {}
+[5.414966] (-) TimerEvent: {}
+[5.515302] (-) TimerEvent: {}
+[5.615598] (-) TimerEvent: {}
+[5.715871] (-) TimerEvent: {}
+[5.816148] (-) TimerEvent: {}
+[5.916536] (-) TimerEvent: {}
+[6.016857] (-) TimerEvent: {}
+[6.117244] (-) TimerEvent: {}
+[6.217584] (-) TimerEvent: {}
+[6.317929] (-) TimerEvent: {}
+[6.418269] (-) TimerEvent: {}
+[6.518615] (-) TimerEvent: {}
+[6.618967] (-) TimerEvent: {}
+[6.719438] (-) TimerEvent: {}
+[6.819844] (-) TimerEvent: {}
+[6.920186] (-) TimerEvent: {}
+[7.020592] (-) TimerEvent: {}
+[7.120931] (-) TimerEvent: {}
+[7.221266] (-) TimerEvent: {}
+[7.269759] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:\x1b[m\x1b[K In member function \xe2\x80\x98\x1b[01m\x1b[Kvirtual hardware_interface::CallbackReturn gim_arm_hardware::GimArmSystemHardware::on_init(const hardware_interface::HardwareInfo&)\x1b[m\x1b[K\xe2\x80\x99:\n'}
+[7.270015] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:42:24:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Krequest for member \xe2\x80\x98\x1b[01m\x1b[Kresize\x1b[m\x1b[K\xe2\x80\x99 in \xe2\x80\x98\x1b[01m\x1b[K((gim_arm_hardware::GimArmSystemHardware*)this)->gim_arm_hardware::GimArmSystemHardware::max_torque_joint_nm_\x1b[m\x1b[K\xe2\x80\x99, which is of non-class type \xe2\x80\x98\x1b[01m\x1b[Kdouble\x1b[m\x1b[K\xe2\x80\x99\n'}
+[7.270124] (gim_arm_hardware) StderrLine: {'line': b'   42 |   max_torque_joint_nm_.\x1b[01;31m\x1b[Kresize\x1b[m\x1b[K(n_joints, 2.0);\n'}
+[7.270223] (gim_arm_hardware) StderrLine: {'line': b'      |                        \x1b[01;31m\x1b[K^~~~~~\x1b[m\x1b[K\n'}
+[7.272085] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:108:27:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Kinvalid types \xe2\x80\x98\x1b[01m\x1b[Kdouble[size_t {aka long unsigned int}]\x1b[m\x1b[K\xe2\x80\x99 for array subscript\n'}
+[7.272171] (gim_arm_hardware) StderrLine: {'line': b'  108 |       max_torque_joint_nm_\x1b[01;31m\x1b[K[\x1b[m\x1b[Ki] = std::stod(it->second);\n'}
+[7.272213] (gim_arm_hardware) StderrLine: {'line': b'      |                           \x1b[01;31m\x1b[K^\x1b[m\x1b[K\n'}
+[7.272418] (gim_arm_hardware) StderrLine: {'line': b'In file included from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/logging.hpp:24\x1b[m\x1b[K,\n'}
+[7.272565] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/client.hpp:40\x1b[m\x1b[K,\n'}
+[7.272658] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/callback_group.hpp:24\x1b[m\x1b[K,\n'}
+[7.272742] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/any_executable.hpp:20\x1b[m\x1b[K,\n'}
+[7.272817] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategy.hpp:25\x1b[m\x1b[K,\n'}
+[7.272905] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategies.hpp:18\x1b[m\x1b[K,\n'}
+[7.272971] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executor_options.hpp:20\x1b[m\x1b[K,\n'}
+[7.273034] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executor.hpp:37\x1b[m\x1b[K,\n'}
+[7.273101] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executors/multi_threaded_executor.hpp:25\x1b[m\x1b[K,\n'}
+[7.273183] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executors.hpp:21\x1b[m\x1b[K,\n'}
+[7.273261] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/rclcpp.hpp:155\x1b[m\x1b[K,\n'}
+[7.273325] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:19\x1b[m\x1b[K:\n'}
+[7.273388] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:113:57:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Kinvalid types \xe2\x80\x98\x1b[01m\x1b[Kdouble[size_t {aka long unsigned int}]\x1b[m\x1b[K\xe2\x80\x99 for array subscript\n'}
+[7.273454] (gim_arm_hardware) StderrLine: {'line': b'  113 |       info_.joints[i].name.c_str(), max_torque_joint_nm_\x1b[01;31m\x1b[K[\x1b[m\x1b[Ki],\n'}
+[7.273518] (gim_arm_hardware) StderrLine: {'line': b'      |                                                         \x1b[01;31m\x1b[K^\x1b[m\x1b[K\n'}
+[7.277376] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:\x1b[m\x1b[K In member function \xe2\x80\x98\x1b[01m\x1b[Kvoid gim_arm_hardware::GimArmSystemHardware::send_torque_command(size_t, double)\x1b[m\x1b[K\xe2\x80\x99:\n'}
+[7.277570] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:316:43:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Kinvalid types \xe2\x80\x98\x1b[01m\x1b[Kdouble[size_t {aka long unsigned int}]\x1b[m\x1b[K\xe2\x80\x99 for array subscript\n'}
+[7.277663] (gim_arm_hardware) StderrLine: {'line': b'  316 |     torque_joint_nm, -max_torque_joint_nm_\x1b[01;31m\x1b[K[\x1b[m\x1b[Ki], max_torque_joint_nm_[i]);\n'}
+[7.277738] (gim_arm_hardware) StderrLine: {'line': b'      |                                           \x1b[01;31m\x1b[K^\x1b[m\x1b[K\n'}
+[7.277804] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:316:68:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Kinvalid types \xe2\x80\x98\x1b[01m\x1b[Kdouble[size_t {aka long unsigned int}]\x1b[m\x1b[K\xe2\x80\x99 for array subscript\n'}
+[7.277869] (gim_arm_hardware) StderrLine: {'line': b'  316 |    torque_joint_nm, -max_torque_joint_nm_[i], max_torque_joint_nm_\x1b[01;31m\x1b[K[\x1b[m\x1b[Ki]);\n'}
+[7.277931] (gim_arm_hardware) StderrLine: {'line': b'      |                                                                   \x1b[01;31m\x1b[K^\x1b[m\x1b[K\n'}
+[7.277993] (gim_arm_hardware) StderrLine: {'line': b'\n'}
+[7.302779] (gim_arm_hardware) StderrLine: {'line': b'In file included from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/client.hpp:40\x1b[m\x1b[K,\n'}
+[7.302990] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/callback_group.hpp:24\x1b[m\x1b[K,\n'}
+[7.303084] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/any_executable.hpp:20\x1b[m\x1b[K,\n'}
+[7.303172] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategy.hpp:25\x1b[m\x1b[K,\n'}
+[7.303254] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategies.hpp:18\x1b[m\x1b[K,\n'}
+[7.303319] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executor_options.hpp:20\x1b[m\x1b[K,\n'}
+[7.303382] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executor.hpp:37\x1b[m\x1b[K,\n'}
+[7.303445] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executors/multi_threaded_executor.hpp:25\x1b[m\x1b[K,\n'}
+[7.303527] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executors.hpp:21\x1b[m\x1b[K,\n'}
+[7.303589] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/rclcpp.hpp:155\x1b[m\x1b[K,\n'}
+[7.303633] (gim_arm_hardware) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:19\x1b[m\x1b[K:\n'}
+[7.303658] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:\x1b[m\x1b[K In member function \xe2\x80\x98\x1b[01m\x1b[Kvirtual hardware_interface::return_type gim_arm_hardware::GimArmSystemHardware::write(const rclcpp::Time&, const rclcpp::Duration&)\x1b[m\x1b[K\xe2\x80\x99:\n'}
+[7.303684] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:656:55:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kthrottle_clock_\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope\n'}
+[7.303715] (gim_arm_hardware) StderrLine: {'line': b'  656 |           rclcpp::get_logger("GimArmSystemHardware"), \x1b[01;31m\x1b[Kthrottle_clock_\x1b[m\x1b[K, 1000,\n'}
+[7.303740] (gim_arm_hardware) StderrLine: {'line': b'      |                                                       \x1b[01;31m\x1b[K^~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[7.308062] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:\x1b[m\x1b[K In lambda function:\n'}
+[7.308227] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:655:9:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kc\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope\n'}
+[7.308341] (gim_arm_hardware) StderrLine: {'line': b'  655 |         \x1b[01;31m\x1b[KRCLCPP_ERROR_THROTTLE\x1b[m\x1b[K(\n'}
+[7.308416] (gim_arm_hardware) StderrLine: {'line': b'      |         \x1b[01;31m\x1b[K^~~~~~~~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[7.320613] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:\x1b[m\x1b[K In member function \xe2\x80\x98\x1b[01m\x1b[Kvirtual hardware_interface::return_type gim_arm_hardware::GimArmSystemHardware::write(const rclcpp::Time&, const rclcpp::Duration&)\x1b[m\x1b[K\xe2\x80\x99:\n'}
+[7.320779] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:661:55:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kthrottle_clock_\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope\n'}
+[7.320872] (gim_arm_hardware) StderrLine: {'line': b'  661 |           rclcpp::get_logger("GimArmSystemHardware"), \x1b[01;31m\x1b[Kthrottle_clock_\x1b[m\x1b[K, 1000,\n'}
+[7.320951] (gim_arm_hardware) StderrLine: {'line': b'      |                                                       \x1b[01;31m\x1b[K^~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[7.321362] (-) TimerEvent: {}
+[7.325150] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:\x1b[m\x1b[K In lambda function:\n'}
+[7.325316] (gim_arm_hardware) StderrLine: {'line': b'\x1b[01m\x1b[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:660:9:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kc\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope\n'}
+[7.325414] (gim_arm_hardware) StderrLine: {'line': b'  660 |         \x1b[01;31m\x1b[KRCLCPP_ERROR_THROTTLE\x1b[m\x1b[K(\n'}
+[7.325488] (gim_arm_hardware) StderrLine: {'line': b'      |         \x1b[01;31m\x1b[K^~~~~~~~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[7.421500] (-) TimerEvent: {}
+[7.521846] (-) TimerEvent: {}
+[7.622248] (-) TimerEvent: {}
+[7.722591] (-) TimerEvent: {}
+[7.822924] (-) TimerEvent: {}
+[7.923255] (-) TimerEvent: {}
+[8.023587] (-) TimerEvent: {}
+[8.123933] (-) TimerEvent: {}
+[8.224278] (-) TimerEvent: {}
+[8.324626] (-) TimerEvent: {}
+[8.424967] (-) TimerEvent: {}
+[8.525325] (-) TimerEvent: {}
+[8.625665] (-) TimerEvent: {}
+[8.726004] (-) TimerEvent: {}
+[8.826363] (-) TimerEvent: {}
+[8.926701] (-) TimerEvent: {}
+[9.027036] (-) TimerEvent: {}
+[9.127390] (-) TimerEvent: {}
+[9.227721] (-) TimerEvent: {}
+[9.328007] (-) TimerEvent: {}
+[9.428365] (-) TimerEvent: {}
+[9.528707] (-) TimerEvent: {}
+[9.629063] (-) TimerEvent: {}
+[9.729443] (-) TimerEvent: {}
+[9.829777] (-) TimerEvent: {}
+[9.930129] (-) TimerEvent: {}
+[10.030489] (-) TimerEvent: {}
+[10.130831] (-) TimerEvent: {}
+[10.231184] (-) TimerEvent: {}
+[10.331516] (-) TimerEvent: {}
+[10.431854] (-) TimerEvent: {}
+[10.532259] (-) TimerEvent: {}
+[10.632599] (-) TimerEvent: {}
+[10.692036] (gim_arm_hardware) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/gim_arm_system_hardware.dir/build.make:79: CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o] Error 1\n'}
+[10.692374] (gim_arm_hardware) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:153: CMakeFiles/gim_arm_system_hardware.dir/all] Error 2\n'}
+[10.692583] (gim_arm_hardware) StderrLine: {'line': b'gmake: *** [Makefile:146: all] Error 2\n'}
+[10.694251] (gim_arm_hardware) CommandEnded: {'returncode': 2}
+[10.701572] (gim_arm_hardware) JobEnded: {'identifier': 'gim_arm_hardware', 'rc': 2}
+[10.711949] (-) EventReactorShutdown: {}

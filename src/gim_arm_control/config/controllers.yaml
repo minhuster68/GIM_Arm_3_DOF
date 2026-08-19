@@ -134,10 +134,15 @@ lqi_node:
     friction_ff: false       # hai hệ số ma sát vẫn là số đặt tạm, chưa hiệu chỉnh
 
     # --- an toàn: NỚI DẦN, đừng đặt cao ngay ---
-    # tau_scale: KHÔNG dưới 0.30. |G(q)| đỉnh là 1.181 / 4.102 / 1.518 Nm
-    # (base/shoulder/elbow) = 23.6% / 10.3% / 30.4% trần URDF. Thấp hơn 0.30 thì
-    # elbow không tự giữ nổi DÙ dấu mô-men đúng -> chẩn đoán sai thành lỗi dấu.
-    tau_scale: 0.30
+    # tau_scale: KHÔNG dưới 0.40. Mô-men THỰC SỰ cần trên quỹ đạo quét (phần
+    # feedforward đỉnh + phần phản hồi tối đa): base 1.58, shoulder 4.99,
+    # elbow 1.80 Nm. Chia cho trần URDF [5, 40, 5] ra tỉ lệ tối thiểu
+    # 0.32 / 0.13 / 0.36 -> khớp chặt nhất là elbow ở 0.36.
+    # 0.30 là THIẾU: elbow bị kẹp ở 1.5 Nm trong khi cần 1.80 -> võng ở khuỷu,
+    # rất dễ chẩn đoán nhầm thành lỗi dấu mô-men. 0.50 cho 39-58% dư địa.
+    # Trần này còn bị chặn lần nữa bởi max_torque_joint_nm per-joint trong URDF
+    # ([2.5, 7.5, 3.0] Nm) -- hai lớp độc lập, cố ý.
+    tau_scale: 0.50
     # 0.05 cho những lần chạy đầu. Nếu dấu mô-men sai, vòng kín có cực dương
     # +18.96 rad/s (w=5): ở 0.35 thì lúc abort kịp bắt, base đã có 6.0 rad/s và
     # đập vào cữ ở tốc độ đó. Ở 0.05 thì bắt sau 44 ms với 2.3 rad/s.

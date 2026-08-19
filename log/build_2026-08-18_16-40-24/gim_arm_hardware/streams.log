@@ -1,0 +1,109 @@
+[0.012s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware
+[0.073s] [0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+[0.073s]   Compatibility with CMake < 3.10 will be removed from a future version of
+[0.073s]   CMake.
+[0.073s] 
+[0.073s]   Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+[0.073s]   to tell CMake that the project requires at least <min> but has been updated
+[0.073s]   to work with policies introduced by <max> or earlier.
+[0.073s] 
+[0.073s] [0m
+[0.078s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.103s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter
+[0.154s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.159s] -- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)
+[0.198s] -- Found rosidl_generator_c: 3.1.9 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.201s] -- Found rosidl_adapter: 3.1.9 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.207s] -- Found rosidl_generator_cpp: 3.1.9 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.217s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.231s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.269s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.270s] -- Found rmw_cyclonedds_cpp: 1.3.4 (/opt/ros/humble/share/rmw_cyclonedds_cpp/cmake)
+[0.292s] -- Using RMW implementation 'rmw_cyclonedds_cpp' as default
+[0.354s] -- Found hardware_interface: 2.54.0 (/opt/ros/humble/share/hardware_interface/cmake)
+[0.521s] [33mCMake Warning (dev) at /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package):
+[0.521s]   Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+[0.521s]   --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+[0.521s]   set the policy and suppress this warning.
+[0.521s] 
+[0.521s] Call Stack (most recent call first):
+[0.521s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:183 (find_dependency)
+[0.521s]   CMakeLists.txt:17 (find_package)
+[0.521s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[0.521s] [0m
+[0.525s] -- Found Boost: /usr/include (found version "1.74.0") found components: filesystem serialization
+[0.528s] -- eigenpy FOUND. eigenpy at /opt/ros/humble/lib/x86_64-linux-gnu/libeigenpy.so
+[0.560s] -- Checking for NumPy
+[0.767s] --   NUMPY_INCLUDE_DIRS=/home/minh/.local/lib/python3.10/site-packages/numpy/core/include
+[0.854s] --   NUMPY_VERSION=1.26.4
+[1.079s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter Development.Module NumPy
+[1.079s] -- PythonLibraryDirs: 
+[1.080s] -- PythonLibVersionString: 3.10.12
+[1.099s] -- Python site lib: lib/python3.10/site-packages
+[1.099s] -- Python include dirs: /usr/include/python3.10
+[1.142s] -- Checking for NumPy
+[1.229s] --   NUMPY_INCLUDE_DIRS=/home/minh/.local/lib/python3.10/site-packages/numpy/core/include
+[1.314s] --   NUMPY_VERSION=1.26.4
+[1.314s] -- NumPy include dir: /home/minh/.local/lib/python3.10/site-packages/numpy/core/include
+[1.314s] [33mCMake Warning (dev) at /opt/ros/humble/lib/x86_64-linux-gnu/cmake/eigenpy/boost.cmake:146 (find_package):
+[1.314s]   Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+[1.314s]   --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+[1.315s]   set the policy and suppress this warning.
+[1.315s] 
+[1.315s] Call Stack (most recent call first):
+[1.315s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/eigenpy/eigenpyConfig.cmake:172 (SEARCH_FOR_BOOST_PYTHON)
+[1.315s]   /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)
+[1.315s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:184 (find_dependency)
+[1.315s]   CMakeLists.txt:17 (find_package)
+[1.315s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[1.315s] [0m
+[1.318s] -- Found Boost: /usr/include (found version "1.74.0") found components: python310
+[1.539s] -- Default C++ standard: 201703
+[1.539s] -- C++ standard sufficient: Minimal required 17, currently defined: 17
+[1.539s] -- CMAKE_CXX_STANDARD was not set: automatically set to currently defined standard 17
+[1.541s] -- coal FOUND. coal at /opt/ros/humble/lib/x86_64-linux-gnu/libcoal.so
+[1.541s] [33mCMake Warning (dev) at /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package):
+[1.542s]   Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+[1.542s]   --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+[1.542s]   set the policy and suppress this warning.
+[1.542s] 
+[1.542s] Call Stack (most recent call first):
+[1.542s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/coal/coalConfig.cmake:154 (find_dependency)
+[1.542s]   /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)
+[1.542s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:186 (find_dependency)
+[1.542s]   CMakeLists.txt:17 (find_package)
+[1.542s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[1.542s] [0m
+[1.545s] -- Found Boost: /usr/include (found version "1.74.0") found components: serialization filesystem
+[1.548s] -- C++ standard sufficient: Minimal required 17, currently defined: 17
+[1.549s] -- C++ standard sufficient: Minimal required 17, currently defined: 17
+[1.623s] -- Configuring done (1.6s)
+[1.644s] -- Generating done (0.0s)
+[1.646s] -- Build files have been written to: /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware
+[1.659s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware
+[1.661s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware -- -j16 -l16
+[1.761s] [ 50%] [32mBuilding CXX object CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o[0m
+[7.130s] In file included from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/client.hpp:40[m[K,
+[7.130s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/callback_group.hpp:24[m[K,
+[7.130s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/any_executable.hpp:20[m[K,
+[7.130s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategy.hpp:25[m[K,
+[7.130s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/memory_strategies.hpp:18[m[K,
+[7.130s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executor_options.hpp:20[m[K,
+[7.130s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executor.hpp:37[m[K,
+[7.130s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executors/multi_threaded_executor.hpp:25[m[K,
+[7.130s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executors.hpp:21[m[K,
+[7.130s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/rclcpp.hpp:155[m[K,
+[7.130s]                  from [01m[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:19[m[K:
+[7.130s] [01m[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:[m[K In member function ‘[01m[Kvirtual hardware_interface::return_type gim_arm_hardware::GimArmSystemHardware::write(const rclcpp::Time&, const rclcpp::Duration&)[m[K’:
+[7.130s] [01m[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:637:70:[m[K [01;31m[Kerror: [m[K‘[01m[Kclass rclcpp::Clock[m[K’ has no member named ‘[01m[Kget_clock[m[K’
+[7.131s]   637 |  *rclcpp::Clock().[01;31m[Kget_clock[m[K(), 1000,
+[7.131s]       |                   [01;31m[K^~~~~~~~~[m[K
+[7.131s] 
+[7.136s] [01m[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:[m[K In lambda function:
+[7.136s] [01m[K/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/src/gim_arm_system.cpp:636:7:[m[K [01;31m[Kerror: [m[K‘[01m[Kc[m[K’ was not declared in this scope
+[7.136s]   636 |       [01;31m[KRCLCPP_ERROR_THROTTLE[m[K(
+[7.136s]       |       [01;31m[K^~~~~~~~~~~~~~~~~~~~~[m[K
+[10.964s] gmake[2]: *** [CMakeFiles/gim_arm_system_hardware.dir/build.make:79: CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o] Error 1
+[10.965s] gmake[1]: *** [CMakeFiles/Makefile2:153: CMakeFiles/gim_arm_system_hardware.dir/all] Error 2
+[10.965s] gmake: *** [Makefile:146: all] Error 2
+[10.967s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware -- -j16 -l16

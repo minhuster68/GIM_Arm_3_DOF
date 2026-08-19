@@ -13,6 +13,7 @@
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
+#include "rclcpp/clock.hpp"
 #include "rclcpp/macros.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
@@ -147,11 +148,24 @@ private:
   int effort_stale_cycles_{0};
   int effort_stale_limit_{50};        // 50 chu kỳ @100Hz = 0.5 s
 
-  // Trần cứng phía KHỚP cho chế độ mô-men (Nm). Lớp bảo vệ cuối, độc lập với
-  // tau_scale bên node Python. KHÔNG đặt dưới 2.5: |G(q)| đỉnh là 1.181 (base),
-  // 4.102 (shoulder), 1.518 (elbow) Nm -- trần thấp hơn trọng lực đỉnh thì tay
-  // không tự giữ nổi dù dấu mô-men đúng.
-  double max_torque_joint_nm_{2.5};
+  // Trần cứng phía KHỚP cho chế độ mô-men (Nm), RIÊNG TỪNG KHỚP. Lớp bảo vệ
+  // cuối, độc lập với tau_scale bên node Python.
+  //
+  // PHẢI theo từng khớp, không được dùng một số chung: ba khớp lệch nhau 8 lần
+  // về mô-men. Mô-men thật sự cần trên quỹ đạo (feedforward đỉnh + phần phản
+  // hồi tối đa): base 1.58, shoulder 4.99, elbow 1.80 Nm. Một trần chung 2.5
+  // sẽ CHẶN MẤT 50% mô-men của shoulder -> tay võng ở vai, và bạn sẽ chẩn đoán
+  // sai thành lỗi dấu hoặc lỗi mô hình trọng lực.
+  //
+  // Khai <param name="max_torque_joint_nm">X</param> TRONG TỪNG <joint>.
+  // Thiếu thì lấy mặc định của khớp đó = giá trị dưới, cố tình đặt thấp để
+  // việc quên khai lộ ra bằng tay chạy yếu, không phải bằng tay chạy quá mạnh.
+  std::vector<double> max_torque_joint_nm_;
+
+  // Đồng hồ cho RCLCPP_*_THROTTLE. PHẢI là biến thành viên (lvalue): macro
+  // bind [&c = clock], nên truyền tạm thời như rclcpp::Clock() sẽ không biên
+  // dịch được. Dùng STEADY_TIME để việc bóp log không phụ thuộc /clock.
+  rclcpp::Clock throttle_clock_{RCL_STEADY_TIME};
 
   // Dấu quy ước mô-men của FIRMWARE: +1 nếu Input_Torque dương làm encoder
   // TĂNG, -1 nếu ngược. Đo bằng cansend (RUNBOOK Phase 2) rồi khai

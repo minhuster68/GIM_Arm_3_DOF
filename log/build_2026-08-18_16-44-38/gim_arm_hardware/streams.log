@@ -1,0 +1,119 @@
+[0.010s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware -DCMAKE_INSTALL_PREFIX=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware
+[0.063s] [0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+[0.063s]   Compatibility with CMake < 3.10 will be removed from a future version of
+[0.063s]   CMake.
+[0.063s] 
+[0.063s]   Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+[0.063s]   to tell CMake that the project requires at least <min> but has been updated
+[0.063s]   to work with policies introduced by <max> or earlier.
+[0.063s] 
+[0.063s] [0m
+[0.067s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.091s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter
+[0.140s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.145s] -- Found rclcpp: 16.0.19 (/opt/ros/humble/share/rclcpp/cmake)
+[0.169s] -- Found rosidl_generator_c: 3.1.9 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.171s] -- Found rosidl_adapter: 3.1.9 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.175s] -- Found rosidl_generator_cpp: 3.1.9 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.182s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.193s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.221s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.222s] -- Found rmw_cyclonedds_cpp: 1.3.4 (/opt/ros/humble/share/rmw_cyclonedds_cpp/cmake)
+[0.239s] -- Using RMW implementation 'rmw_cyclonedds_cpp' as default
+[0.286s] -- Found hardware_interface: 2.54.0 (/opt/ros/humble/share/hardware_interface/cmake)
+[0.416s] [33mCMake Warning (dev) at /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package):
+[0.416s]   Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+[0.416s]   --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+[0.416s]   set the policy and suppress this warning.
+[0.416s] 
+[0.416s] Call Stack (most recent call first):
+[0.416s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:183 (find_dependency)
+[0.416s]   CMakeLists.txt:17 (find_package)
+[0.416s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[0.416s] [0m
+[0.420s] -- Found Boost: /usr/include (found version "1.74.0") found components: filesystem serialization
+[0.422s] -- eigenpy FOUND. eigenpy at /opt/ros/humble/lib/x86_64-linux-gnu/libeigenpy.so
+[0.447s] -- Checking for NumPy
+[0.668s] --   NUMPY_INCLUDE_DIRS=/home/minh/.local/lib/python3.10/site-packages/numpy/core/include
+[0.758s] --   NUMPY_VERSION=1.26.4
+[0.955s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter Development.Module NumPy
+[0.956s] -- PythonLibraryDirs: 
+[0.956s] -- PythonLibVersionString: 3.10.12
+[0.975s] -- Python site lib: lib/python3.10/site-packages
+[0.975s] -- Python include dirs: /usr/include/python3.10
+[1.020s] -- Checking for NumPy
+[1.106s] --   NUMPY_INCLUDE_DIRS=/home/minh/.local/lib/python3.10/site-packages/numpy/core/include
+[1.197s] --   NUMPY_VERSION=1.26.4
+[1.197s] -- NumPy include dir: /home/minh/.local/lib/python3.10/site-packages/numpy/core/include
+[1.197s] [33mCMake Warning (dev) at /opt/ros/humble/lib/x86_64-linux-gnu/cmake/eigenpy/boost.cmake:146 (find_package):
+[1.197s]   Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+[1.197s]   --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+[1.197s]   set the policy and suppress this warning.
+[1.197s] 
+[1.197s] Call Stack (most recent call first):
+[1.197s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/eigenpy/eigenpyConfig.cmake:172 (SEARCH_FOR_BOOST_PYTHON)
+[1.198s]   /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)
+[1.198s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:184 (find_dependency)
+[1.198s]   CMakeLists.txt:17 (find_package)
+[1.198s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[1.198s] [0m
+[1.202s] -- Found Boost: /usr/include (found version "1.74.0") found components: python310
+[1.400s] -- Default C++ standard: 201703
+[1.400s] -- C++ standard sufficient: Minimal required 17, currently defined: 17
+[1.400s] -- CMAKE_CXX_STANDARD was not set: automatically set to currently defined standard 17
+[1.401s] -- coal FOUND. coal at /opt/ros/humble/lib/x86_64-linux-gnu/libcoal.so
+[1.401s] [33mCMake Warning (dev) at /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package):
+[1.401s]   Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+[1.401s]   --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+[1.401s]   set the policy and suppress this warning.
+[1.401s] 
+[1.402s] Call Stack (most recent call first):
+[1.402s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/coal/coalConfig.cmake:154 (find_dependency)
+[1.402s]   /home/minh/.local/lib/python3.10/site-packages/cmake/data/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake:78 (find_package)
+[1.402s]   /opt/ros/humble/lib/x86_64-linux-gnu/cmake/pinocchio/pinocchioConfig.cmake:186 (find_dependency)
+[1.402s]   CMakeLists.txt:17 (find_package)
+[1.402s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[1.402s] [0m
+[1.405s] -- Found Boost: /usr/include (found version "1.74.0") found components: serialization filesystem
+[1.406s] -- C++ standard sufficient: Minimal required 17, currently defined: 17
+[1.407s] -- C++ standard sufficient: Minimal required 17, currently defined: 17
+[1.478s] -- Configuring done (1.4s)
+[1.490s] -- Generating done (0.0s)
+[1.491s] -- Build files have been written to: /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware
+[1.499s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake /home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware -DCMAKE_INSTALL_PREFIX=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware
+[1.500s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware -- -j16 -l16
+[1.606s] [ 50%] [32mBuilding CXX object CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o[0m
+[11.385s] [100%] [1m[32mLinking CXX shared library libgim_arm_system_hardware.so[0m
+[11.616s] [100%] Built target gim_arm_system_hardware
+[11.621s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware -- -j16 -l16
+[11.622s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --install /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware
+[11.679s] -- Install configuration: ""
+[11.679s] -- Execute custom install script
+[11.679s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware//gim_arm_hardware.xml
+[11.679s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/lib/libgim_arm_system_hardware.so
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/include/gim_arm_hardware/gim6010_can_protocol.hpp
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/include/gim_arm_hardware/gim_arm_system.hpp
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/include/gim_arm_hardware/socketcan_bus.hpp
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/gim_arm_hardware.xml
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/library_path.sh
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/library_path.dsv
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/package_run_dependencies/gim_arm_hardware
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/parent_prefix_path/gim_arm_hardware
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/ament_prefix_path.sh
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/ament_prefix_path.dsv
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/path.sh
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/path.dsv
+[11.680s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.bash
+[11.681s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.sh
+[11.681s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.zsh
+[11.681s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.dsv
+[11.681s] -- Symlinking: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/package.dsv
+[11.684s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/packages/gim_arm_hardware
+[11.685s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/hardware_interface__pluginlib__plugin/gim_arm_hardware
+[11.685s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/ament_cmake_export_include_directories-extras.cmake
+[11.685s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/ament_cmake_export_libraries-extras.cmake
+[11.685s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/ament_cmake_export_dependencies-extras.cmake
+[11.685s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/gim_arm_hardwareConfig.cmake
+[11.685s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/gim_arm_hardwareConfig-version.cmake
+[11.685s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/package.xml
+[11.687s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --install /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware
