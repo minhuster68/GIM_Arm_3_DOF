@@ -21,7 +21,11 @@ print()
 # ---------------------------------------------------------------------------
 # BƯỚC 2: FK -- "biết góc khớp, hỏi đầu bút đang ở đâu"
 # ---------------------------------------------------------------------------
-q_test = [0.5, 0.3, -0.4]  # radian, đúng thứ tự [base, shoulder, elbow]
+# Giá trị cũ [0.5, 0.3, -0.4] KHÔNG dùng được nữa: sau khi đo lại giới hạn khớp
+# bằng encoder (19/08/2026), elbow_joint chỉ còn xuống tới -0.2336 rad, nên -0.4
+# nằm ngoài giới hạn -> IK/FK ra số vô nghĩa. Số dưới đây lấy từ ĐIỂM ĐẦU của
+# quỹ đạo quét thật trong sweep_trajectory.py, nên là tư thế tay thật sự đi qua.
+q_test = [0.86, 0.86, 0.95]  # radian, đúng thứ tự [base, shoulder, elbow]
 vi_tri_dau_but = kin.fk_position(q_test)
 print(f"Nếu 3 khớp ở góc {q_test} (rad) -> đầu bút ở vị trí (x,y,z) = {vi_tri_dau_but.round(4)} (mét)")
 print()
@@ -41,7 +45,10 @@ print()
 # BƯỚC 4: IK -- "biết muốn đầu bút ở đâu, hỏi ngược lại góc khớp phải là bao nhiêu"
 # Đây chính là chiều NGƯỢC của bước 2.
 # ---------------------------------------------------------------------------
-target = np.array([0.25, -0.30, 0.55])  # 1 điểm (x,y,z) muốn đầu bút tới, tự đổi số thử
+# Cũng vậy: [0.25, -0.30, 0.55] giờ nằm NGOÀI vùng với được (IK lệch 190mm).
+# Vùng với được là vỏ cầu quanh tâm vai (0.031, -0.538, 0.606), bán kính
+# ~0.41..0.59m -- điểm dưới đây nằm gọn trong đó.
+target = np.array([0.35, -0.12, 0.55])  # 1 điểm (x,y,z) muốn đầu bút tới, tự đổi số thử
 ket_qua = kin.ik_position(target)
 print(f"Muốn đầu bút tới {target} -> góc khớp cần thiết (rad) = {ket_qua.q.round(4)}")
 print(f"  Có giải được không: {ket_qua.converged}, sai số còn lại: {ket_qua.position_error_m*1000:.4f} mm")
@@ -53,7 +60,7 @@ print()
 # lại 1 CHUỖI góc khớp tương ứng" -- đây chính là việc task #6 cần làm để vẽ
 # chữ O/S: tham số hoá đường vẽ ra chuỗi điểm, rồi đưa vào đây.
 # ---------------------------------------------------------------------------
-tam_vong_tron = kin.fk_position([0.5, 0.3, -0.4])  # lấy 1 tâm bất kỳ để demo
+tam_vong_tron = kin.fk_position(q_test)  # dùng lại tư thế hợp lệ ở BƯỚC 2 làm tâm
 ban_kinh = 0.03  # 3cm
 so_diem = 12
 duong_ve = []

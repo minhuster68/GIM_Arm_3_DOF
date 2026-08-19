@@ -107,7 +107,7 @@
          CẦN XÁC NHẬN: vel_limit=20 rev/s là giá trị cấu hình của driver, nên
          đọc lại bằng odrivetool (axis0.controller.config.vel_limit) trên từng
          driver thật; nếu khác thì sửa lại theo công thức 125.66/N. -->
-    <limit lower="0" upper="1.57" effort="5" velocity="15.708" />
+    <limit lower="-0.7121" upper="1.0226" effort="5" velocity="15.708" />
   </joint>
 
   <link name="upper_arm_link">
@@ -149,7 +149,7 @@
          nhưng tốc độ tối đa chỉ còn 1/8. Số cũ (effort 5, velocity 12.5) sai
          cả 2 chiều: khai thiếu 8 lần mô-men thật, và khai thừa 6.4 lần tốc độ
          mà khớp này không bao giờ đạt được. Xem giải thích ở base_joint. -->
-    <limit lower="-1.1811" upper="1.2002" effort="40" velocity="1.963" />
+    <limit lower="-0.2366" upper="1.3435" effort="40" velocity="1.963" />
   </joint>
 
   <link name="lower_arm_link">
@@ -188,7 +188,7 @@
     <child link="lower_arm_link" />
     <axis xyz="0 0 -1" />
     <!-- gear_ratio 8 (chỉ hộp số nội bộ), giống base_joint. -->
-    <limit lower="-1.6983" upper="1.1929" effort="5" velocity="15.708" />
+    <limit lower="-0.2336" upper="1.7762" effort="5" velocity="15.708" />
   </joint>
 
 <!-- param cho node_id + CAN interface + state velocity + gear_ratio + invert_direction -->

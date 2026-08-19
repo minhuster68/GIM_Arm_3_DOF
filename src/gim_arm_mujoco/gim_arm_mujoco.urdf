@@ -88,7 +88,7 @@
     <parent link="base_link" />
     <child link="shoulder_link" />
     <axis xyz="0.99932 -0.031099 -0.019999" />
-    <limit lower="0" upper="1.57" effort="5" velocity="12.5" />
+    <limit lower="-0.7121" upper="1.0226" effort="5" velocity="12.5" />
   </joint>
 
   <link name="upper_arm_link">
@@ -125,7 +125,7 @@
     <parent link="shoulder_link" />
     <child link="upper_arm_link" />
     <axis xyz="0 -1 0" />
-    <limit lower="-0.2" upper="1.57" effort="5" velocity="12.5" />
+    <limit lower="-0.2366" upper="1.3435" effort="5" velocity="12.5" />
   </joint>
 
   <link name="lower_arm_link">
@@ -162,7 +162,7 @@
     <parent link="upper_arm_link" />
     <child link="lower_arm_link" />
     <axis xyz="0 0 -1" />
-    <limit lower="0" upper="1.57" effort="5" velocity="12.5" />
+    <limit lower="-0.2336" upper="1.7762" effort="5" velocity="12.5" />
   </joint>
 
 </robot>

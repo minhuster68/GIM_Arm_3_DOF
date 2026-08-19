@@ -136,7 +136,9 @@ if __name__ == "__main__":
     env.reset()
     ok = True
     for t in np.linspace(0, 2 * np.pi, 200):
-        q = np.array([0.3 + 0.1 * np.sin(t), 0.5 + 0.1 * np.cos(t), -0.3])
+        # elbow -0.3 nam ngoai gioi han that (elbow >= -0.2336 sau khi do lai
+        # bang encoder 19/08/2026) -> doi ve 0.95, giua dai lam viec cua quy dao quet.
+        q = np.array([0.3 + 0.1 * np.sin(t), 0.5 + 0.1 * np.cos(t), 0.95])
         env.set_qpos_direct(q)
         if not env.is_healthy():
             ok = False
@@ -164,7 +166,7 @@ if __name__ == "__main__":
     # Test 4 (MỚI): dùng actuator thật (ctrl=mô-men) để giữ tay chống trọng
     # lực tại 1 tư thế -- kiểm tra armature/ctrlrange mới không gây NaN khi
     # thật sự dùng động lực học (khác Test 1 chỉ test ctrl=0).
-    env.reset(qpos=[0.4, 0.5, -0.4])
+    env.reset(qpos=[0.4, 0.5, 0.95])   # elbow -0.4 cu nam ngoai gioi han that
     ok4 = True
     for i in range(2000):
         # mô-men bừa trong giới hạn, chỉ để kiểm tra ổn định số học, CHƯA

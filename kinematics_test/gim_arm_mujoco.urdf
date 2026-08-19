@@ -107,7 +107,7 @@
          CẦN XÁC NHẬN: vel_limit=20 rev/s là giá trị cấu hình của driver, nên
          đọc lại bằng odrivetool (axis0.controller.config.vel_limit) trên từng
          driver thật; nếu khác thì sửa lại theo công thức 125.66/N. -->
-    <limit lower="0" upper="1.57" effort="5" velocity="15.708" />
+    <limit lower="-0.7121" upper="1.0226" effort="5" velocity="15.708" />
   </joint>
 
   <link name="upper_arm_link">
@@ -149,7 +149,7 @@
          nhưng tốc độ tối đa chỉ còn 1/8. Số cũ (effort 5, velocity 12.5) sai
          cả 2 chiều: khai thiếu 8 lần mô-men thật, và khai thừa 6.4 lần tốc độ
          mà khớp này không bao giờ đạt được. Xem giải thích ở base_joint. -->
-    <limit lower="-1.1811" upper="1.2002" effort="40" velocity="1.963" />
+    <limit lower="-0.2366" upper="1.3435" effort="40" velocity="1.963" />
   </joint>
 
   <link name="lower_arm_link">
@@ -188,7 +188,7 @@
     <child link="lower_arm_link" />
     <axis xyz="0 0 -1" />
     <!-- gear_ratio 8 (chỉ hộp số nội bộ), giống base_joint. -->
-    <limit lower="-1.6983" upper="1.1929" effort="5" velocity="15.708" />
+    <limit lower="-0.2336" upper="1.7762" effort="5" velocity="15.708" />
   </joint>
 
 <!-- param cho node_id + CAN interface + state velocity + gear_ratio + invert_direction -->
@@ -196,25 +196,79 @@
   <hardware>
     <plugin>gim_arm_hardware/GimArmSystemHardware</plugin>
     <param name="can_interface">can0</param>
+    <!-- Feedforward cho Set_Input_Pos (0x00C). Mặc định trong code là TẮT;
+         bật ở đây để việc bật/tắt là một dòng NHÌN THẤY ĐƯỢC trong URDF, không
+         phải hành vi ẩn trong plugin.
+         - velocity_feedforward: điền Vel_FF = q̇_ref. Xoá sai số bám thường
+           trực e = q̇/pos_gain của vòng P vị trí (nguồn trễ chính, KHÔNG mất đi
+           khi đổi input_mode). Cần <command_interface name="velocity"/> bên
+           dưới VÀ 'velocity' trong command_interfaces của controllers.yaml.
+         - gravity_feedforward: điền Torque_FF = G(q_lệnh), tính bằng Pinocchio
+           từ chính file URDF này.
+         Đo trong mô phỏng (kinematics_test/compare_architectures.py), sai số
+         bám đầu tay: 2.066mm -> 0.437mm (vel_ff) -> 0.266mm (thêm G(q)).
+         TẮT NHANH khi thử trên tay thật: đổi true thành false, không cần build
+         lại C++, chỉ cần colcon build gim_arm_description và chạy lại.
+         Vẫn giữ nguyên control_mode=3 (vị trí): driver giữ vòng vị trí của nó,
+         nên PC chết thì tay vẫn đứng, không rơi. -->
+    <param name="velocity_feedforward">false</param>
+    <param name="gravity_feedforward">false</param>
+
+    <!-- ===== Chế độ MÔ-MEN (đường LQI) =====
+         Chỉ bật khi controller claim interface 'effort'. Đường PID không đụng
+         tới. torque_sign: quy ước dấu của FIRMWARE. Input_Torque dương làm
+         encoder TĂNG (+1) hay GIẢM (-1). ĐO BẰNG cansend trước khi chạy vòng
+         kín, xem RUNBOOK Phase 2. Đây KHÔNG phải invert_direction: cái đó bù
+         chiều lắp motor và đã nằm trong directions_.
+         effort_stale_cycles: forward_command_controller ghi lại giá trị cuối
+         mãi mãi nếu lqi_node chết. 50 chu kỳ @100Hz = 0.5 s không đổi một bit
+         nào thì plugin coi nguồn phát đã chết và tụt về bù trọng lực. -->
+    <param name="torque_sign">1</param>
+    <param name="effort_stale_cycles">50</param>
   </hardware>
   <joint name="base_joint">
     <command_interface name="position"/>
+    <command_interface name="velocity"/>
+    <!-- effort: đường vào của LQI. Thêm interface này KHÔNG ảnh hưởng đường
+         PID vì JTC chỉ claim position+velocity, interface thừa nó không đụng. -->
+    <command_interface name="effort"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">0</param>
+    <!-- Trần cứng mô-men PHÍA KHỚP, riêng khớp này. Lớp bảo vệ cuối, độc lập
+         với tau_scale bên lqi_node. cần 1.58 (ff đỉnh 0.44 + phản hồi 1.13) Nm;
+         để 2.5 = ~1.5 lần dư địa. Trần URDF <limit effort> là 5 Nm. -->
+    <param name="max_torque_joint_nm">2.5</param>
+    <param name="invert_direction">true</param>       <!-- them -->
   </joint>
   <joint name="shoulder_joint">
     <command_interface name="position"/>
+    <command_interface name="velocity"/>
+    <!-- effort: đường vào của LQI. Thêm interface này KHÔNG ảnh hưởng đường
+         PID vì JTC chỉ claim position+velocity, interface thừa nó không đụng. -->
+    <command_interface name="effort"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">1</param>
+    <!-- Trần cứng mô-men PHÍA KHỚP, riêng khớp này. Lớp bảo vệ cuối, độc lập
+         với tau_scale bên lqi_node. cần 4.99 (ff đỉnh 3.64 + phản hồi 1.35) Nm;
+         để 7.5 = ~1.5 lần dư địa. Trần URDF <limit effort> là 40 Nm. -->
+    <param name="max_torque_joint_nm">7.5</param>
     <param name="gear_ratio">64.0</param>
   </joint>
   <joint name="elbow_joint">
     <command_interface name="position"/>
+    <command_interface name="velocity"/>
+    <!-- effort: đường vào của LQI. Thêm interface này KHÔNG ảnh hưởng đường
+         PID vì JTC chỉ claim position+velocity, interface thừa nó không đụng. -->
+    <command_interface name="effort"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">2</param>
+    <!-- Trần cứng mô-men PHÍA KHỚP, riêng khớp này. Lớp bảo vệ cuối, độc lập
+         với tau_scale bên lqi_node. cần 1.80 (ff đỉnh 1.51 + phản hồi 0.29) Nm;
+         để 3.0 = ~1.5 lần dư địa. Trần URDF <limit effort> là 5 Nm. -->
+    <param name="max_torque_joint_nm">3.0</param>
     <param name="invert_direction">true</param>
   </joint>
 </ros2_control>
