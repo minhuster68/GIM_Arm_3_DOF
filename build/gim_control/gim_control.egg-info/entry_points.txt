@@ -1,5 +1,6 @@
 [console_scripts]
 check_gravity_model = gim_control.check_gravity_model:main
+goto_pose = gim_control.goto_pose:main
 lqi_node = gim_control.lqi_node:main
 motor_test_all_modes = gim_control.motor_test_all_modes:main
 origin_draw_trajectory = gim_control.origin_draw_trajectory:main

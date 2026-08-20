@@ -85,8 +85,12 @@ def load_dyn(urdf):
     sys.exit("Không tìm thấy arm_dynamics.py")
 
 
-def measure(ifname, n_samples=30):
-    """Trả về (q_raw, tau_joint) -- q chưa trừ offset, tau đã nhân gear·dir."""
+def measure(ifname, n_samples=30, verbose=True):
+    """Trả về (q_raw, tau_joint, raw, diag).
+
+    q chưa trừ offset; tau đã nhân gear·dir; raw là số thô của driver (để đối
+    chiếu trực tiếp với check_gravity_model).
+    """
     s = socket.socket(socket.PF_CAN, socket.SOCK_RAW, socket.CAN_RAW)
     try:
         s.bind((ifname,))
@@ -96,6 +100,7 @@ def measure(ifname, n_samples=30):
 
     pos = {n: [] for _, n, _, _ in AXES}
     trq = {n: [] for _, n, _, _ in AXES}
+    n_loop = 0
     t_end = time.time() + 3.0
     while time.time() < t_end and min(len(v) for v in trq.values()) < n_samples:
         for _, node, _, _ in AXES:                      # RTR xin Get_Torques
@@ -107,8 +112,16 @@ def measure(ifname, n_samples=30):
                 f = s.recv(16)
             except socket.timeout:
                 break
-            cid, dlc = struct.unpack_from("<IB", f, 0)
-            cid &= 0x7FF
+            cid_full, dlc = struct.unpack_from("<IB", f, 0)
+            # BẮT BUỘC: SocketCAN bật loopback mặc định, nên chính các frame RTR
+            # mình vừa gửi cũng quay lại. Chúng có dlc = 8 và 8 byte 0, nếu không
+            # lọc thì bị tính như số đo hợp lệ bằng 0 và kéo trung bình về 0.
+            # (Đây đúng là dòng mà check_gravity_model.py có mà bản trước của
+            #  file này thiếu -> hai công cụ ra hai kết quả khác nhau.)
+            if cid_full & CAN_RTR_FLAG:
+                n_loop += 1
+                continue
+            cid = cid_full & 0x7FF
             node, cmd = cid >> 5, cid & 0x1F
             if node not in pos or dlc < 8:
                 continue
@@ -124,8 +137,31 @@ def measure(ifname, n_samples=30):
 
     q = np.array([np.mean(pos[node]) / gear * 2 * math.pi * d if pos[node] else 0.0
                   for _, node, gear, d in AXES])
-    tau = np.array([np.mean(trq[node]) * gear * d for _, node, gear, d in AXES])
-    return q, tau
+    raw = np.array([np.mean(trq[node]) for _, node, _, _ in AXES])
+    tau = np.array([raw[i] * gear * d for i, (_, _, gear, d) in enumerate(AXES)])
+    diag = dict(n=[len(trq[node]) for _, node, _, _ in AXES],
+                std=[float(np.std(trq[node])) for _, node, _, _ in AXES],
+                lo=[float(np.min(trq[node])) for _, node, _, _ in AXES],
+                hi=[float(np.max(trq[node])) for _, node, _, _ in AXES],
+                loopback=n_loop)
+
+    if verbose:
+        print(f"{'khớp':<16}{'n mẫu':>7}{'thô TB':>11}{'thô min':>10}{'thô max':>10}"
+              f"{'độ lệch':>10}{'% định mức rotor':>18}")
+        for i, (nm, _, gear, _) in enumerate(AXES):
+            pct = abs(raw[i]) / 0.625 * 100
+            flag = "  <-- VƯỢT ĐỊNH MỨC" if pct > 100 else ""
+            print(f"  {nm:<16}{diag['n'][i]:>5}{raw[i]:11.4f}{diag['lo'][i]:10.4f}"
+                  f"{diag['hi'][i]:10.4f}{diag['std'][i]:10.4f}{pct:15.0f}%{flag}")
+        print(f"  (đã bỏ {n_loop} frame RTR loopback của chính mình)")
+        if np.any(np.abs(raw) > 0.625):
+            print()
+            print("  !! Có khớp báo mô-men THÔ vượt 0.625 Nm định mức phía rotor.")
+            print("     Sờ vỏ động cơ đó: NÓNG -> số đo thật, động cơ đang gắng sức")
+            print("     (tay đang tì vào cữ, hoặc mô hình sai nặng). NGUỘI -> số đo")
+            print("     sai đơn vị, đừng dùng để hiệu chỉnh.")
+
+    return q, tau, raw, diag
 
 
 def suggest(dyn, m):
@@ -281,7 +317,7 @@ def main():
         return
 
     if args.add:
-        q, tau = measure(args.can)
+        q, tau, raw, diag = measure(args.can)
         G = dyn.gravity(q)
         tau_f = np.array([m.DRY_FRICTION_PER_N * m.GEAR_RATIOS[n]
                           for n in dyn.joint_names])
@@ -297,7 +333,8 @@ def main():
             print("   Dùng --suggest để tìm tư thế tốt hơn.")
             if input("   Vẫn lưu? [y/N] ").strip().lower() != "y":
                 return
-        recs.append(dict(q=q.tolist(), tau=tau.tolist(), t=time.time()))
+        recs.append(dict(q=q.tolist(), tau=tau.tolist(), raw=raw.tolist(),
+                         t=time.time()))
         json.dump(recs, open(args.store, "w"), indent=1)
         print(f"\nĐã lưu. Tổng {len(recs)} bản ghi. Cần >= 4 tư thế phân biệt.")
 

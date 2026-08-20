@@ -1,0 +1,36 @@
+[0.018s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware -- -j16 -l16
+[0.194s] [ 50%] Building CXX object CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o
+[10.669s] [100%] Linking CXX shared library libgim_arm_system_hardware.so
+[10.846s] [100%] Built target gim_arm_system_hardware
+[10.851s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware -- -j16 -l16
+[10.908s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --install /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware
+[10.965s] -- Install configuration: ""
+[10.965s] -- Execute custom install script
+[10.966s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware//gim_arm_hardware.xml
+[10.966s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/lib/libgim_arm_system_hardware.so
+[10.966s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/include/gim_arm_hardware/gim6010_can_protocol.hpp
+[10.966s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/include/gim_arm_hardware/gim_arm_system.hpp
+[10.966s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/include/gim_arm_hardware/socketcan_bus.hpp
+[10.966s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/gim_arm_hardware.xml
+[10.966s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/library_path.sh
+[10.966s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/library_path.dsv
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/package_run_dependencies/gim_arm_hardware
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/parent_prefix_path/gim_arm_hardware
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/ament_prefix_path.sh
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/ament_prefix_path.dsv
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/path.sh
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/path.dsv
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.bash
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.sh
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.zsh
+[10.967s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.dsv
+[10.967s] -- Symlinking: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/package.dsv
+[10.971s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/packages/gim_arm_hardware
+[10.971s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/hardware_interface__pluginlib__plugin/gim_arm_hardware
+[10.971s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/ament_cmake_export_include_directories-extras.cmake
+[10.971s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/ament_cmake_export_libraries-extras.cmake
+[10.971s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/ament_cmake_export_dependencies-extras.cmake
+[10.971s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/gim_arm_hardwareConfig.cmake
+[10.971s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/gim_arm_hardwareConfig-version.cmake
+[10.971s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/package.xml
+[10.972s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --install /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware

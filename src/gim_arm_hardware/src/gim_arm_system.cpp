@@ -8,6 +8,8 @@
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <set>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -21,6 +23,363 @@
 namespace gim_arm_hardware
 {
 
+// ====================================================================
+//                           BẢNG CHẾ ĐỘ
+// ====================================================================
+// Đây là NƠI DUY NHẤT mô tả các chế độ. write(), perform_command_mode_switch()
+// và on_deactivate() chỉ tra bảng này rồi gọi con trỏ hàm -- chúng không biết
+// và không cần biết có bao nhiêu chế độ.
+//
+// Thêm chế độ mới: thêm 1 dòng ở đây + 2 hàm enter/write + 1 hằng trong enum.
+// Không phải sửa gì khác.
+const GimArmSystemHardware::ModeSpec & GimArmSystemHardware::mode_spec(ControlMode m)
+{
+  // Cột drv_control_mode / drv_input_mode = 2 trường của Set_Controller_Mode
+  // (0x00B), manual 3.1.6:
+  //   control_mode: 1 = TORQUE, 2 = VELOCITY, 3 = POSITION
+  //   input_mode:   1 = PASSTHROUGH, 3 = POS_FILTER, 9 = MIT_CONTROL
+  static const ModeSpec table[] = {
+    // id                  name             ctrl in  giữ tay
+    {ControlMode::Position, "VI TRI",          3u, 1u, true,
+      &GimArmSystemHardware::enter_position_mode,
+      &GimArmSystemHardware::write_position_mode},
+
+    {ControlMode::Velocity, "VAN TOC",         2u, 1u, false,
+      &GimArmSystemHardware::enter_velocity_mode,
+      &GimArmSystemHardware::write_velocity_mode},
+
+    {ControlMode::Torque,   "MO-MEN",          1u, 1u, false,
+      &GimArmSystemHardware::enter_torque_mode,
+      &GimArmSystemHardware::write_torque_mode},
+
+    // MIT: driver vẫn giữ tay -- nhưng bằng kp/kd MỀM quanh setpoint, không
+    // phải bằng vòng vị trí cứng. Đánh dấu true vì PC chết thì tay ĐỨNG, không
+    // rơi; nhưng nếu mit_kp = 0 thì nó thoái hoá thành mô-men thuần và
+    // enter_mit_mode() sẽ cảnh báo riêng chuyện đó.
+    {ControlMode::Mit,      "MIT (impedance)", 3u, 9u, true,
+      &GimArmSystemHardware::enter_mit_mode,
+      &GimArmSystemHardware::write_mit_mode},
+  };
+
+  for (const auto & s : table) {
+    if (s.id == m) {
+      return s;
+    }
+  }
+  // Unknown / hằng lạ: trả về chế độ vị trí. Không bao giờ tới được đây vì
+  // switch_to_mode() đã lọc Unknown, nhưng rơi về chế độ AN TOÀN NHẤT thay vì
+  // trả tham chiếu treo.
+  return table[0];
+}
+
+// Bộ command interface đang được claim -> chế độ. Thứ tự xét là thứ tự ƯU TIÊN
+// và nó có ý nghĩa:
+//   - position + effort  -> MIT (cả 2 cùng lúc chỉ hợp lý ở impedance)
+//   - effort             -> mô-men thuần (LQI)
+//   - position [+ velocity] -> vị trí; velocity ở đây là Vel_FF, KHÔNG phải
+//     lệnh chính -- đây chính là bộ mà JointTrajectoryController claim
+//   - chỉ velocity       -> chế độ vận tốc
+GimArmSystemHardware::ControlMode GimArmSystemHardware::resolve_mode(
+  bool has_pos, bool has_vel, bool has_eff, bool mit_enabled)
+{
+  if (has_pos && has_eff) {
+    return mit_enabled ? ControlMode::Mit : ControlMode::Unknown;
+  }
+  if (has_eff) {
+    return ControlMode::Torque;
+  }
+  if (has_pos) {
+    return ControlMode::Position;
+  }
+  if (has_vel) {
+    return ControlMode::Velocity;
+  }
+  return ControlMode::Unknown;
+}
+
+void GimArmSystemHardware::apply_driver_mode(const ModeSpec & spec)
+{
+  for (size_t i = 0; i < info_.joints.size(); ++i) {
+    uint8_t data[8];
+    gim6010::pack_u32_le(data, spec.drv_control_mode, spec.drv_input_mode);
+    can_bus_.send(
+      gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetControllerMode), data, 8);
+  }
+}
+
+void GimArmSystemHardware::switch_to_mode(ControlMode target)
+{
+  if (target == ControlMode::Unknown || target == active_mode_) {
+    return;
+  }
+
+  const ModeSpec & spec = mode_spec(target);
+
+  // 1) Driver đổi chế độ TRƯỚC. Gửi setpoint của chế độ mới khi driver còn ở
+  //    chế độ cũ thì frame đó bị bỏ qua im lặng (vd 0x00C tới driver đang ở
+  //    control_mode=1).
+  apply_driver_mode(spec);
+  active_mode_ = target;
+
+  // 2) Xoá trạng thái watchdog: chu kỳ đầu của chế độ mới phải được đánh giá
+  //    sạch, không kế thừa số đếm của chế độ trước.
+  std::fill(
+    last_cmd_seen_.begin(), last_cmd_seen_.end(), std::numeric_limits<double>::quiet_NaN());
+  stale_cycles_ = 0;
+
+  // 3) Chế độ tự lập trạng thái an toàn ban đầu của nó.
+  (this->*spec.on_enter)();
+
+  if (spec.driver_holds_arm) {
+    RCLCPP_INFO(
+      rclcpp::get_logger("GimArmSystemHardware"),
+      "-> CHE DO %s (control_mode=%u, input_mode=%u)",
+      spec.name, spec.drv_control_mode, spec.drv_input_mode);
+  } else {
+    RCLCPP_WARN(
+      rclcpp::get_logger("GimArmSystemHardware"),
+      "-> CHE DO %s (control_mode=%u). DRIVER KHONG CON GIU TAY. "
+      "PC ngung gui = tay roi/troi. Khong chay che do nay khi tay dang deo tren nguoi.",
+      spec.name, spec.drv_control_mode);
+  }
+}
+
+// ====================================================================
+//                    CÁC CHẾ ĐỘ: enter + write
+// ====================================================================
+
+void GimArmSystemHardware::enter_position_mode()
+{
+  // Chốt setpoint tại CHỖ TAY ĐANG ĐỨNG trước khi trả quyền cho vòng vị trí
+  // của driver. Bỏ bước này thì driver dùng lại input_pos cũ từ trước lúc rời
+  // chế độ vị trí, và tay GIẬT về đó.
+  for (size_t i = 0; i < info_.joints.size(); ++i) {
+    if (std::isnan(hw_states_position_[i])) {
+      continue;  // chưa đọc được encoder khớp này -- đừng chốt vào NaN
+    }
+    send_position_command(i, hw_states_position_[i], 0.0, 0.0);
+    hw_commands_[i] = hw_states_position_[i];
+  }
+}
+
+void GimArmSystemHardware::write_position_mode()
+{
+  const size_t n = info_.joints.size();
+
+  // Bù trọng lực tính MỘT LẦN cho cả tay: G(q) là hàm của TOÀN BỘ cấu hình,
+  // không tách rời từng khớp được (mô-men giữ ở vai phụ thuộc cả góc khuỷu).
+  // Chỉ tính khi CẢ 3 lệnh đều hợp lệ -- thiếu 1 khớp là q sai, mà q sai thì
+  // G(q) sai ở cả 3 khớp chứ không riêng khớp thiếu.
+  std::vector<double> tau_gravity(n, 0.0);
+  if (gravity_feedforward_) {
+    const bool all_valid = std::none_of(
+      hw_commands_.begin(), hw_commands_.end(),
+      [](double c) {return std::isnan(c);});
+    if (all_valid) {
+      compute_gravity_torque(hw_commands_, tau_gravity);
+    }
+  }
+
+  for (size_t i = 0; i < n; ++i) {
+    if (std::isnan(hw_commands_[i])) {
+      continue;  // chưa có lệnh hợp lệ, đừng gửi rác xuống CAN
+    }
+    // Controller có thể chỉ claim "position" -> hw_commands_velocity_ ở nguyên
+    // NaN. Coi NaN là 0 chứ không bỏ qua cả frame: vị trí vẫn phải được gửi.
+    const double vel_cmd =
+      (velocity_feedforward_ && !std::isnan(hw_commands_velocity_[i]))
+      ? hw_commands_velocity_[i] : 0.0;
+    send_position_command(i, hw_commands_[i], vel_cmd, tau_gravity[i]);
+  }
+}
+
+void GimArmSystemHardware::enter_velocity_mode()
+{
+  // Xoá lệnh vận tốc cũ. Ở chế độ vị trí, mảng này là Vel_FF do JTC ghi -- giữ
+  // lại nó là chu kỳ đầu của chế độ vận tốc lấy luôn vận tốc mong muốn cuối
+  // cùng của quỹ đạo trước làm lệnh, tay chạy tiếp thay vì đứng.
+  std::fill(
+    hw_commands_velocity_.begin(), hw_commands_velocity_.end(),
+    std::numeric_limits<double>::quiet_NaN());
+
+  for (size_t i = 0; i < info_.joints.size(); ++i) {
+    send_velocity_command(i, 0.0, 0.0);
+  }
+}
+
+void GimArmSystemHardware::write_velocity_mode()
+{
+  const size_t n = info_.joints.size();
+
+  const bool all_valid = std::none_of(
+    hw_commands_velocity_.begin(), hw_commands_velocity_.end(),
+    [](double c) {return std::isnan(c);});
+
+  bool stale = false;
+  if (all_valid) {
+    stale = command_stale(hw_commands_velocity_);
+  } else {
+    stale_cycles_ = 0;
+  }
+
+  std::vector<double> vel(n, 0.0);
+  if (all_valid && !stale) {
+    vel = hw_commands_velocity_;
+  } else if (stale) {
+    // Ở chế độ vận tốc, "giữ nguyên lệnh cũ" là kịch bản TỆ NHẤT: driver sẽ
+    // quay đều mãi cho tới khi đập vào cữ. Tụt về 0 rad/s.
+    RCLCPP_ERROR_THROTTLE(
+      rclcpp::get_logger("GimArmSystemHardware"), throttle_clock_, 1000,
+      "Lenh van toc khong doi %d chu ky -- coi nhu nguon phat da chet. Tut ve 0 rad/s.",
+      stale_cycles_);
+  }
+
+  // Bù trọng lực để vòng vận tốc của driver không phải "kiếm" mô-men giữ tay
+  // từ sai số vận tốc. Tính từ vị trí ĐO ĐƯỢC -- ở chế độ này không tồn tại
+  // vị trí lệnh nào cả.
+  std::vector<double> tau_gravity(n, 0.0);
+  if (gravity_feedforward_) {
+    compute_gravity_torque(hw_states_position_, tau_gravity);
+  }
+
+  for (size_t i = 0; i < n; ++i) {
+    send_velocity_command(i, vel[i], tau_gravity[i]);
+  }
+}
+
+void GimArmSystemHardware::enter_torque_mode()
+{
+  // Xoá lệnh cũ: chu kỳ đầu rơi vào nhánh dự phòng G(q) chứ không tống ra một
+  // giá trị mô-men còn sót từ lần chạy trước.
+  std::fill(
+    hw_commands_effort_.begin(), hw_commands_effort_.end(),
+    std::numeric_limits<double>::quiet_NaN());
+}
+
+void GimArmSystemHardware::write_torque_mode()
+{
+  const size_t n = info_.joints.size();
+
+  const bool all_valid = std::none_of(
+    hw_commands_effort_.begin(), hw_commands_effort_.end(),
+    [](double c) {return std::isnan(c);});
+
+  bool stale = false;
+  if (all_valid) {
+    stale = command_stale(hw_commands_effort_);
+  } else {
+    stale_cycles_ = 0;
+  }
+
+  std::vector<double> tau(n, 0.0);
+  if (all_valid && !stale) {
+    tau = hw_commands_effort_;
+  } else {
+    // Dự phòng: chỉ bù trọng lực -> tay "không trọng lượng", không bị kéo về
+    // đâu cả. KHÔNG phải lưới an toàn thật (bị đẩy là trôi), nhưng hơn hẳn
+    // phát 0 Nm (rơi) hoặc giữ nguyên lệnh cũ (chạy mù). Tính từ VỊ TRÍ ĐO
+    // được, không phải vị trí lệnh -- ở đây không có vị trí lệnh nào cả.
+    if (!compute_gravity_torque(hw_states_position_, tau)) {
+      tau.assign(n, 0.0);
+    }
+    // Tách 2 nhánh thay vì dùng toán tử ba ngôi cho chuỗi định dạng: macro
+    // này có thuộc tính format của printf, nên chuỗi phải là string literal
+    // thật, không phải biểu thức chọn giữa 2 literal.
+    if (stale) {
+      RCLCPP_ERROR_THROTTLE(
+        rclcpp::get_logger("GimArmSystemHardware"), throttle_clock_, 1000,
+        "Lenh mo-men khong doi %d chu ky -- coi nhu nguon phat da chet. "
+        "Tut ve bu trong luc.", stale_cycles_);
+    } else {
+      RCLCPP_ERROR_THROTTLE(
+        rclcpp::get_logger("GimArmSystemHardware"), throttle_clock_, 1000,
+        "Chua co lenh mo-men hop le (NaN). Tut ve bu trong luc.");
+    }
+  }
+
+  for (size_t i = 0; i < n; ++i) {
+    send_torque_command(i, tau[i]);
+  }
+}
+
+void GimArmSystemHardware::enter_mit_mode()
+{
+  // Chốt setpoint tại chỗ tay đang đứng: frame MIT đầu tiên mang kp/kd, nên
+  // một setpoint cũ sẽ kéo tay về đó ngay lập tức.
+  for (size_t i = 0; i < info_.joints.size(); ++i) {
+    if (!std::isnan(hw_states_position_[i])) {
+      hw_commands_[i] = hw_states_position_[i];
+    }
+  }
+  std::fill(
+    hw_commands_effort_.begin(), hw_commands_effort_.end(),
+    std::numeric_limits<double>::quiet_NaN());
+  std::fill(
+    hw_commands_velocity_.begin(), hw_commands_velocity_.end(),
+    std::numeric_limits<double>::quiet_NaN());
+
+  const bool no_stiffness = std::all_of(
+    mit_kp_.begin(), mit_kp_.end(), [](double k) {return k <= 0.0;});
+  if (no_stiffness) {
+    RCLCPP_WARN(
+      rclcpp::get_logger("GimArmSystemHardware"),
+      "MIT: mit_kp = 0 o TAT CA cac khop -> khong co do cung, che do nay thoai "
+      "hoa thanh mo-men thuan va DRIVER KHONG GIU TAY. Khai <param name=\"mit_kp\"> "
+      "trong tung <joint> neu ban muon impedance that.");
+  }
+}
+
+void GimArmSystemHardware::write_mit_mode()
+{
+  const size_t n = info_.joints.size();
+
+  // Không có watchdog "nguồn phát chết" ở đây: MIT giữ tay bằng kp/kd quanh
+  // setpoint cuối cùng, y như chế độ vị trí. PC im lặng = tay đứng mềm tại chỗ,
+  // không rơi và không trôi -- không có gì cần tụt về.
+  const bool pos_valid = std::none_of(
+    hw_commands_.begin(), hw_commands_.end(), [](double c) {return std::isnan(c);});
+
+  std::vector<double> tau_ff(n, 0.0);
+  const bool eff_valid = std::none_of(
+    hw_commands_effort_.begin(), hw_commands_effort_.end(),
+    [](double c) {return std::isnan(c);});
+  if (eff_valid) {
+    tau_ff = hw_commands_effort_;
+  } else if (gravity_feedforward_ && pos_valid) {
+    compute_gravity_torque(hw_commands_, tau_ff);
+  }
+
+  for (size_t i = 0; i < n; ++i) {
+    if (std::isnan(hw_commands_[i])) {
+      continue;  // chưa có setpoint hợp lệ, đừng gửi rác xuống CAN
+    }
+    const double vel_cmd =
+      std::isnan(hw_commands_velocity_[i]) ? 0.0 : hw_commands_velocity_[i];
+    send_mit_command(i, hw_commands_[i], vel_cmd, tau_ff[i]);
+  }
+}
+
+bool GimArmSystemHardware::command_stale(const std::vector<double> & cmd)
+{
+  // So bit-identical: lệnh từ một vòng điều khiển đang chạy thực tế không lặp
+  // lại y hệt hàng chục chu kỳ liền. forward_command_controller ghi lại giá trị
+  // cuối cùng mãi mãi nếu node phát chết, nên plugin không có cách nào khác để
+  // biết nguồn phát còn sống.
+  bool changed = false;
+  for (size_t i = 0; i < cmd.size(); ++i) {
+    if (!(cmd[i] == last_cmd_seen_[i])) {
+      changed = true;
+    }
+    last_cmd_seen_[i] = cmd[i];
+  }
+  stale_cycles_ = changed ? 0 : stale_cycles_ + 1;
+  return stale_cycles_ > stale_limit_;
+}
+
+// ====================================================================
+//                            LIFECYCLE
+// ====================================================================
+
 hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   const hardware_interface::HardwareInfo & info)
 {
@@ -32,7 +391,7 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   hw_commands_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_commands_velocity_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_commands_effort_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
-  last_effort_seen_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
+  last_cmd_seen_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_states_position_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_states_velocity_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   can_node_ids_.resize(n_joints, 0);
@@ -40,6 +399,9 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   directions_.resize(n_joints, 1.0);
   zero_offsets_rad_.resize(n_joints, 0.0);
   max_torque_joint_nm_.resize(n_joints, 2.0);
+  max_velocity_joint_rad_s_.resize(n_joints, 1.0);
+  mit_kp_.resize(n_joints, 0.0);
+  mit_kd_.resize(n_joints, 0.0);
 
   // node_id riêng từng khớp: khai trong URDF <joint><param name="can_node_id">N</param>
   for (size_t i = 0; i < n_joints; ++i) {
@@ -114,6 +476,22 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
       it == info_.joints[i].parameters.end() ? " (mặc định, không khai trong URDF)" : "");
   }
 
+  // Tham số riêng từng khớp của các chế độ THÊM SAU (vận tốc, MIT). Không log
+  // từng dòng như 4 khối trên: chúng chỉ có tác dụng khi chế độ tương ứng được
+  // kích hoạt, và lúc đó enter_xxx_mode() sẽ nói.
+  const auto joint_double = [this](
+    size_t i, const char * key, double & target) {
+      const auto it = info_.joints[i].parameters.find(key);
+      if (it != info_.joints[i].parameters.end()) {
+        target = std::stod(it->second);
+      }
+    };
+  for (size_t i = 0; i < n_joints; ++i) {
+    joint_double(i, "max_velocity_joint_rad_s", max_velocity_joint_rad_s_[i]);
+    joint_double(i, "mit_kp", mit_kp_[i]);
+    joint_double(i, "mit_kd", mit_kd_[i]);
+  }
+
   // Tên interface CAN: <ros2_control><hardware><param name="can_interface">can0</param>
   can_interface_name_ = info_.hardware_parameters.count("can_interface")
     ? info_.hardware_parameters.at("can_interface")
@@ -126,14 +504,28 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
     };
   velocity_feedforward_ = bool_param("velocity_feedforward", false);
   gravity_feedforward_ = bool_param("gravity_feedforward", false);
+  // Cùng nguyên tắc: MIT chỉ tồn tại khi khai rõ. Không khai thì claim đồng
+  // thời position + effort vẫn bị TỪ CHỐI y như trước.
+  mit_enabled_ = bool_param("enable_mit_mode", false);
   if (info_.hardware_parameters.count("max_torque_ff_rotor_nm")) {
     max_torque_ff_rotor_nm_ = std::stod(info_.hardware_parameters.at("max_torque_ff_rotor_nm"));
   }
   if (info_.hardware_parameters.count("effort_stale_cycles")) {
-    effort_stale_limit_ = std::stoi(info_.hardware_parameters.at("effort_stale_cycles"));
+    stale_limit_ = std::stoi(info_.hardware_parameters.at("effort_stale_cycles"));
   }
+  // torque_sign: mặc định +1 cho cả ba, ghi đè per-joint bằng
+  // <param name="torque_sign">-1</param> TRONG <joint>. Vẫn nhận cả khai ở
+  // <hardware> để làm mặc định chung, cho tương thích ngược.
+  double sign_default = 1.0;
   if (info_.hardware_parameters.count("torque_sign")) {
-    torque_sign_ = std::stod(info_.hardware_parameters.at("torque_sign")) < 0.0 ? -1.0 : 1.0;
+    sign_default = std::stod(info_.hardware_parameters.at("torque_sign")) < 0.0 ? -1.0 : 1.0;
+  }
+  torque_sign_.assign(n_joints, sign_default);
+  for (size_t i = 0; i < n_joints; ++i) {
+    const auto it = info_.joints[i].parameters.find("torque_sign");
+    if (it != info_.joints[i].parameters.end()) {
+      torque_sign_[i] = std::stod(it->second) < 0.0 ? -1.0 : 1.0;
+    }
   }
 
   // Có khớp nào khai <command_interface name="effort"/> hay không -- quyết định
@@ -221,11 +613,33 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   if (any_effort_cmd) {
     RCLCPP_INFO(
       rclcpp::get_logger("GimArmSystemHardware"),
-      "Chế độ mô-men KHẢ DỤNG (có command_interface 'effort'): torque_sign = "
-      "%+.0f, watchdog %d chu kỳ. Trần mô-men xem các dòng per-joint phía trên. "
+      "Chế độ mô-men KHẢ DỤNG (có command_interface 'effort'): watchdog %d chu kỳ. "
       "Chỉ kích hoạt khi controller claim 'effort'.",
-      torque_sign_, effort_stale_limit_);
+      stale_limit_);
+    for (size_t i = 0; i < n_joints; ++i) {
+      // In hệ số quy đổi ĐÃ TÍNH RA, không phải tham số thô: để sai hệ số 8 ở
+      // gear ngoài lộ ra ngay trong log thay vì lộ ra khi tay võng.
+      RCLCPP_INFO(
+        rclcpp::get_logger("GimArmSystemHardware"),
+        "  '%s': tau_driver = %+.0f x tau_khop / %.1f   (gear ngoai = tong %.1f / noi bo %.1f)",
+        info_.joints[i].name.c_str(), torque_sign_[i],
+        gear_ratios_[i] / kDriverInternalRatio, gear_ratios_[i], kDriverInternalRatio);
+    }
   }
+
+  // Liệt kê thẳng ra các chế độ đang mở và cách kích hoạt từng cái -- để "có
+  // những mode nào" là thứ ĐỌC ĐƯỢC TRONG LOG, không phải thứ phải đi đọc code.
+  RCLCPP_INFO(
+    rclcpp::get_logger("GimArmSystemHardware"),
+    "Bảng chế độ (chọn bằng bộ command_interface mà controller claim):\n"
+    "  VI TRI  <- claim 'position' [+ 'velocity' = Vel_FF]   (JointTrajectoryController)\n"
+    "  VAN TOC <- claim CHI 'velocity'                        %s\n"
+    "  MO-MEN  <- claim 'effort'                              %s\n"
+    "  MIT     <- claim 'position' + 'effort'                 %s",
+    "(chưa kiểm chứng trên phần cứng)",
+    any_effort_cmd ? "(sẵn sàng)" : "(URDF chưa khai command_interface 'effort')",
+    mit_enabled_ ? "(BẬT, chưa kiểm chứng trên phần cứng)"
+                 : "(TẮT -- khai <param name=\"enable_mit_mode\">true</param> để mở)");
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -241,6 +655,9 @@ bool GimArmSystemHardware::compute_gravity_torque(
   // offset chỉ là phép dịch khi quy sang đơn vị encoder, xem send_position_command.
   Eigen::VectorXd q = Eigen::VectorXd::Zero(model_.nq);
   for (size_t i = 0; i < q_joint.size(); ++i) {
+    if (std::isnan(q_joint[i])) {
+      return false;  // q chưa hợp lệ -> G(q) vô nghĩa ở CẢ 3 khớp, không riêng khớp này
+    }
     q[pin_idx_q_[i]] = q_joint[i];
   }
 
@@ -273,6 +690,10 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_configure(
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
+// ====================================================================
+//                       GỬI FRAME XUỐNG CAN
+// ====================================================================
+
 void GimArmSystemHardware::send_position_command(
   size_t i, double position_rad, double velocity_rad_s, double torque_ff_joint_nm)
 {
@@ -293,12 +714,20 @@ void GimArmSystemHardware::send_position_command(
   const double vel_ff_rev_s =
     (velocity_rad_s * directions_[i] / (2.0 * M_PI)) * gear_ratios_[i];
 
-  // Torque_FF: quy từ mô-men KHỚP về mô-men ROTOR -- CHIA cho gear_ratio, ngược
-  // chiều với vị trí (vị trí NHÂN). Nhân nhầm ở đây là shoulder lệch 64 lần.
-  // directions_ vẫn phải có: khớp đảo chiều mà quên là feedforward đẩy ngược,
-  // chống lại chính vòng vị trí.
+  // Torque_FF: quy từ mô-men KHỚP về đơn vị mô-men của driver. Chia gear NGOÀI,
+  // KHÔNG phải gear tổng, và KHÔNG nhân directions_ -- cùng quy ước với
+  // send_torque_command, xem ghi chú đầy đủ ở đó (phép thử treo 1 kg).
+  // Firmware nạp torque_constant = 0.669 = 8.27/kv với kv = 12.3 rpm/V, mà
+  // 12.3 rpm/V đi cùng bộ rated speed 120 rpm tức PHÍA TRỤC RA. Mọi trường
+  // mô-men qua CAN đều dùng chung torque_constant đó, nên đều ở phía trục ra.
+  // Chia gear TỔNG là yếu đi đúng 8 lần.
+  // Lớp bảo vệ thứ nhất: kẹp ở phía KHỚP bằng đúng trần per-joint mà chế độ
+  // mô-men dùng, để hai chế độ không có hai giới hạn khác nhau.
+  const double tff_joint = std::clamp(
+    torque_ff_joint_nm, -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
+  const double torque_ff_ext = gear_ratios_[i] / kDriverInternalRatio;
   const double torque_ff_rotor_raw =
-    torque_ff_joint_nm / (gear_ratios_[i] * directions_[i]);
+    torque_sign_[i] * tff_joint / torque_ff_ext;
   const double torque_ff_rotor =
     std::clamp(torque_ff_rotor_raw, -max_torque_ff_rotor_nm_, max_torque_ff_rotor_nm_);
 
@@ -308,6 +737,33 @@ void GimArmSystemHardware::send_position_command(
   can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetInputPos), data, 8);
 }
 
+void GimArmSystemHardware::send_velocity_command(
+  size_t i, double velocity_rad_s, double torque_ff_joint_nm)
+{
+  // Trần cứng phía KHỚP -- vai trò y hệt max_torque_joint_nm_ ở chế độ mô-men.
+  // Ở chế độ vận tốc, driver KHÔNG có cữ nào cả: một lệnh sai đơn vị (rev/s
+  // nhầm thành rad/s) là tay phóng nhanh gấp 2*pi lần dự tính.
+  const double v = std::clamp(
+    velocity_rad_s, -max_velocity_joint_rad_s_[i], max_velocity_joint_rad_s_[i]);
+
+  // Cùng phép quy đổi rad->rev như vị trí (NHÂN gear_ratio).
+  const double vel_rev_s = (v * directions_[i] / (2.0 * M_PI)) * gear_ratios_[i];
+
+  // Torque_FF: chia gear NGOÀI, không nhân directions_ -- giống
+  // send_position_command và send_torque_command.
+  // Lớp bảo vệ thứ nhất: kẹp ở phía KHỚP bằng đúng trần per-joint mà chế độ
+  // mô-men dùng, để hai chế độ không có hai giới hạn khác nhau.
+  const double tff_joint = std::clamp(
+    torque_ff_joint_nm, -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
+  const double tff_ext = gear_ratios_[i] / kDriverInternalRatio;
+  const double tff_raw = torque_sign_[i] * tff_joint / tff_ext;
+  const double tff = std::clamp(tff_raw, -max_torque_ff_rotor_nm_, max_torque_ff_rotor_nm_);
+
+  uint8_t data[8];
+  gim6010::pack_set_input_vel(data, vel_rev_s, tff);
+  can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetInputVel), data, 8);
+}
+
 void GimArmSystemHardware::send_torque_command(size_t i, double torque_joint_nm)
 {
   // Trần cứng phía KHỚP -- lớp bảo vệ độc lập với tau_scale của node Python.
@@ -315,54 +771,138 @@ void GimArmSystemHardware::send_torque_command(size_t i, double torque_joint_nm)
   const double tau = std::clamp(
     torque_joint_nm, -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
 
-  // CHIA gear_ratio -- NGƯỢC chiều với vị trí (vị trí NHÂN). Nhân nhầm ở đây là
-  // shoulder lệch 64 lần. directions_ vẫn phải có: khớp đảo chiều mà quên là
-  // mô-men đẩy ngược, và ở chế độ mô-men KHÔNG còn vòng vị trí nào kéo lại.
-  // torque_sign_ là thứ KHÁC: quy ước dấu của firmware (Input_Torque dương làm
-  // encoder tăng hay giảm), đo bằng cansend -- xem RUNBOOK Phase 2.
-  const double tau_rotor =
-    torque_sign_ * tau / (gear_ratios_[i] * directions_[i]);
+  // ĐƠN VỊ: chia gear NGOÀI, KHÔNG phải gear tổng, và KHÔNG nhân directions_.
+  //
+  // Đo trực tiếp bằng phép thử treo 1 kg đã biết vào đầu công cụ, so độ thay
+  // đổi số đọc Get_Torques với J^T·F tính từ mô hình:
+  //     shoulder  đo -5.023 Nm / dự đoán -5.182  ->  0.969
+  //     elbow     đo -3.628 Nm / dự đoán -3.440  ->  1.055
+  // Khớp trong 3-6% khi dùng gear NGOÀI [1, 8, 1] và KHÔNG có thừa số
+  // direction. Dùng gear TỔNG [8, 64, 8] cho ra hệ số sai 8 lần.
+  //
+  // Lý do vật lý: firmware nạp torque_constant = 0.669 = 8.27 / kv với
+  // kv = 12.3 rpm/V lấy từ datasheet -- và 12.3 rpm/V đi cùng bộ với rated
+  // speed 120 rpm, tức PHÍA TRỤC RA. Nên mọi số mô-men qua CAN đều ở phía trục
+  // ra của hộp số nội bộ 8:1, và chỉ còn phải quy đổi phần hộp số NGOÀI.
+  // (Datasheet tự mâu thuẫn: nó ghi thêm 0.47 Nm/A, lệch 1.42 lần. Phép thử
+  //  treo tải bác bỏ con số đó.)
+  const double ext = gear_ratios_[i] / kDriverInternalRatio;
+  const double tau_drv = torque_sign_[i] * tau / ext;
 
   uint8_t data[8];
-  gim6010::pack_set_input_torque(data, tau_rotor);
+  gim6010::pack_set_input_torque(data, tau_drv);
   can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetInputTorque), data, 8);
 }
 
-void GimArmSystemHardware::set_all_control_mode(bool torque)
+void GimArmSystemHardware::send_mit_command(
+  size_t i, double position_rad, double velocity_rad_s, double torque_joint_nm)
 {
-  for (size_t i = 0; i < info_.joints.size(); ++i) {
-    uint8_t data[8];
-    // (control_mode, input_mode). 1 = TORQUE_CONTROL, 3 = POSITION_CONTROL.
-    gim6010::pack_u32_le(data, torque ? 1u : 3u, 1u);
-    can_bus_.send(
-      gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetControllerMode), data, 8);
+  // ĐƠN VỊ CỦA 0x008 KHÁC HẲN 3 LỆNH TRÊN: manual 3.1.6 và 4.1.2 nói rõ (2 lần)
+  // rằng pos/vel/torque của Mit_Control là PHÍA TRỤC RA của driver, tức SAU hộp
+  // số NỘI BỘ 8:1 -- firmware tự quy đổi phần đó. Nên ở đây chỉ được quy đổi
+  // phần hộp số NGOÀI. Với shoulder (gear_ratio tổng 64 = 8 nội x 8 ngoài),
+  // hệ số đúng là 8, không phải 64. Dùng nhầm gear_ratios_[i] là lệch 8 lần.
+  const double ext = gear_ratios_[i] / kDriverInternalRatio;
+
+  const double pos_shaft = (position_rad + zero_offsets_rad_[i]) * directions_[i] * ext;
+  const double vel_shaft = velocity_rad_s * directions_[i] * ext;
+
+  // Trần mô-men vẫn áp ở phía KHỚP trước khi quy đổi -- cùng con số, cùng ý
+  // nghĩa với chế độ mô-men, để hai chế độ không có hai giới hạn khác nhau.
+  const double tau = std::clamp(
+    torque_joint_nm, -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
+  // Cùng quy ước với send_torque_command: KHÔNG nhân directions_. Xem ghi chú
+  // ở đó (phép thử treo 1 kg). MIT vốn đã ở phía trục ra nên `ext` là đúng.
+  const double tau_shaft = torque_sign_[i] * tau / ext;
+
+  // pack_mit_control kẹp pos vào ±12.5 rad phía trục ra. Với ext = 8 (shoulder)
+  // thì đó chỉ còn ±1.56 rad phía khớp -- đủ cho tay này, nhưng là một cữ THẦM
+  // LẶNG: vượt qua là setpoint bị kẹp chứ không báo lỗi.
+  uint8_t data[8];
+  gim6010::pack_mit_control(data, pos_shaft, vel_shaft, mit_kp_[i], mit_kd_[i], tau_shaft);
+  can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::MitControl), data, 8);
+}
+
+// ====================================================================
+//                        ĐỔI CHẾ ĐỘ (ros2_control)
+// ====================================================================
+
+// Tách phần đuôi "<ten_khop>/<ten_interface>" của một khoá interface.
+namespace
+{
+std::string interface_suffix(const std::string & key)
+{
+  const auto slash = key.rfind('/');
+  return slash == std::string::npos ? key : key.substr(slash + 1);
+}
+}  // namespace
+
+std::set<std::string> GimArmSystemHardware::projected_claim(
+  const std::vector<std::string> & start_interfaces,
+  const std::vector<std::string> & stop_interfaces) const
+{
+  std::set<std::string> claim = claimed_command_interfaces_;
+  for (const auto & key : stop_interfaces) {
+    claim.erase(key);
   }
+  for (const auto & key : start_interfaces) {
+    claim.insert(key);
+  }
+  return claim;
+}
+
+GimArmSystemHardware::ControlMode GimArmSystemHardware::mode_for_claim(
+  const std::set<std::string> & claim) const
+{
+  bool has_pos = false, has_vel = false, has_eff = false;
+  for (const auto & key : claim) {
+    const std::string name = interface_suffix(key);
+    if (name == hardware_interface::HW_IF_POSITION) {
+      has_pos = true;
+    } else if (name == hardware_interface::HW_IF_VELOCITY) {
+      has_vel = true;
+    } else if (name == hardware_interface::HW_IF_EFFORT) {
+      has_eff = true;
+    }
+  }
+  return resolve_mode(has_pos, has_vel, has_eff, mit_enabled_);
 }
 
 hardware_interface::return_type GimArmSystemHardware::prepare_command_mode_switch(
   const std::vector<std::string> & start_interfaces,
-  const std::vector<std::string> & /*stop_interfaces*/)
+  const std::vector<std::string> & stop_interfaces)
 {
-  bool want_pos = false, want_eff = false;
-  for (const auto & key : start_interfaces) {
-    if (key.find("/" + std::string(hardware_interface::HW_IF_EFFORT)) != std::string::npos) {
-      want_eff = true;
-    }
-    if (key.find("/" + std::string(hardware_interface::HW_IF_POSITION)) != std::string::npos) {
-      want_pos = true;
-    }
+  // Tính trên TẬP SẼ ĐƯỢC GIỮ SAU lần switch này, không phải trên start_interfaces.
+  // Xem ghi chú dài ở khai báo projected_claim() trong header: dùng thẳng
+  // start_interfaces làm chốt chặn này VÔ HIỆU đúng trong kịch bản nguy hiểm
+  // nhất -- bật lqi_effort_controller trong khi JTC vẫn đang chạy.
+  const std::set<std::string> claim = projected_claim(start_interfaces, stop_interfaces);
+
+  if (claim.empty()) {
+    return hardware_interface::return_type::OK;  // không còn ai giữ -> rơi về VỊ TRÍ
   }
 
   // Chốt chặn quan trọng nhất của cả bản patch. controller_manager KHÔNG tự
   // chặn việc bật đồng thời JTC (position+velocity) và lqi_effort_controller
   // (effort), vì chúng claim 2 bộ interface KHÁC nhau. Nhưng plugin chỉ gửi
   // được MỘT loại frame mỗi chu kỳ, nên bật cả hai là hành vi không xác định
-  // trên một thiết bị có thể làm người bị thương. Từ chối thẳng.
-  if (want_pos && want_eff) {
+  // trên một thiết bị có thể làm người bị thương.
+  //
+  // Bây giờ điều kiện này do resolve_mode() phát biểu: bộ interface nào không
+  // ứng với đúng MỘT dòng trong bảng chế độ thì từ chối thẳng. (position +
+  // effort là ngoại lệ DUY NHẤT, và chỉ khi enable_mit_mode = true.)
+  if (mode_for_claim(claim) == ControlMode::Unknown) {
+    std::string keys;
+    for (const auto & k : claim) {
+      keys += (keys.empty() ? "" : ", ") + k;
+    }
     RCLCPP_ERROR(
       rclcpp::get_logger("GimArmSystemHardware"),
-      "Từ chối: không được claim đồng thời 'position' và 'effort'. "
-      "Deactivate controller bên kia trước.");
+      "Từ chối: sau lần switch này các command interface được giữ sẽ là {%s} -- "
+      "bộ này không ứng với chế độ nào trong bảng. Claim đồng thời 'position' và "
+      "'effort' chỉ hợp lệ ở chế độ MIT, và MIT đang %s. "
+      "Deactivate controller bên kia trước.",
+      keys.c_str(), mit_enabled_ ? "BẬT" : "TẮT");
     return hardware_interface::return_type::ERROR;
   }
   return hardware_interface::return_type::OK;
@@ -372,61 +912,69 @@ hardware_interface::return_type GimArmSystemHardware::perform_command_mode_switc
   const std::vector<std::string> & start_interfaces,
   const std::vector<std::string> & stop_interfaces)
 {
-  for (const auto & key : stop_interfaces) {
-    if (key.find("/" + std::string(hardware_interface::HW_IF_EFFORT)) == std::string::npos) {
-      continue;
-    }
-    // RỜI chế độ mô-men -> phải chốt setpoint vị trí tại CHỖ TAY ĐANG ĐỨNG
-    // trước khi trả quyền cho vòng vị trí của driver. Bỏ bước này thì driver
-    // dùng lại input_pos cũ từ trước lúc chuyển sang mô-men, và tay GIẬT về đó.
-    set_all_control_mode(false);
-    for (size_t i = 0; i < info_.joints.size(); ++i) {
-      send_position_command(i, hw_states_position_[i], 0.0, 0.0);
-      hw_commands_[i] = hw_states_position_[i];
-    }
-    torque_mode_active_ = false;
-    RCLCPP_INFO(
-      rclcpp::get_logger("GimArmSystemHardware"), "-> CHE DO VI TRI (control_mode=3)");
-    break;
+  const std::set<std::string> claim = projected_claim(start_interfaces, stop_interfaces);
+
+  // Không còn controller nào giữ interface -> rơi về VỊ TRÍ. Đây là chế độ duy
+  // nhất mà driver tự giữ tay khi PC im lặng, nên là trạng thái an toàn mặc
+  // định. enter_position_mode() lo phần chốt setpoint tại chỗ tay đang đứng --
+  // bỏ bước đó thì driver dùng lại input_pos cũ và tay GIẬT về đó.
+  //
+  // "Rỗng" ở đây là rỗng THẬT (không ai giữ gì nữa), không phải "lần switch này
+  // không có ai bật thêm" -- bật/tắt một broadcaster cũng cho start_interfaces
+  // rỗng, và trước đây điều đó kéo tay ra khỏi chế độ mô-men giữa chừng.
+  if (claim.empty()) {
+    claimed_command_interfaces_.clear();
+    switch_to_mode(ControlMode::Position);
+    return hardware_interface::return_type::OK;
   }
 
-  for (const auto & key : start_interfaces) {
-    if (key.find("/" + std::string(hardware_interface::HW_IF_EFFORT)) == std::string::npos) {
-      continue;
-    }
-    // Xoá lệnh cũ: chu kỳ đầu rơi vào nhánh dự phòng G(q) chứ không tống ra một
-    // giá trị mô-men còn sót từ lần chạy trước.
-    std::fill(
-      hw_commands_effort_.begin(), hw_commands_effort_.end(),
-      std::numeric_limits<double>::quiet_NaN());
-    std::fill(
-      last_effort_seen_.begin(), last_effort_seen_.end(),
-      std::numeric_limits<double>::quiet_NaN());
-    effort_stale_cycles_ = 0;
-    set_all_control_mode(true);
-    torque_mode_active_ = true;
-    RCLCPP_WARN(
+  const ControlMode target = mode_for_claim(claim);
+  if (target == ControlMode::Unknown) {
+    // prepare_command_mode_switch() đã chặn rồi -- đây là dây bảo hiểm cho
+    // trường hợp ros2_control gọi perform mà không gọi prepare. KHÔNG cập nhật
+    // claimed_command_interfaces_: lần switch này coi như không xảy ra.
+    RCLCPP_ERROR(
       rclcpp::get_logger("GimArmSystemHardware"),
-      "-> CHE DO MO-MEN (control_mode=1). DRIVER KHONG CON GIU TAY. "
-      "PC ngung gui = tay roi. Khong chay che do nay khi tay dang deo tren nguoi.");
-    break;
+      "perform_command_mode_switch: bộ interface không ứng với chế độ nào. Bỏ qua.");
+    return hardware_interface::return_type::ERROR;
   }
+
+  claimed_command_interfaces_ = claim;
+  switch_to_mode(target);
   return hardware_interface::return_type::OK;
 }
+
+// ====================================================================
+//                         ACTIVATE / DEACTIVATE
+// ====================================================================
 
 hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("GimArmSystemHardware"), "Activating...");
 
-  // 1) Đặt controller mode.
-  for (size_t i = 0; i < info_.joints.size(); ++i) {
-    uint8_t data[8];
-    // control_mode=3 (position), input_mode=3 (filtered position) -- manual
-    // 3.1.6. CHƯA dùng Mit_Control ở bước bench-test này.
-    gim6010::pack_u32_le(data, /*control_mode=*/3, /*input_mode=*/1);
-    can_bus_.send(
-      gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetControllerMode), data, 8);
+  // 1) Đặt controller mode = VỊ TRÍ. Không dùng switch_to_mode() ở đây: nó bỏ
+  //    qua khi target == active_mode_, mà lúc này ta CẦN gửi 0x00B thật xuống
+  //    driver (driver vừa cấp nguồn, hoặc còn nhớ chế độ của phiên trước).
+  //    enter_position_mode() cũng chưa gọi được -- chưa đọc nổi encoder, xem
+  //    bước 2/3.
+  active_mode_ = ControlMode::Position;
+  apply_driver_mode(mode_spec(ControlMode::Position));
+  std::fill(
+    last_cmd_seen_.begin(), last_cmd_seen_.end(), std::numeric_limits<double>::quiet_NaN());
+  stale_cycles_ = 0;
+  // Chưa controller nào giữ gì lúc vừa activate. Không xoá ở đây thì tập của
+  // phiên trước sống sót qua deactivate/activate và chọn nhầm chế độ.
+  claimed_command_interfaces_.clear();
+
+  // Socket phải còn mở. Bình thường on_configure đã mở; nếu vì lý do nào đó nó
+  // đóng thì mở lại NGAY tại đây thay vì chạy tiếp -- gửi lệnh vào fd = -1 chỉ
+  // trả false im lặng, tay đứng yên mà không có dòng lỗi nào.
+  if (!can_bus_.is_open() && !can_bus_.open_bus(can_interface_name_)) {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("GimArmSystemHardware"),
+      "CAN interface '%s' không mở được lúc activate.", can_interface_name_.c_str());
+    return hardware_interface::CallbackReturn::ERROR;
   }
 
   // 2) Vào closed-loop NGAY -- xác nhận bằng candump thật (2026-08-05): driver
@@ -508,19 +1056,49 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_deactivate(
   // Trả driver về chế độ vị trí TRƯỚC khi cho IDLE. Bỏ bước này thì lần cấp
   // nguồn sau driver còn nhớ control_mode = 1 trong RAM, và bất cứ thứ gì gửi
   // 0x00C tới nó sẽ bị bỏ qua một cách im lặng.
-  set_all_control_mode(false);
-  torque_mode_active_ = false;
+  // Gọi thẳng apply_driver_mode chứ không switch_to_mode: cần frame 0x00B được
+  // gửi thật kể cả khi đang ở sẵn chế độ vị trí, và KHÔNG cần chốt setpoint
+  // (ngay sau đây là IDLE, driver nhả lực).
+  apply_driver_mode(mode_spec(ControlMode::Position));
+  active_mode_ = ControlMode::Position;
 
   for (size_t i = 0; i < info_.joints.size(); ++i) {
     uint8_t data[8];
     gim6010::pack_u32_le(data, /*requested_state=*/1);  // AXIS_STATE_IDLE
     can_bus_.send(gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetAxisState), data, 8);
   }
-  can_bus_.close_bus();
+
+  // KHÔNG đóng socket ở đây. active -> inactive -> active là một vòng đời hợp
+  // lệ và KHÔNG gọi lại on_configure(), nên đóng ở đây khiến lần activate thứ
+  // hai chạy với fd = -1: mọi send() trả false im lặng và read() không nhận
+  // được frame nào -- tay đứng yên, không một dòng lỗi nào để lần ra. Việc đóng
+  // thuộc về on_cleanup()/on_shutdown(), hai transition thật sự có nghĩa "thôi
+  // dùng phần cứng này".
+  claimed_command_interfaces_.clear();
 
   RCLCPP_INFO(rclcpp::get_logger("GimArmSystemHardware"), "Successfully deactivated!");
   return hardware_interface::CallbackReturn::SUCCESS;
 }
+
+hardware_interface::CallbackReturn GimArmSystemHardware::on_cleanup(
+  const rclcpp_lifecycle::State & /*previous_state*/)
+{
+  can_bus_.close_bus();
+  RCLCPP_INFO(rclcpp::get_logger("GimArmSystemHardware"), "CAN đã đóng (cleanup).");
+  return hardware_interface::CallbackReturn::SUCCESS;
+}
+
+hardware_interface::CallbackReturn GimArmSystemHardware::on_shutdown(
+  const rclcpp_lifecycle::State & /*previous_state*/)
+{
+  can_bus_.close_bus();
+  RCLCPP_INFO(rclcpp::get_logger("GimArmSystemHardware"), "CAN đã đóng (shutdown).");
+  return hardware_interface::CallbackReturn::SUCCESS;
+}
+
+// ====================================================================
+//                        EXPORT INTERFACES
+// ====================================================================
 
 std::vector<hardware_interface::StateInterface> GimArmSystemHardware::export_state_interfaces()
 {
@@ -570,6 +1148,10 @@ std::vector<hardware_interface::CommandInterface> GimArmSystemHardware::export_c
   return command_interfaces;
 }
 
+// ====================================================================
+//                          READ / WRITE
+// ====================================================================
+
 hardware_interface::return_type GimArmSystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
@@ -611,91 +1193,9 @@ hardware_interface::return_type GimArmSystemHardware::read(
 hardware_interface::return_type GimArmSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  const size_t n = info_.joints.size();
-
-  // ================= NHÁNH MÔ-MEN (LQI) =================
-  if (torque_mode_active_) {
-    const bool all_valid = std::none_of(
-      hw_commands_effort_.begin(), hw_commands_effort_.end(),
-      [](double c) {return std::isnan(c);});
-
-    // Phát hiện lệnh ĐỨNG YÊN. forward_command_controller ghi lại giá trị cuối
-    // cùng mãi mãi nếu lqi_node chết, nên plugin không có cách nào khác để biết
-    // nguồn phát còn sống. So bit-identical: mô-men từ một vòng LQI đang chạy
-    // thực tế không lặp lại y hệt hàng chục chu kỳ liền.
-    bool changed = false;
-    if (all_valid) {
-      for (size_t i = 0; i < n; ++i) {
-        if (!(hw_commands_effort_[i] == last_effort_seen_[i])) {
-          changed = true;
-        }
-        last_effort_seen_[i] = hw_commands_effort_[i];
-      }
-      effort_stale_cycles_ = changed ? 0 : effort_stale_cycles_ + 1;
-    } else {
-      effort_stale_cycles_ = 0;
-    }
-    const bool stale = effort_stale_cycles_ > effort_stale_limit_;
-
-    std::vector<double> tau(n, 0.0);
-    if (all_valid && !stale) {
-      tau = hw_commands_effort_;
-    } else {
-      // Dự phòng: chỉ bù trọng lực -> tay "không trọng lượng", không bị kéo về
-      // đâu cả. KHÔNG phải lưới an toàn thật (bị đẩy là trôi), nhưng hơn hẳn
-      // phát 0 Nm (rơi) hoặc giữ nguyên lệnh cũ (chạy mù). Tính từ VỊ TRÍ ĐO
-      // được, không phải vị trí lệnh -- ở đây không có vị trí lệnh nào cả.
-      if (!compute_gravity_torque(hw_states_position_, tau)) {
-        tau.assign(n, 0.0);
-      }
-      // Tách 2 nhánh thay vì dùng toán tử ba ngôi cho chuỗi định dạng: macro
-      // này có thuộc tính format của printf, nên chuỗi phải là string literal
-      // thật, không phải biểu thức chọn giữa 2 literal.
-      if (stale) {
-        RCLCPP_ERROR_THROTTLE(
-          rclcpp::get_logger("GimArmSystemHardware"), throttle_clock_, 1000,
-          "Lenh mo-men khong doi %d chu ky -- coi nhu nguon phat da chet. "
-          "Tut ve bu trong luc.", effort_stale_cycles_);
-      } else {
-        RCLCPP_ERROR_THROTTLE(
-          rclcpp::get_logger("GimArmSystemHardware"), throttle_clock_, 1000,
-          "Chua co lenh mo-men hop le (NaN). Tut ve bu trong luc.");
-      }
-    }
-
-    for (size_t i = 0; i < n; ++i) {
-      send_torque_command(i, tau[i]);
-    }
-    return hardware_interface::return_type::OK;
-  }
-
-  // ================= NHÁNH VỊ TRÍ (giữ NGUYÊN như cũ) =================
-  // Bù trọng lực tính MỘT LẦN cho cả tay: G(q) là hàm của TOÀN BỘ cấu hình,
-  // không tách rời từng khớp được (mô-men giữ ở vai phụ thuộc cả góc khuỷu).
-  // Chỉ tính khi CẢ 3 lệnh đều hợp lệ -- thiếu 1 khớp là q sai, mà q sai thì
-  // G(q) sai ở cả 3 khớp chứ không riêng khớp thiếu.
-  std::vector<double> tau_gravity(n, 0.0);
-  if (gravity_feedforward_) {
-    const bool all_valid = std::none_of(
-      hw_commands_.begin(), hw_commands_.end(),
-      [](double c) {return std::isnan(c);});
-    if (all_valid) {
-      compute_gravity_torque(hw_commands_, tau_gravity);
-    }
-  }
-
-  for (size_t i = 0; i < n; ++i) {
-    if (std::isnan(hw_commands_[i])) {
-      continue;  // chưa có lệnh hợp lệ, đừng gửi rác xuống CAN
-    }
-    // Controller có thể chỉ claim "position" -> hw_commands_velocity_ ở nguyên
-    // NaN. Coi NaN là 0 chứ không bỏ qua cả frame: vị trí vẫn phải được gửi.
-    const double vel_cmd =
-      (velocity_feedforward_ && !std::isnan(hw_commands_velocity_[i]))
-      ? hw_commands_velocity_[i] : 0.0;
-    send_position_command(i, hw_commands_[i], vel_cmd, tau_gravity[i]);
-  }
-
+  // Toàn bộ nội dung của write() là: tra bảng, gọi hàm của chế độ đang chạy.
+  // Thêm chế độ mới KHÔNG phải sửa hàm này.
+  (this->*mode_spec(active_mode_).write_cycle)();
   return hardware_interface::return_type::OK;
 }
 

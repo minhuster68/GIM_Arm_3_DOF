@@ -212,7 +212,7 @@
          Vẫn giữ nguyên control_mode=3 (vị trí): driver giữ vòng vị trí của nó,
          nên PC chết thì tay vẫn đứng, không rơi. -->
     <param name="velocity_feedforward">false</param>
-    <param name="gravity_feedforward">false</param>
+    <param name="gravity_feedforward">true</param>
 
     <!-- ===== Chế độ MÔ-MEN (đường LQI) =====
          Chỉ bật khi controller claim interface 'effort'. Đường PID không đụng
@@ -225,6 +225,29 @@
          nào thì plugin coi nguồn phát đã chết và tụt về bù trọng lực. -->
     <param name="torque_sign">1</param>
     <param name="effort_stale_cycles">50</param>
+
+    <!-- ===== BẢNG CHẾ ĐỘ =====
+         Plugin viết sẵn 4 chế độ; chọn chế độ nào là do BỘ command_interface mà
+         controller đang claim, KHÔNG phải do sửa C++:
+           VI TRI  <- claim 'position' [+ 'velocity' làm Vel_FF]  (JTC — đang dùng)
+           VAN TOC <- claim CHỈ 'velocity'                        (0x00D)
+           MO-MEN  <- claim 'effort'                              (0x00E — LQI)
+           MIT     <- claim 'position' + 'effort' cùng lúc        (0x008 impedance)
+         Đổi chế độ = switch_controllers, không cần build lại plugin.
+         Plugin in đúng bảng này ra log lúc khởi động, kèm trạng thái từng dòng.
+
+         VAN TOC và MIT CHƯA ĐƯỢC KIỂM CHỨNG TRÊN TAY THẬT. Đọc kỹ trước khi bật:
+         - VAN TOC: driver KHÔNG giữ vị trí. Nguồn phát chết -> watchdog
+           (effort_stale_cycles) tụt lệnh về 0 rad/s sau 0.5 s. Trần vận tốc khai
+           riêng từng khớp: <param name="max_velocity_joint_rad_s">, mặc định 1.0.
+           Layout trường Torque_FF của frame 0x00D chưa đo lại bằng candump —
+           kiểm tra trước khi dùng kèm gravity_feedforward.
+         - MIT: mặc định TẮT. Bỏ chú thích dòng dưới để mở. Cần khai thêm
+           <param name="mit_kp"> / <param name="mit_kd"> trong TỪNG <joint>
+           (đơn vị phía TRỤC RA DRIVER: Nm/rad và Nm*s/rad); để 0 thì MIT thoái
+           hoá thành mô-men thuần và driver không giữ tay nữa.
+           Khi TẮT, claim đồng thời position+effort vẫn bị TỪ CHỐI y như trước. -->
+    <!-- <param name="enable_mit_mode">true</param> -->
   </hardware>
   <joint name="base_joint">
     <command_interface name="position"/>

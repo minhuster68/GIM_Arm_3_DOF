@@ -79,6 +79,25 @@ lqi_effort_controller:
     # (CHIA gear_ratio × direction) trước khi đóng gói frame 0x00E.
     interface_name: effort
 
+# ────────────────────── ĐƯỜNG VẬN TỐC (chưa dùng) ──────────────────────
+# Plugin có sẵn chế độ VAN TOC (Set_Input_Vel 0x00D). Kích hoạt nó KHÔNG cần
+# build lại C++ — chỉ cần một controller claim DUY NHẤT interface 'velocity'
+# (có 'position' kèm theo là plugin hiểu thành chế độ vị trí + Vel_FF).
+# Bỏ chú thích khối dưới, thêm `velocity_controller` vào danh sách của
+# controller_manager ở đầu file, rồi:
+#   ros2 control switch_controllers \
+#       --deactivate gim_arm_group_controller --activate velocity_controller
+#
+# velocity_controller:
+#   ros__parameters:
+#     joints: [base_joint, shoulder_joint, elbow_joint]
+#     interface_name: velocity
+#
+# CẢNH BÁO: chế độ này CHƯA CHẠY TRÊN TAY THẬT. Driver không giữ vị trí — nguồn
+# phát chết thì tay quay đều cho tới khi watchdog của plugin (effort_stale_cycles,
+# 0.5 s) tụt lệnh về 0. Đặt <param name="max_velocity_joint_rad_s"> trong từng
+# <joint> của URDF trước khi chạy; mặc định 1.0 rad/s.
+
 # Tham số mặc định cho lqi_node. controller_manager bỏ qua khối này (nó không
 # phải controller), nhưng để đây thì cả 2 đường điều khiển dùng chung 1 file
 # cấu hình. Node đọc được bằng:
@@ -142,7 +161,7 @@ lqi_node:
     # rất dễ chẩn đoán nhầm thành lỗi dấu mô-men. 0.50 cho 39-58% dư địa.
     # Trần này còn bị chặn lần nữa bởi max_torque_joint_nm per-joint trong URDF
     # ([2.5, 7.5, 3.0] Nm) -- hai lớp độc lập, cố ý.
-    tau_scale: 0.50
+    tau_scale: 0.65
     # 0.05 cho những lần chạy đầu. Nếu dấu mô-men sai, vòng kín có cực dương
     # +18.96 rad/s (w=5): ở 0.35 thì lúc abort kịp bắt, base đã có 6.0 rad/s và
     # đập vào cữ ở tốc độ đó. Ở 0.05 thì bắt sau 44 ms với 2.3 rad/s.

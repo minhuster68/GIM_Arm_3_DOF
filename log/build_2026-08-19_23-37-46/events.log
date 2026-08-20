@@ -1,0 +1,172 @@
+[0.000000] (-) TimerEvent: {}
+[0.000181] (-) JobUnselected: {'identifier': 'gim_arm_description'}
+[0.000368] (-) JobUnselected: {'identifier': 'gim_arm_moveit_config'}
+[0.000384] (-) JobUnselected: {'identifier': 'gim_control'}
+[0.000399] (gim_arm_hardware) JobQueued: {'identifier': 'gim_arm_hardware', 'dependencies': OrderedDict()}
+[0.000415] (gim_arm_hardware) JobStarted: {'identifier': 'gim_arm_hardware'}
+[0.011997] (gim_arm_hardware) JobProgress: {'identifier': 'gim_arm_hardware', 'progress': 'cmake'}
+[0.012542] (gim_arm_hardware) JobProgress: {'identifier': 'gim_arm_hardware', 'progress': 'build'}
+[0.013073] (gim_arm_hardware) Command: {'cmd': ['/home/minh/.local/bin/cmake', '--build', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware', '--', '-j16', '-l16'], 'cwd': '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('AI_AGENT', 'claude-code_2-1-235_agent'), ('USER', 'minh'), ('SNAP_COMMON', '/var/snap/code/common'), ('CLAUDE_CODE_ENTRYPOINT', 'claude-vscode'), ('LC_TIME', 'vi_VN'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/snap/code/257/usr/share/code/resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}'), ('FONTCONFIG_PATH', '/etc/fonts'), ('GIT_EDITOR', 'true'), ('GIO_MODULE_DIR', '/home/minh/snap/code/common/.cache/gio-modules'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'x11'), ('CLAUDE_AGENT_SDK_VERSION', '0.3.235'), ('SNAP_UID', '1000'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/lib:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins/lib:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation/lib:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface/lib:/home/minh/apriltag_ws/install/apriltag_ros/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('CLAUDE_CODE_MESSAGING_TOKEN', '981eebec03663c8b99362654d12baedb'), ('HOME', '/home/minh'), ('CHROME_DESKTOP', 'code.desktop'), ('SNAP_LIBRARY_PATH', '/var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32'), ('CYCLONEDDS_URI', '/home/minh/cyclonedds_config.xml'), ('OLDPWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/include/gim_arm_hardware'), ('DESKTOP_SESSION', 'ubuntu-xorg'), ('SNAP_USER_DATA', '/home/minh/snap/code/257'), ('GTK_PATH', '/snap/code/257/usr/lib/x86_64-linux-gnu/gtk-3.0'), ('VSCODE_IPC_HOOK', '/run/user/1000/vscode-72173a4a-1.13-main.sock'), ('GTK_IM_MODULE_FILE', '/home/minh/snap/code/common/.cache/immodules/immodules.cache'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/terminator.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('CLAUDE_CODE_CHILD_SESSION', '1'), ('LC_MONETARY', 'vi_VN'), ('COPILOT_OTEL_FILE_EXPORTER_PATH', '/dev/null'), ('ROS_IP', '192.168.1.4'), ('MANAGERPID', '2330'), ('SYSTEMD_EXEC_PID', '2605'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('SNAP_REVISION', '257'), ('COLORTERM', 'truecolor'), ('TERMINATOR_DBUS_NAME', 'net.tenshu.Terminator21a9d5db22c73a993ff0b42f64b396873'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '12913'), ('VSCODE_CRASH_REPORTER_PROCESS_TYPE', 'extensionHost'), ('VSCODE_L10N_BUNDLE_LOCATION', ''), ('COLCON_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install:/home/minh/rehab_robot_ver2_modified/install:/home/minh/apriltag_ws/install:/home/minh/moveit_ws/install'), ('APPLICATION_INSIGHTS_NO_STATSBEAT', 'true'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'minh'), ('SNAP_CONTEXT', '7pPXauLYShjeBLdx7Xh7WbhPG2Zl4GP15p8gyLG7CosqCi5vcOM4'), ('JOURNAL_STREAM', '8:11799'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_CONFIG_DIRS_VSCODE_SNAP_ORIG', '/etc/xdg/xdg-ubuntu-xorg:/etc/xdg'), ('XDG_SESSION_CLASS', 'user'), ('SNAP_VERSION', 'a5b50095'), ('XDG_DATA_DIRS_VSCODE_SNAP_ORIG', '/usr/share/ubuntu-xorg:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('USERNAME', 'minh'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('SNAP_INSTANCE_NAME', 'code'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '1'), ('WINDOWPATH', '2'), ('MCP_CONNECTION_NONBLOCKING', 'true'), ('PATH', '/home/minh/.local/bin:/opt/ros/humble/bin:/home/minh/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/minh-LOQ-15APH8:@/tmp/.ICE-unix/2577,unix/minh-LOQ-15APH8:/tmp/.ICE-unix/2577'), ('GTK_EXE_PREFIX', '/snap/code/257/usr'), ('INVOCATION_ID', '39d99ef2b6c046c39dee48d1fc496c45'), ('COREPACK_ENABLE_AUTO_PIN', '0'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'vi_VN'), ('SNAP_DATA', '/var/snap/code/257'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('CLAUDE_EFFORT', 'high'), ('DISPLAY', ':0'), ('LOCPATH', '/snap/code/257/usr/lib/locale'), ('TERMINATOR_DBUS_PATH', '/net/tenshu/Terminator2'), ('CLAUDE_PID', '16231'), ('NoDefaultCurrentDirectoryInExePath', '1'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('IBUS_DISABLE_SNOOPER', '1'), ('LC_TELEPHONE', 'vi_VN'), ('RMW_IMPLEMENTATION', 'rmw_cyclonedds_cpp'), ('XDG_DATA_HOME', '/home/minh/snap/code/257/.local/share'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu-xorg'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SNAP_USER_COMMON', '/home/minh/snap/code/common'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('GSETTINGS_SCHEMA_DIR', '/home/minh/snap/code/257/.local/share/glib-2.0/schemas'), ('ROS_DOMAIN_ID', '0'), ('SNAP_ARCH', 'amd64'), ('AMENT_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros:/opt/ros/humble'), ('SNAP_COOKIE', '7pPXauLYShjeBLdx7Xh7WbhPG2Zl4GP15p8gyLG7CosqCi5vcOM4'), ('SHELL', '/bin/bash'), ('LC_NAME', 'vi_VN'), ('TERMINATOR_UUID', 'urn:uuid:60db4fa0-001d-4829-ad83-c5c54da3207b'), ('GDK_PIXBUF_MODULEDIR', '/snap/code/257/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders'), ('MXC_BIN_DIR', '/snap/code/257/usr/share/code/resources/app/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin'), ('QT_ACCESSIBILITY', '1'), ('ELECTRON_RUN_AS_NODE', '1'), ('GDMSESSION', 'ubuntu-xorg'), ('CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING', 'true'), ('CLAUDE_CODE_SESSION_ID', '3e713ccd-0dfc-4703-8048-1919a6a8a70b'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('SNAP_NAME', 'code'), ('FONTCONFIG_FILE', '/etc/fonts/fonts.conf'), ('CLAUDECODE', '1'), ('LC_MEASUREMENT', 'vi_VN'), ('GDK_PIXBUF_MODULE_FILE', '/home/minh/snap/code/common/.cache/gdk-pixbuf-loaders.cache'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('LC_IDENTIFICATION', 'vi_VN'), ('SNAP_LAUNCHER_ARCH_TRIPLET', 'x86_64-linux-gnu'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware'), ('VSCODE_CLI', '1'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu-xorg:/etc/xdg'), ('SNAP_REAL_HOME', '/home/minh'), ('VSCODE_CODE_CACHE_PATH', '/home/minh/.config/Code/CachedData/a5b500951314efd502d07465bd138dfbd714a960'), ('XDG_DATA_DIRS', '/home/minh/snap/code/257/.local/share:/home/minh/snap/code/257:/snap/code/257/usr/share:/usr/share/ubuntu-xorg:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('CLAUDE_CODE_EXECPATH', '/home/minh/.vscode/extensions/anthropic.claude-code-2.1.235-linux-x64/resources/native-binary/claude'), ('SNAP_EUID', '1000'), ('PYTHONPATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins/local/lib/python3.10/dist-packages:/home/minh/rehab_robot_ver2_modified/install/rehab_gui/lib/python3.10/site-packages:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin/lib/python3.10/site-packages:/home/minh/apriltag_ws/install/apriltag_ros/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('SNAP', '/snap/code/257'), ('LC_NUMERIC', 'vi_VN'), ('CLAUDE_CODE_ENABLE_TASKS', '0'), ('LC_PAPER', 'vi_VN'), ('COLCON', '1'), ('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'SHELL_SPAWN_BACKEND'), ('VTE_VERSION', '6800'), ('ELECTRON_NO_ATTACH_CONSOLE', '1'), ('CLAUDE_CODE_MESSAGING_SOCKET', '/run/user/1000/cc-socks/16231.sock'), ('CMAKE_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble'), ('VSCODE_PID', '13047')]), 'shell': False}
+[0.099820] (-) TimerEvent: {}
+[0.141354] (gim_arm_hardware) StdoutLine: {'line': b'[ 50%] Building CXX object CMakeFiles/gim_arm_system_hardware.dir/src/gim_arm_system.cpp.o\n'}
+[0.199906] (-) TimerEvent: {}
+[0.300103] (-) TimerEvent: {}
+[0.400303] (-) TimerEvent: {}
+[0.500500] (-) TimerEvent: {}
+[0.600803] (-) TimerEvent: {}
+[0.701060] (-) TimerEvent: {}
+[0.801267] (-) TimerEvent: {}
+[0.901464] (-) TimerEvent: {}
+[1.001651] (-) TimerEvent: {}
+[1.101855] (-) TimerEvent: {}
+[1.202080] (-) TimerEvent: {}
+[1.302316] (-) TimerEvent: {}
+[1.402503] (-) TimerEvent: {}
+[1.502768] (-) TimerEvent: {}
+[1.603018] (-) TimerEvent: {}
+[1.703250] (-) TimerEvent: {}
+[1.803480] (-) TimerEvent: {}
+[1.903656] (-) TimerEvent: {}
+[2.003825] (-) TimerEvent: {}
+[2.104007] (-) TimerEvent: {}
+[2.204199] (-) TimerEvent: {}
+[2.304381] (-) TimerEvent: {}
+[2.404545] (-) TimerEvent: {}
+[2.504713] (-) TimerEvent: {}
+[2.604875] (-) TimerEvent: {}
+[2.705048] (-) TimerEvent: {}
+[2.805251] (-) TimerEvent: {}
+[2.905488] (-) TimerEvent: {}
+[3.005786] (-) TimerEvent: {}
+[3.105965] (-) TimerEvent: {}
+[3.206158] (-) TimerEvent: {}
+[3.306336] (-) TimerEvent: {}
+[3.406514] (-) TimerEvent: {}
+[3.506704] (-) TimerEvent: {}
+[3.606886] (-) TimerEvent: {}
+[3.707084] (-) TimerEvent: {}
+[3.807283] (-) TimerEvent: {}
+[3.907468] (-) TimerEvent: {}
+[4.007657] (-) TimerEvent: {}
+[4.107877] (-) TimerEvent: {}
+[4.208079] (-) TimerEvent: {}
+[4.308293] (-) TimerEvent: {}
+[4.408480] (-) TimerEvent: {}
+[4.508654] (-) TimerEvent: {}
+[4.608899] (-) TimerEvent: {}
+[4.709258] (-) TimerEvent: {}
+[4.809576] (-) TimerEvent: {}
+[4.909798] (-) TimerEvent: {}
+[5.010031] (-) TimerEvent: {}
+[5.110226] (-) TimerEvent: {}
+[5.210399] (-) TimerEvent: {}
+[5.310570] (-) TimerEvent: {}
+[5.410760] (-) TimerEvent: {}
+[5.510954] (-) TimerEvent: {}
+[5.611154] (-) TimerEvent: {}
+[5.711355] (-) TimerEvent: {}
+[5.811596] (-) TimerEvent: {}
+[5.911869] (-) TimerEvent: {}
+[6.012059] (-) TimerEvent: {}
+[6.112250] (-) TimerEvent: {}
+[6.212445] (-) TimerEvent: {}
+[6.312680] (-) TimerEvent: {}
+[6.412960] (-) TimerEvent: {}
+[6.513185] (-) TimerEvent: {}
+[6.613417] (-) TimerEvent: {}
+[6.713675] (-) TimerEvent: {}
+[6.813970] (-) TimerEvent: {}
+[6.914217] (-) TimerEvent: {}
+[7.014404] (-) TimerEvent: {}
+[7.114647] (-) TimerEvent: {}
+[7.214888] (-) TimerEvent: {}
+[7.315088] (-) TimerEvent: {}
+[7.415271] (-) TimerEvent: {}
+[7.515457] (-) TimerEvent: {}
+[7.615653] (-) TimerEvent: {}
+[7.715847] (-) TimerEvent: {}
+[7.816067] (-) TimerEvent: {}
+[7.916300] (-) TimerEvent: {}
+[8.016502] (-) TimerEvent: {}
+[8.116746] (-) TimerEvent: {}
+[8.216956] (-) TimerEvent: {}
+[8.317171] (-) TimerEvent: {}
+[8.417376] (-) TimerEvent: {}
+[8.517575] (-) TimerEvent: {}
+[8.617764] (-) TimerEvent: {}
+[8.717981] (-) TimerEvent: {}
+[8.818203] (-) TimerEvent: {}
+[8.918408] (-) TimerEvent: {}
+[9.018654] (-) TimerEvent: {}
+[9.118858] (-) TimerEvent: {}
+[9.219091] (-) TimerEvent: {}
+[9.319285] (-) TimerEvent: {}
+[9.419479] (-) TimerEvent: {}
+[9.519673] (-) TimerEvent: {}
+[9.619873] (-) TimerEvent: {}
+[9.720064] (-) TimerEvent: {}
+[9.820248] (-) TimerEvent: {}
+[9.920426] (-) TimerEvent: {}
+[10.020617] (-) TimerEvent: {}
+[10.120833] (-) TimerEvent: {}
+[10.220991] (-) TimerEvent: {}
+[10.321167] (-) TimerEvent: {}
+[10.421358] (-) TimerEvent: {}
+[10.521545] (-) TimerEvent: {}
+[10.621755] (-) TimerEvent: {}
+[10.721948] (-) TimerEvent: {}
+[10.822146] (-) TimerEvent: {}
+[10.922345] (-) TimerEvent: {}
+[11.022536] (-) TimerEvent: {}
+[11.122735] (-) TimerEvent: {}
+[11.222941] (-) TimerEvent: {}
+[11.323126] (-) TimerEvent: {}
+[11.423339] (-) TimerEvent: {}
+[11.523557] (-) TimerEvent: {}
+[11.623743] (-) TimerEvent: {}
+[11.723914] (-) TimerEvent: {}
+[11.824098] (-) TimerEvent: {}
+[11.924283] (-) TimerEvent: {}
+[12.024464] (-) TimerEvent: {}
+[12.072451] (gim_arm_hardware) StdoutLine: {'line': b'[100%] Linking CXX shared library libgim_arm_system_hardware.so\n'}
+[12.124558] (-) TimerEvent: {}
+[12.224740] (-) TimerEvent: {}
+[12.324936] (-) TimerEvent: {}
+[12.360813] (gim_arm_hardware) StdoutLine: {'line': b'[100%] Built target gim_arm_system_hardware\n'}
+[12.365637] (gim_arm_hardware) CommandEnded: {'returncode': 0}
+[12.366193] (gim_arm_hardware) JobProgress: {'identifier': 'gim_arm_hardware', 'progress': 'install'}
+[12.425028] (-) TimerEvent: {}
+[12.444932] (gim_arm_hardware) Command: {'cmd': ['/home/minh/.local/bin/cmake', '--install', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware'], 'cwd': '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware', 'env': OrderedDict([('GJS_DEBUG_TOPICS', 'JS ERROR;JS LOG'), ('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('AI_AGENT', 'claude-code_2-1-235_agent'), ('USER', 'minh'), ('SNAP_COMMON', '/var/snap/code/common'), ('CLAUDE_CODE_ENTRYPOINT', 'claude-vscode'), ('LC_TIME', 'vi_VN'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en-us","osLocale":"en-us","resolvedLanguage":"en","defaultMessagesFile":"/snap/code/257/usr/share/code/resources/app/out/nls.messages.json","locale":"en-us","availableLanguages":{}}'), ('FONTCONFIG_PATH', '/etc/fonts'), ('GIT_EDITOR', 'true'), ('GIO_MODULE_DIR', '/home/minh/snap/code/common/.cache/gio-modules'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'x11'), ('CLAUDE_AGENT_SDK_VERSION', '0.3.235'), ('SNAP_UID', '1000'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/lib:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins/lib:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation/lib:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface/lib:/home/minh/apriltag_ws/install/apriltag_ros/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('CLAUDE_CODE_MESSAGING_TOKEN', '981eebec03663c8b99362654d12baedb'), ('HOME', '/home/minh'), ('CHROME_DESKTOP', 'code.desktop'), ('SNAP_LIBRARY_PATH', '/var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32'), ('CYCLONEDDS_URI', '/home/minh/cyclonedds_config.xml'), ('OLDPWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_hardware/include/gim_arm_hardware'), ('DESKTOP_SESSION', 'ubuntu-xorg'), ('SNAP_USER_DATA', '/home/minh/snap/code/257'), ('GTK_PATH', '/snap/code/257/usr/lib/x86_64-linux-gnu/gtk-3.0'), ('VSCODE_IPC_HOOK', '/run/user/1000/vscode-72173a4a-1.13-main.sock'), ('GTK_IM_MODULE_FILE', '/home/minh/snap/code/common/.cache/immodules/immodules.cache'), ('GIO_LAUNCHED_DESKTOP_FILE', '/usr/share/applications/terminator.desktop'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('CLAUDE_CODE_CHILD_SESSION', '1'), ('LC_MONETARY', 'vi_VN'), ('COPILOT_OTEL_FILE_EXPORTER_PATH', '/dev/null'), ('ROS_IP', '192.168.1.4'), ('MANAGERPID', '2330'), ('SYSTEMD_EXEC_PID', '2605'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('SNAP_REVISION', '257'), ('COLORTERM', 'truecolor'), ('TERMINATOR_DBUS_NAME', 'net.tenshu.Terminator21a9d5db22c73a993ff0b42f64b396873'), ('GIO_LAUNCHED_DESKTOP_FILE_PID', '12913'), ('VSCODE_CRASH_REPORTER_PROCESS_TYPE', 'extensionHost'), ('VSCODE_L10N_BUNDLE_LOCATION', ''), ('COLCON_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install:/home/minh/rehab_robot_ver2_modified/install:/home/minh/apriltag_ws/install:/home/minh/moveit_ws/install'), ('APPLICATION_INSIGHTS_NO_STATSBEAT', 'true'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'minh'), ('SNAP_CONTEXT', '7pPXauLYShjeBLdx7Xh7WbhPG2Zl4GP15p8gyLG7CosqCi5vcOM4'), ('JOURNAL_STREAM', '8:11799'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_CONFIG_DIRS_VSCODE_SNAP_ORIG', '/etc/xdg/xdg-ubuntu-xorg:/etc/xdg'), ('XDG_SESSION_CLASS', 'user'), ('SNAP_VERSION', 'a5b50095'), ('XDG_DATA_DIRS_VSCODE_SNAP_ORIG', '/usr/share/ubuntu-xorg:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('USERNAME', 'minh'), ('TERM', 'xterm-256color'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('SNAP_INSTANCE_NAME', 'code'), ('FC_FONTATIONS', '1'), ('ROS_LOCALHOST_ONLY', '1'), ('WINDOWPATH', '2'), ('MCP_CONNECTION_NONBLOCKING', 'true'), ('PATH', '/home/minh/.local/bin:/opt/ros/humble/bin:/home/minh/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/minh-LOQ-15APH8:@/tmp/.ICE-unix/2577,unix/minh-LOQ-15APH8:/tmp/.ICE-unix/2577'), ('GTK_EXE_PREFIX', '/snap/code/257/usr'), ('INVOCATION_ID', '39d99ef2b6c046c39dee48d1fc496c45'), ('COREPACK_ENABLE_AUTO_PIN', '0'), ('XDG_MENU_PREFIX', 'gnome-'), ('LC_ADDRESS', 'vi_VN'), ('SNAP_DATA', '/var/snap/code/257'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('GDK_BACKEND', 'x11'), ('CLAUDE_EFFORT', 'high'), ('DISPLAY', ':0'), ('LOCPATH', '/snap/code/257/usr/lib/locale'), ('TERMINATOR_DBUS_PATH', '/net/tenshu/Terminator2'), ('CLAUDE_PID', '16231'), ('NoDefaultCurrentDirectoryInExePath', '1'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('IBUS_DISABLE_SNOOPER', '1'), ('LC_TELEPHONE', 'vi_VN'), ('RMW_IMPLEMENTATION', 'rmw_cyclonedds_cpp'), ('XDG_DATA_HOME', '/home/minh/snap/code/257/.local/share'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu-xorg'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SNAP_USER_COMMON', '/home/minh/snap/code/common'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('GSETTINGS_SCHEMA_DIR', '/home/minh/snap/code/257/.local/share/glib-2.0/schemas'), ('ROS_DOMAIN_ID', '0'), ('SNAP_ARCH', 'amd64'), ('AMENT_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros:/opt/ros/humble'), ('SNAP_COOKIE', '7pPXauLYShjeBLdx7Xh7WbhPG2Zl4GP15p8gyLG7CosqCi5vcOM4'), ('SHELL', '/bin/bash'), ('LC_NAME', 'vi_VN'), ('TERMINATOR_UUID', 'urn:uuid:60db4fa0-001d-4829-ad83-c5c54da3207b'), ('GDK_PIXBUF_MODULEDIR', '/snap/code/257/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders'), ('MXC_BIN_DIR', '/snap/code/257/usr/share/code/resources/app/node_modules.asar.unpacked/@microsoft/mxc-sdk/bin'), ('QT_ACCESSIBILITY', '1'), ('ELECTRON_RUN_AS_NODE', '1'), ('GDMSESSION', 'ubuntu-xorg'), ('CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING', 'true'), ('CLAUDE_CODE_SESSION_ID', '3e713ccd-0dfc-4703-8048-1919a6a8a70b'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('SNAP_NAME', 'code'), ('FONTCONFIG_FILE', '/etc/fonts/fonts.conf'), ('CLAUDECODE', '1'), ('LC_MEASUREMENT', 'vi_VN'), ('GDK_PIXBUF_MODULE_FILE', '/home/minh/snap/code/common/.cache/gdk-pixbuf-loaders.cache'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('GJS_DEBUG_OUTPUT', 'stderr'), ('LC_IDENTIFICATION', 'vi_VN'), ('SNAP_LAUNCHER_ARCH_TRIPLET', 'x86_64-linux-gnu'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware'), ('VSCODE_CLI', '1'), ('LC_ALL', 'en_US.UTF-8'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu-xorg:/etc/xdg'), ('SNAP_REAL_HOME', '/home/minh'), ('VSCODE_CODE_CACHE_PATH', '/home/minh/.config/Code/CachedData/a5b500951314efd502d07465bd138dfbd714a960'), ('XDG_DATA_DIRS', '/home/minh/snap/code/257/.local/share:/home/minh/snap/code/257:/snap/code/257/usr/share:/usr/share/ubuntu-xorg:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('CLAUDE_CODE_EXECPATH', '/home/minh/.vscode/extensions/anthropic.claude-code-2.1.235-linux-x64/resources/native-binary/claude'), ('SNAP_EUID', '1000'), ('PYTHONPATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins/local/lib/python3.10/dist-packages:/home/minh/rehab_robot_ver2_modified/install/rehab_gui/lib/python3.10/site-packages:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin/lib/python3.10/site-packages:/home/minh/apriltag_ws/install/apriltag_ros/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('SNAP', '/snap/code/257'), ('LC_NUMERIC', 'vi_VN'), ('CLAUDE_CODE_ENABLE_TASKS', '0'), ('LC_PAPER', 'vi_VN'), ('COLCON', '1'), ('COPILOT_CLI_ENABLED_FEATURE_FLAGS', 'SHELL_SPAWN_BACKEND'), ('VTE_VERSION', '6800'), ('ELECTRON_NO_ATTACH_CONSOLE', '1'), ('CLAUDE_CODE_MESSAGING_SOCKET', '/run/user/1000/cc-socks/16231.sock'), ('CMAKE_PREFIX_PATH', '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble'), ('VSCODE_PID', '13047')]), 'shell': False}
+[12.507429] (gim_arm_hardware) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[12.507756] (gim_arm_hardware) StdoutLine: {'line': b'-- Execute custom install script\n'}
+[12.507914] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware//gim_arm_hardware.xml\n'}
+[12.508044] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/lib/libgim_arm_system_hardware.so\n'}
+[12.508278] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/include/gim_arm_hardware/gim6010_can_protocol.hpp\n'}
+[12.508384] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/include/gim_arm_hardware/gim_arm_system.hpp\n'}
+[12.508509] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/include/gim_arm_hardware/socketcan_bus.hpp\n'}
+[12.508612] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/gim_arm_hardware.xml\n'}
+[12.508725] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/library_path.sh\n'}
+[12.508811] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/library_path.dsv\n'}
+[12.508856] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/package_run_dependencies/gim_arm_hardware\n'}
+[12.508920] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/parent_prefix_path/gim_arm_hardware\n'}
+[12.508981] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/ament_prefix_path.sh\n'}
+[12.509045] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/ament_prefix_path.dsv\n'}
+[12.509120] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/path.sh\n'}
+[12.509204] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/environment/path.dsv\n'}
+[12.509283] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.bash\n'}
+[12.509367] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.sh\n'}
+[12.509462] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.zsh\n'}
+[12.509536] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/local_setup.dsv\n'}
+[12.509593] (gim_arm_hardware) StdoutLine: {'line': b'-- Symlinking: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/package.dsv\n'}
+[12.512790] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/packages/gim_arm_hardware\n'}
+[12.513025] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/ament_index/resource_index/hardware_interface__pluginlib__plugin/gim_arm_hardware\n'}
+[12.513135] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/ament_cmake_export_include_directories-extras.cmake\n'}
+[12.513252] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/ament_cmake_export_libraries-extras.cmake\n'}
+[12.513348] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/ament_cmake_export_dependencies-extras.cmake\n'}
+[12.513411] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/gim_arm_hardwareConfig.cmake\n'}
+[12.513482] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/cmake/gim_arm_hardwareConfig-version.cmake\n'}
+[12.513542] (gim_arm_hardware) StdoutLine: {'line': b'-- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware/share/gim_arm_hardware/package.xml\n'}
+[12.514227] (gim_arm_hardware) CommandEnded: {'returncode': 0}
+[12.525452] (-) TimerEvent: {}
+[12.527159] (gim_arm_hardware) JobEnded: {'identifier': 'gim_arm_hardware', 'rc': 0}
+[12.527514] (-) EventReactorShutdown: {}

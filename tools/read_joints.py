@@ -33,6 +33,8 @@ JOINTS = [
 
 CMD_HEARTBEAT = 0x001
 CMD_GET_ENCODER = 0x009
+CMD_GET_TORQUES = 0x01C
+CAN_RTR_FLAG = 0x40000000
 
 AXIS_STATES = {0: "UNDEFINED", 1: "IDLE", 2: "STARTUP_SEQ", 3: "FULL_CALIB",
                4: "MOTOR_CALIB", 6: "ENCODER_INDEX", 7: "ENCODER_OFFSET",
@@ -52,23 +54,36 @@ def open_can(ifname):
 
 
 def read_state(sock, duration=0.5):
-    """Rút frame trong `duration` giây, trả về góc khớp + trạng thái trục."""
-    pos = {}
-    vel = {}
-    state = {}
-    err = {}
+    """Rút frame trong `duration` giây, trả về góc khớp + mô-men + trạng thái."""
+    pos, vel, state, err = {}, {}, {}, {}
+    trq_set, trq_meas = {}, {}
+
+    # Hỏi Get_Torques bằng frame RTR. Driver không phát tuần hoàn lệnh này.
+    for _, node, _, _, _ in JOINTS:
+        cid = ((node << 5) | CMD_GET_TORQUES) | CAN_RTR_FLAG
+        try:
+            sock.send(struct.pack("<IBBBB", cid, 8, 0, 0, 0) + b"\x00" * 8)
+        except OSError:
+            pass
+
     t_end = time.time() + duration
     while time.time() < t_end:
         try:
             frame = sock.recv(16)
         except socket.timeout:
             break
-        can_id, dlc = struct.unpack_from("<IB", frame, 0)
-        can_id &= 0x7FF
+        can_id_full, dlc = struct.unpack_from("<IB", frame, 0)
+        # SocketCAN bật loopback mặc định -> chính frame RTR mình vừa gửi cũng
+        # quay lại, với 8 byte 0. Không lọc là đọc nhầm thành mô-men bằng 0.
+        if can_id_full & CAN_RTR_FLAG:
+            continue
+        can_id = can_id_full & 0x7FF
         data = frame[8:8 + dlc]
         node, cmd = can_id >> 5, can_id & 0x1F
         if cmd == CMD_GET_ENCODER and dlc >= 8:
             pos[node], vel[node] = struct.unpack_from("<ff", data, 0)
+        elif cmd == CMD_GET_TORQUES and dlc >= 8:
+            trq_set[node], trq_meas[node] = struct.unpack_from("<ff", data, 0)
         elif cmd == CMD_HEARTBEAT and dlc >= 5:
             err[node] = struct.unpack_from("<I", data, 0)[0]
             state[node] = data[4]
@@ -82,19 +97,31 @@ def read_state(sock, duration=0.5):
             q = qd = float("nan")
         out.append(dict(name=name, node=node, q=q, qd=qd,
                         pos_rev=pos.get(node, float("nan")),
+                        t_set=trq_set.get(node, float("nan")),
+                        t_meas=trq_meas.get(node, float("nan")),
+                        gear=gear,
                         state=state.get(node), err=err.get(node)))
     return out
 
 
 def fmt(rows):
-    lines = [f"{'khớp':<16}{'node':>5}{'q (rad)':>11}{'q (độ)':>9}"
-             f"{'q̇ (rad/s)':>12}{'rotor (rev)':>13}{'trạng thái':>16}{'lỗi':>10}"]
+    lines = [f"{'khớp':<16}{'q (rad)':>10}{'q (độ)':>9}{'q̇':>9}"
+             f"{'τ đặt':>10}{'τ đo':>10}{'% ĐM':>7}{'τ khớp':>10}"
+             f"{'trạng thái':>14}{'lỗi':>9}"]
     for r in rows:
         st = AXIS_STATES.get(r["state"], "—" if r["state"] is None else str(r["state"]))
         e = "—" if r["err"] is None else (f"0x{r['err']:X}" if r["err"] else "0")
-        lines.append(f"{r['name']:<16}{r['node']:>5}{r['q']:>11.4f}"
-                     f"{math.degrees(r['q']):>9.2f}{r['qd']:>12.4f}"
-                     f"{r['pos_rev']:>13.4f}{st:>16}{e:>10}")
+        tm = r["t_meas"]
+        pct = abs(tm) / 0.625 * 100 if tm == tm else float("nan")
+        lines.append(f"{r['name']:<16}{r['q']:>10.4f}{math.degrees(r['q']):>9.2f}"
+                     f"{r['qd']:>9.4f}{r['t_set']:>10.4f}{tm:>10.4f}{pct:>6.0f}%"
+                     f"{tm * r['gear']:>10.3f}{st:>14}{e:>9}")
+    lines.append("")
+    lines.append("  τ đặt / τ đo: Nm PHÍA ROTOR, đọc thẳng từ Get_Torques (0x01C).")
+    lines.append("  % ĐM: so với 0.625 Nm định mức phía rotor.")
+    lines.append("  τ khớp: τ đo × gear_ratio (chưa nhân direction).")
+    lines.append("  Ở trạng thái IDLE, động cơ KHÔNG có dòng -> τ đo phải ≈ 0.")
+    lines.append("  Nếu IDLE mà τ đo vẫn lớn thì trường này KHÔNG phải mô-men đo được.")
     return "\n".join(lines)
 
 

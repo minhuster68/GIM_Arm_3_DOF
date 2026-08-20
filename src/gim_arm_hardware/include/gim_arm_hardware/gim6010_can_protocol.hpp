@@ -101,6 +101,24 @@ inline void pack_set_input_pos(
   std::memcpy(&data[4], &vel_i, 2);
   std::memcpy(&data[6], &trq_i, 2);
 }
+// ---- Set_Input_Vel (cmd_id 0x00D), manual 4.1.2 ----
+// 8 byte: [0..3] Input_Vel float32 (rev/s), [4..7] Input_Torque_FF float32 (Nm).
+// CHU Y: 0x00D dung float32 cho ca 2 truong, KHAC 0x00C (int16 thang 0.001 cho
+// hai truong FF). Do la quy uoc cua ODrive ma firmware nay ke thua.
+//
+// CHUA DO LAI BANG candump tren tay that -- neu che do van toc chay sai, kiem
+// tra truong FF truoc tien: mot so ban firmware dat Input_Torque_FF o [4..7]
+// dang int16 giong 0x00C. Gui torque_ff = 0 thi khac biet nay khong anh huong.
+//
+// DON VI PHIA ROTOR (truoc hop so), giong 0x00C va 0x00E, khac 0x008.
+inline void pack_set_input_vel(
+  uint8_t data[8], double vel_rev_s, double torque_ff_rotor_nm = 0.0) {
+  const float v = static_cast<float>(vel_rev_s);
+  const float t = static_cast<float>(torque_ff_rotor_nm);
+  std::memcpy(&data[0], &v, 4);
+  std::memcpy(&data[4], &t, 4);
+}
+
 // ---- Set_Input_Torque (cmd_id 0x00E), manual 4.1.2 ----
 // 8 byte: [0..3] Input_Torque float32, [4..7] không dùng.
 // ĐƠN VỊ PHÍA ROTOR (Nm trước hộp số), giống 0x00C và khác 0x008. Bên gọi phải

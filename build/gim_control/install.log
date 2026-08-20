@@ -9,6 +9,7 @@
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/sweep_trajectory.py
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/sniff_can_ff.py
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/motor_test_all_modes.py
+/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/goto_pose.py
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/gim6010_mujoco_sim.py
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/__init__.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/origin_draw_trajectory.cpython-310.pyc
@@ -21,6 +22,7 @@
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/sweep_trajectory.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/sniff_can_ff.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/motor_test_all_modes.cpython-310.pyc
+/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/goto_pose.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control/__pycache__/gim6010_mujoco_sim.cpython-310.pyc
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/ament_index/resource_index/packages/gim_control
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/gim_control/package.xml
@@ -34,6 +36,7 @@
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control-0.0.0-py3.10.egg-info/dependency_links.txt
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control-0.0.0-py3.10.egg-info/top_level.txt
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control/check_gravity_model
+/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control/goto_pose
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control/lqi_node
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control/motor_test_all_modes
 /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control/origin_draw_trajectory
