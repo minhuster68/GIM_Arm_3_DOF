@@ -45,7 +45,7 @@ def analyze_step_response(t, pos, target, start_pos, tolerance=0.02):
     return overshoot_pct, settling_time
 
 
-def run_step_test(axis, step_size_rev=0.05, duration=2.0, dt=0.005, start_pos=None):
+def run_step_test(axis, step_size_rev=0., duration=2.0, dt=0.005, start_pos=None):
     """Gửi 1 bước nhảy step_size_rev (vòng) từ start_pos (nếu cho trước, đưa
     axis về đó trước) hoặc từ vị trí hiện tại, ghi lại pos_estimate."""
     if start_pos is not None:
@@ -131,7 +131,7 @@ if __name__ == "__main__":
             break
         elif cmd[0] == "c":
             axis.controller.config.control_mode = 3  # CONTROL_MODE_POSITION_CONTROL
-            axis.controller.config.input_mode = 3   
+            axis.controller.config.input_mode = 1  # INPUT_MODE_PASSTHROUGH  
             axis.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
             time.sleep(0.3)
             print(f"current_state = {axis.current_state} (8 = CLOSED_LOOP_CONTROL đúng)")

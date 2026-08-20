@@ -521,6 +521,15 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
     sign_default = std::stod(info_.hardware_parameters.at("torque_sign")) < 0.0 ? -1.0 : 1.0;
   }
   torque_sign_.assign(n_joints, sign_default);
+  // Mặc định phía ROTOR = chia gear TỔNG. Sai theo hướng yếu đi, an toàn hơn.
+  torque_gear_ratio_.assign(n_joints, 1.0);
+  for (size_t i = 0; i < n_joints; ++i) {
+    torque_gear_ratio_[i] = gear_ratios_[i];
+    const auto it = info_.joints[i].parameters.find("torque_gear_ratio");
+    if (it != info_.joints[i].parameters.end()) {
+      torque_gear_ratio_[i] = std::stod(it->second);
+    }
+  }
   for (size_t i = 0; i < n_joints; ++i) {
     const auto it = info_.joints[i].parameters.find("torque_sign");
     if (it != info_.joints[i].parameters.end()) {
@@ -621,9 +630,12 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
       // gear ngoài lộ ra ngay trong log thay vì lộ ra khi tay võng.
       RCLCPP_INFO(
         rclcpp::get_logger("GimArmSystemHardware"),
-        "  '%s': tau_driver = %+.0f x tau_khop / %.1f   (gear ngoai = tong %.1f / noi bo %.1f)",
-        info_.joints[i].name.c_str(), torque_sign_[i],
-        gear_ratios_[i] / kDriverInternalRatio, gear_ratios_[i], kDriverInternalRatio);
+        "  '%s': tau_driver = %+.0f x tau_khop / %.1f   "
+        "(gear tong %.1f -> %s)",
+        info_.joints[i].name.c_str(), torque_sign_[i], torque_gear_ratio_[i],
+        gear_ratios_[i],
+        (std::abs(torque_gear_ratio_[i] - gear_ratios_[i]) < 1e-6)
+        ? "PHIA ROTOR" : "phia khac -- khai torque_gear_ratio trong URDF");
     }
   }
 
@@ -725,9 +737,9 @@ void GimArmSystemHardware::send_position_command(
   // mô-men dùng, để hai chế độ không có hai giới hạn khác nhau.
   const double tff_joint = std::clamp(
     torque_ff_joint_nm, -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
-  const double torque_ff_ext = gear_ratios_[i] / kDriverInternalRatio;
+
   const double torque_ff_rotor_raw =
-    torque_sign_[i] * tff_joint / torque_ff_ext;
+    torque_sign_[i] * tff_joint / torque_gear_ratio_[i];
   const double torque_ff_rotor =
     std::clamp(torque_ff_rotor_raw, -max_torque_ff_rotor_nm_, max_torque_ff_rotor_nm_);
 
@@ -755,8 +767,7 @@ void GimArmSystemHardware::send_velocity_command(
   // mô-men dùng, để hai chế độ không có hai giới hạn khác nhau.
   const double tff_joint = std::clamp(
     torque_ff_joint_nm, -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
-  const double tff_ext = gear_ratios_[i] / kDriverInternalRatio;
-  const double tff_raw = torque_sign_[i] * tff_joint / tff_ext;
+  const double tff_raw = torque_sign_[i] * tff_joint / torque_gear_ratio_[i];
   const double tff = std::clamp(tff_raw, -max_torque_ff_rotor_nm_, max_torque_ff_rotor_nm_);
 
   uint8_t data[8];
@@ -786,8 +797,7 @@ void GimArmSystemHardware::send_torque_command(size_t i, double torque_joint_nm)
   // ra của hộp số nội bộ 8:1, và chỉ còn phải quy đổi phần hộp số NGOÀI.
   // (Datasheet tự mâu thuẫn: nó ghi thêm 0.47 Nm/A, lệch 1.42 lần. Phép thử
   //  treo tải bác bỏ con số đó.)
-  const double ext = gear_ratios_[i] / kDriverInternalRatio;
-  const double tau_drv = torque_sign_[i] * tau / ext;
+  const double tau_drv = torque_sign_[i] * tau / torque_gear_ratio_[i];
 
   uint8_t data[8];
   gim6010::pack_set_input_torque(data, tau_drv);

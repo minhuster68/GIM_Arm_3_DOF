@@ -223,7 +223,7 @@
          effort_stale_cycles: forward_command_controller ghi lại giá trị cuối
          mãi mãi nếu lqi_node chết. 50 chu kỳ @100Hz = 0.5 s không đổi một bit
          nào thì plugin coi nguồn phát đã chết và tụt về bù trọng lực. -->
-    <param name="torque_sign">1</param>
+    <param name="torque_sign">-1</param>
     <param name="effort_stale_cycles">50</param>
   </hardware>
   <joint name="base_joint">

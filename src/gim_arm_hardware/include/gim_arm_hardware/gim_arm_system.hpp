@@ -344,6 +344,23 @@ private:
   // cho cả ba và bắt buộc kiểm bằng phép thử "thả nổi G(q)" trước khi bám.
   std::vector<double> torque_sign_;
 
+  // Hệ số CHIA khi quy mô-men KHỚP -> đơn vị mô-men của driver:
+  //     tau_driver = torque_sign * tau_khop / torque_gear_ratio
+  //
+  // VÌ SAO TÁCH RIÊNG KHỎI gear_ratios_: đường ĐỌC và đường GHI có thể ở hai
+  // phía khác nhau, và ta đã đo được là chúng KHÁC nhau.
+  //   - Get_Torques (0x01C): phép thử treo 1 kg cho thấy phía TRỤC RA, tức
+  //     tau_khop = tau_driver x gear_NGOÀI [1, 8, 1].
+  //   - Set_Input_Torque (0x00E): manual (chú thích trong gim6010_can_protocol.hpp)
+  //     nói phía ROTOR, tức phải chia gear_TỔNG [8, 64, 8].
+  // Chênh nhau đúng 8 lần (hộp số nội bộ). Dùng nhầm gear ngoài cho đường ghi
+  // là phát gấp 8 lần -- tay bị đẩy ngược lên chống lại trọng lực.
+  //
+  // MẶC ĐỊNH = gear_ratios_ (phía rotor). Chọn mặc định này vì nếu sai thì nó
+  // sai theo hướng YẾU đi (tay võng xuống), không phải mạnh lên (tay bật lên).
+  // Khai <param name="torque_gear_ratio">1.0</param> trong <joint> để đổi.
+  std::vector<double> torque_gear_ratio_;
+
   // ---- Feedforward (xem ghi chú pack_set_input_pos trong gim6010_can_protocol.hpp) ----
   // MẶC ĐỊNH TẮT CẢ HAI. Cố ý: build lại plugin KHÔNG được âm thầm đổi hành vi
   // của một thiết bị đang đeo trên tay người. Muốn bật thì khai rõ trong URDF:
