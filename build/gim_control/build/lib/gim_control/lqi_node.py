@@ -216,6 +216,20 @@ class LqiNode(Node):
         p("q_vel", 1.0e3)
         p("r", 1.0)
 
+        # gravity_scale: nhân vào G(q) trước khi gửi xuống, RIÊNG TỪNG KHỚP.
+        #
+        # Đây KHÔNG phải nút chỉnh bộ điều khiển -- nó là hệ số HIỆU CHỈNH MÔ
+        # HÌNH, và cũng là một phép đo. Gọi c là hệ số quy đổi thật (kể cả dấu),
+        # mô-men tác động lên khớp là c·α·G còn trọng lực là G, nên cân bằng khi
+        #     α = 1/c
+        # Suy ra: NẾU tồn tại α > 0 làm khớp lơ lửng thì c > 0, tức DẤU ĐÚNG.
+        # Nếu quét α từ 0 tới 2 mà khớp rơi ở mọi giá trị thì c < 0, dấu sai, và
+        # không α nào cứu được. Đó là cách phân biệt "sai dấu" với "sai hệ số".
+        #
+        # α = 0 cho mốc chuẩn "rơi tự do trông như thế nào" để đối chiếu.
+        # Đọc lại MỖI CHU KỲ nên đổi được bằng `ros2 param set` mà không restart.
+        p("gravity_scale", [1.0, 1.0, 1.0])
+
         p("i_limit", 0.004)
         p("friction_ff", False)
 
@@ -258,6 +272,13 @@ class LqiNode(Node):
         self.get_logger().info(
             f"Trần mô-men đang dùng (Nm): {np.round(self.tau_lim, 3)}  "
             f"(trần URDF × tau_scale {self.tau_scale})")
+        a0 = self.gravity_scale()
+        self.get_logger().info(f"gravity_scale = {np.round(a0, 3)}")
+        if not np.allclose(a0, 1.0):
+            self.get_logger().warn(
+                "gravity_scale KHÁC 1.0 -> đang chạy với mô hình trọng lực đã "
+                "hiệu chỉnh. Ghi lại giá trị này cùng mọi số đo, nếu không kết "
+                "quả sẽ không tái lập được.")
         self.check_i_limit(float(g("i_limit").value))
 
         qw, dtw = solve_waypoints(urdf, str(g("cache_file").value), self.get_logger())
@@ -324,6 +345,17 @@ class LqiNode(Node):
         raise ValueError(
             f"tune_mode = '{mode}' không hợp lệ. Chọn một trong: "
             f"'{OMEGA_LQR}', '{WEIGHTS}', '{PLACE}'.")
+
+    def gravity_scale(self):
+        """Đọc lại mỗi chu kỳ để đổi được lúc đang chạy."""
+        a = np.asarray(self.get_parameter("gravity_scale").value, dtype=float)
+        if a.size == 1:
+            a = np.full(self.n, float(a))
+        if a.size != self.n:
+            self.get_logger().warn(
+                f"gravity_scale phải có {self.n} phần tử, đang có {a.size}. Dùng 1.0.")
+            a = np.ones(self.n)
+        return a
 
     def find_urdf(self):
         from ament_index_python.packages import get_package_share_directory
@@ -407,6 +439,12 @@ class LqiNode(Node):
             return
 
         tau = self.ctrl.compute(self.q, self.qd, qr, qdr, qddr, dt)
+        # compute() đã cộng G(q) đầy đủ ở phần feedforward. Trừ bớt phần thừa
+        # để hệ số hiệu chỉnh áp NHẤT QUÁN cho cả pha GRAVITY lẫn pha bám --
+        # nếu chỉ áp ở grav() thì lúc bật autostart mô-men sẽ nhảy bậc.
+        alpha = self.gravity_scale()
+        if not np.allclose(alpha, 1.0):
+            tau = tau - (1.0 - alpha) * self.dyn.gravity(self.q)
         self.publish(tau)
         if self.phase in (APPROACH, TRACK):
             self.rows.append([time.time(), self.phase, dt, *self.q, *self.qd,
@@ -414,9 +452,10 @@ class LqiNode(Node):
 
     # ------------------------------------------------------------------
     def grav(self):
-        """τ = G(q): tay 'không trọng lượng', không bị kéo về đâu. Không phải
+        """τ = α·G(q): tay 'không trọng lượng', không bị kéo về đâu. Không phải
         lưới an toàn thật (bị đẩy là trôi), nhưng hơn hẳn phát 0 Nm (rơi)."""
-        return np.clip(self.dyn.gravity(self.q), -self.tau_lim, self.tau_lim)
+        return np.clip(self.gravity_scale() * self.dyn.gravity(self.q),
+                       -self.tau_lim, self.tau_lim)
 
     def publish(self, tau):
         m = Float64MultiArray()

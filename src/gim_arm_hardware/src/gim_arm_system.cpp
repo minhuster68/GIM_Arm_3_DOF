@@ -99,11 +99,27 @@ GimArmSystemHardware::ControlMode GimArmSystemHardware::resolve_mode(
 
 void GimArmSystemHardware::apply_driver_mode(const ModeSpec & spec)
 {
+  const ModeSpec & pos_spec = mode_spec(ControlMode::Position);
   for (size_t i = 0; i < info_.joints.size(); ++i) {
+    // Khớp bị khoá (torque_mode_enable = false) KHÔNG theo chế độ chung khi
+    // chế độ đó không giữ tay -- nó ở lại chế độ vị trí, driver giữ cứng.
+    // control_mode đặt riêng cho từng driver nên làm được điều này.
+    // Mục đích: cô lập một khớp để dò dấu/hệ số, hai khớp kia đứng im.
+    const bool locked = !spec.driver_holds_arm && !torque_mode_enable_[i];
+    const ModeSpec & use = locked ? pos_spec : spec;
+    if (locked) {
+      hold_position_[i] = hw_states_position_[i];
+    }
     uint8_t data[8];
-    gim6010::pack_u32_le(data, spec.drv_control_mode, spec.drv_input_mode);
+    gim6010::pack_u32_le(data, use.drv_control_mode, use.drv_input_mode);
     can_bus_.send(
       gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetControllerMode), data, 8);
+    if (locked) {
+      RCLCPP_WARN(
+        rclcpp::get_logger("GimArmSystemHardware"),
+        "  '%s' KHOA o che do VI TRI (torque_mode_enable=false), giu tai q=%.4f",
+        info_.joints[i].name.c_str(), hold_position_[i]);
+    }
   }
 }
 
@@ -298,6 +314,14 @@ void GimArmSystemHardware::write_torque_mode()
   }
 
   for (size_t i = 0; i < n; ++i) {
+    if (!torque_mode_enable_[i]) {
+      // Khớp bị khoá: giữ vị trí đã chốt lúc chuyển chế độ. Driver vẫn ở
+      // control_mode = 3 nên 0x00C có hiệu lực; 0x00E sẽ bị bỏ qua.
+      if (!std::isnan(hold_position_[i])) {
+        send_position_command(i, hold_position_[i], 0.0, 0.0);
+      }
+      continue;
+    }
     send_torque_command(i, tau[i]);
   }
 }
@@ -522,6 +546,18 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   }
   torque_sign_.assign(n_joints, sign_default);
   // Mặc định phía ROTOR = chia gear TỔNG. Sai theo hướng yếu đi, an toàn hơn.
+  // torque_mode_enable: khớp nào ĐƯỢC PHÉP vào chế độ mô-men. Mặc định true.
+  // Dùng để CÔ LẬP từng khớp khi dò dấu/hệ số -- xem ghi chú trong .hpp.
+  torque_mode_enable_.assign(n_joints, true);
+  hold_position_.assign(n_joints, std::numeric_limits<double>::quiet_NaN());
+  for (size_t i = 0; i < n_joints; ++i) {
+    const auto it = info_.joints[i].parameters.find("torque_mode_enable");
+    if (it != info_.joints[i].parameters.end()) {
+      const std::string v = it->second;
+      torque_mode_enable_[i] = !(v == "false" || v == "False" || v == "0");
+    }
+  }
+
   torque_gear_ratio_.assign(n_joints, 1.0);
   for (size_t i = 0; i < n_joints; ++i) {
     torque_gear_ratio_[i] = gear_ratios_[i];

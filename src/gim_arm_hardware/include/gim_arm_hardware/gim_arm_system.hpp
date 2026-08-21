@@ -361,6 +361,24 @@ private:
   // Khai <param name="torque_gear_ratio">1.0</param> trong <joint> để đổi.
   std::vector<double> torque_gear_ratio_;
 
+  // Khớp nào ĐƯỢC PHÉP vào chế độ mô-men. Mặc định true cho cả ba.
+  //
+  // MỤC ĐÍCH: cô lập từng khớp khi dò dấu/hệ số. control_mode đặt RIÊNG cho
+  // từng driver, nên có thể để 2 khớp ở chế độ vị trí (driver giữ cứng) trong
+  // khi chỉ 1 khớp thả tự do. Thí nghiệm một biến, đọc kết quả không mơ hồ.
+  // Nếu thả cả 3 cùng lúc thì động lực học ghép chéo: khớp này rơi làm đổi
+  // G(q) của khớp kia, và không biết chuyển động là do dấu sai hay do ghép.
+  //
+  // Khai <param name="torque_mode_enable">false</param> trong <joint> để khoá
+  // khớp đó lại. Khớp bị khoá vẫn nhận Set_Input_Pos giữ tại chỗ nó đang đứng
+  // lúc chuyển chế độ.
+  std::vector<bool> torque_mode_enable_;
+
+  // Vị trí chốt cho các khớp bị khoá, lấy tại thời điểm chuyển sang chế độ
+  // mô-men. Không dùng hw_commands_ vì controller đang active là
+  // lqi_effort_controller, nó không ghi vào mảng đó.
+  std::vector<double> hold_position_;
+
   // ---- Feedforward (xem ghi chú pack_set_input_pos trong gim6010_can_protocol.hpp) ----
   // MẶC ĐỊNH TẮT CẢ HAI. Cố ý: build lại plugin KHÔNG được âm thầm đổi hành vi
   // của một thiết bị đang đeo trên tay người. Muốn bật thì khai rõ trong URDF:

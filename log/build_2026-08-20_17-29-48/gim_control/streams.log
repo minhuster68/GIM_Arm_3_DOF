@@ -1,0 +1,43 @@
+[0.438s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_control': CMAKE_PREFIX_PATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros PYTHONPATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/gim_control build --build-base /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build install --record /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/install.log --install-scripts $base/lib/gim_control --single-version-externally-managed install_data
+[0.592s] running egg_info
+[0.602s] writing ../../build/gim_control/gim_control.egg-info/PKG-INFO
+[0.602s] writing dependency_links to ../../build/gim_control/gim_control.egg-info/dependency_links.txt
+[0.602s] writing entry points to ../../build/gim_control/gim_control.egg-info/entry_points.txt
+[0.603s] writing requirements to ../../build/gim_control/gim_control.egg-info/requires.txt
+[0.603s] writing top-level names to ../../build/gim_control/gim_control.egg-info/top_level.txt
+[0.623s] reading manifest file '../../build/gim_control/gim_control.egg-info/SOURCES.txt'
+[0.625s] writing manifest file '../../build/gim_control/gim_control.egg-info/SOURCES.txt'
+[0.625s] running build
+[0.625s] running build_py
+[0.625s] copying gim_control/__init__.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.625s] copying gim_control/origin_draw_trajectory.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.625s] copying gim_control/shapes.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.626s] copying gim_control/lqi_node.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.626s] copying gim_control/check_gravity_model.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.627s] copying gim_control/arm_dynamics.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.627s] copying gim_control/lqi_controller.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.628s] copying gim_control/gim_arm_kinematics.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.628s] copying gim_control/sweep_trajectory.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.628s] copying gim_control/sniff_can_ff.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.629s] copying gim_control/motor_test_all_modes.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.629s] copying gim_control/goto_pose.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.629s] copying gim_control/gim6010_mujoco_sim.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build/lib/gim_control
+[0.630s] running install
+[0.633s] running install_lib
+[0.646s] running install_data
+[0.646s] copying resource/gim_control -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/ament_index/resource_index/packages
+[0.646s] copying package.xml -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/gim_control
+[0.646s] copying launch/origin_gim_arm_control.launch.py -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/gim_control/launch
+[0.647s] copying config/controllers.yaml -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/gim_control/config
+[0.647s] running install_egg_info
+[0.658s] removing '/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control-0.0.0-py3.10.egg-info' (and everything under it)
+[0.659s] Copying ../../build/gim_control/gim_control.egg-info to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages/gim_control-0.0.0-py3.10.egg-info
+[0.659s] running install_scripts
+[0.681s] Installing check_gravity_model script to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control
+[0.681s] Installing goto_pose script to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control
+[0.681s] Installing lqi_node script to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control
+[0.681s] Installing motor_test_all_modes script to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control
+[0.681s] Installing origin_draw_trajectory script to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control
+[0.681s] Installing sniff_can_ff script to /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/gim_control
+[0.682s] writing list of installed files to '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/install.log'
+[0.697s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_control' returned '0': CMAKE_PREFIX_PATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_moveit_config:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_hardware:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2_control:/home/minh/rehab_robot_ver2_modified/install/rviz_custom_plugins:/home/minh/rehab_robot_ver2_modified/install/rehab_robot_ver2:/home/minh/rehab_robot_ver2_modified/install/gravity_compensation:/home/minh/rehab_robot_ver2_modified/install/can_odrive_interface:/home/minh/moveit_ws/install/my_robot_bringup:/home/minh/moveit_ws/install/my_robot_moveit_config:/home/minh/moveit_ws/install/my_robot_description:/home/minh/apriltag_ws/install/apriltag_ros PYTHONPATH=/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/gim_control build --build-base /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/build install --record /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_control/install.log --install-scripts $base/lib/gim_control --single-version-externally-managed install_data

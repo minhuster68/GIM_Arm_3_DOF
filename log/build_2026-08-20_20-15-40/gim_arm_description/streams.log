@@ -1,0 +1,29 @@
+[0.021s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description -- -j16 -l16
+[0.132s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --build /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description -- -j16 -l16
+[0.217s] Invoking command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --install /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description
+[0.296s] -- Install configuration: ""
+[0.296s] -- Execute custom install script
+[0.296s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/meshes/base_link.STL
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/meshes/lower_arm_link.STL
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/meshes/shoulder_link.STL
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/meshes/upper_arm_link.STL
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/urdf/gim_arm.urdf
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/urdf/gim_arm_origin.urdf
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/launch/display.launch.py
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/launch/origin_display.launch.py
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/ament_index/resource_index/package_run_dependencies/gim_arm_description
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/ament_index/resource_index/parent_prefix_path/gim_arm_description
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/environment/ament_prefix_path.sh
+[0.297s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/environment/ament_prefix_path.dsv
+[0.298s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/environment/path.sh
+[0.298s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/environment/path.dsv
+[0.298s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/local_setup.bash
+[0.298s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/local_setup.sh
+[0.298s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/local_setup.zsh
+[0.298s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/local_setup.dsv
+[0.298s] -- Symlinking: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/package.dsv
+[0.302s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/ament_index/resource_index/packages/gim_arm_description
+[0.302s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/cmake/gim_arm_descriptionConfig.cmake
+[0.302s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/cmake/gim_arm_descriptionConfig-version.cmake
+[0.302s] -- Up-to-date symlink: /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_arm_description/share/gim_arm_description/package.xml
+[0.319s] Invoked command in '/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control:/home/minh/rehab_robot_ver2_modified/install/rehab_gui:/home/minh/rehab_robot_ver2_modified/install/my_rqt_plugin:/opt/ros/humble /home/minh/.local/bin/cmake --install /home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description

@@ -196,103 +196,146 @@
   <hardware>
     <plugin>gim_arm_hardware/GimArmSystemHardware</plugin>
     <param name="can_interface">can0</param>
-    <!-- Feedforward cho Set_Input_Pos (0x00C). Mặc định trong code là TẮT;
-         bật ở đây để việc bật/tắt là một dòng NHÌN THẤY ĐƯỢC trong URDF, không
-         phải hành vi ẩn trong plugin.
-         - velocity_feedforward: điền Vel_FF = q̇_ref. Xoá sai số bám thường
-           trực e = q̇/pos_gain của vòng P vị trí (nguồn trễ chính, KHÔNG mất đi
-           khi đổi input_mode). Cần <command_interface name="velocity"/> bên
-           dưới VÀ 'velocity' trong command_interfaces của controllers.yaml.
-         - gravity_feedforward: điền Torque_FF = G(q_lệnh), tính bằng Pinocchio
-           từ chính file URDF này.
-         Đo trong mô phỏng (kinematics_test/compare_architectures.py), sai số
-         bám đầu tay: 2.066mm -> 0.437mm (vel_ff) -> 0.266mm (thêm G(q)).
-         TẮT NHANH khi thử trên tay thật: đổi true thành false, không cần build
-         lại C++, chỉ cần colcon build gim_arm_description và chạy lại.
-         Vẫn giữ nguyên control_mode=3 (vị trí): driver giữ vòng vị trí của nó,
-         nên PC chết thì tay vẫn đứng, không rơi. -->
-    <param name="velocity_feedforward">false</param>
-    <param name="gravity_feedforward">true</param>
 
-    <!-- ===== Chế độ MÔ-MEN (đường LQI) =====
-         Chỉ bật khi controller claim interface 'effort'. Đường PID không đụng
-         tới. torque_sign: quy ước dấu của FIRMWARE. Input_Torque dương làm
-         encoder TĂNG (+1) hay GIẢM (-1). ĐO BẰNG cansend trước khi chạy vòng
-         kín, xem RUNBOOK Phase 2. Đây KHÔNG phải invert_direction: cái đó bù
-         chiều lắp motor và đã nằm trong directions_.
-         effort_stale_cycles: forward_command_controller ghi lại giá trị cuối
-         mãi mãi nếu lqi_node chết. 50 chu kỳ @100Hz = 0.5 s không đổi một bit
-         nào thì plugin coi nguồn phát đã chết và tụt về bù trọng lực. -->
-    <param name="torque_sign">-1</param>
+    <!-- Feedforward cho Set_Input_Pos (0x00C), chỉ có tác dụng ở CHẾ ĐỘ VỊ TRÍ.
+         Phải để false khi lấy số nền PID, vì 3 lần chạy nền đã đo với false. -->
+    <param name="velocity_feedforward">false</param>
+    <param name="gravity_feedforward">false</param>
+
+    <!-- ================= CHẾ ĐỘ MÔ-MEN (đường LQI) =================
+         Chỉ bật khi controller claim interface 'effort'. Đường PID không đụng tới.
+
+         QUY ĐỔI MÔ-MEN, giải thích một lần ở đây, khai số riêng trong từng joint:
+
+             tau_driver = torque_sign * tau_khop / torque_gear_ratio
+
+         torque_gear_ratio = gear NGOÀI (tổng / 8 nội bộ), tức các trường mô-men
+         trên CAN ở PHÍA TRỤC RA của hộp số nội bộ 8:1. ĐÃ ĐO CẢ HAI CHIỀU:
+           . dùng gear TỔNG (phía rotor, theo chú thích manual): mô-men yếu đi 8
+             lần, tay rơi tự do, base tụt 32.5 độ trong 2.3 giây
+           . dùng gear NGOÀI: khớp phép thử treo 1 kg trong 3-6%
+         Nên chú thích manual "0x00E phía rotor" KHÔNG đúng với firmware này.
+         Lý do vật lý: firmware nạp torque_constant = 0.669 = 8.27/kv với
+         kv = 12.3 rpm/V, mà con số đó đi cùng bộ rated speed 120 rpm, tức phía
+         trục ra. Mọi trường mô-men qua CAN dùng chung hằng số đó.
+
+         torque_sign KHÔNG khai ở đây: nó KHÁC NHAU giữa các khớp, đo trực tiếp
+         từ chiều chuyển động thật so với chiều trọng lực.
+
+         effort_stale_cycles: forward_command_controller ghi lại giá trị cuối mãi
+         mãi nếu lqi_node chết. 50 chu kỳ @100Hz = 0.5 s không đổi một bit nào thì
+         plugin coi nguồn phát đã chết và tụt về bù trọng lực. -->
     <param name="effort_stale_cycles">50</param>
 
-    <!-- ===== BẢNG CHẾ ĐỘ =====
-         Plugin viết sẵn 4 chế độ; chọn chế độ nào là do BỘ command_interface mà
-         controller đang claim, KHÔNG phải do sửa C++:
-           VI TRI  <- claim 'position' [+ 'velocity' làm Vel_FF]  (JTC — đang dùng)
-           VAN TOC <- claim CHỈ 'velocity'                        (0x00D)
-           MO-MEN  <- claim 'effort'                              (0x00E — LQI)
-           MIT     <- claim 'position' + 'effort' cùng lúc        (0x008 impedance)
-         Đổi chế độ = switch_controllers, không cần build lại plugin.
-         Plugin in đúng bảng này ra log lúc khởi động, kèm trạng thái từng dòng.
+    <!-- ================= TRẠNG THÁI HIỆU CHỈNH =================
+             khớp        torque_sign   gravity_scale   ghi chú
+             base            -1            2.0?        ĐANG ĐO LẠI, xem dưới
+             shoulder        +1            1.1         đã chốt
+             elbow           -1            0.8         đã chốt
 
-         VAN TOC và MIT CHƯA ĐƯỢC KIỂM CHỨNG TRÊN TAY THẬT. Đọc kỹ trước khi bật:
-         - VAN TOC: driver KHÔNG giữ vị trí. Nguồn phát chết -> watchdog
-           (effort_stale_cycles) tụt lệnh về 0 rad/s sau 0.5 s. Trần vận tốc khai
-           riêng từng khớp: <param name="max_velocity_joint_rad_s">, mặc định 1.0.
-           Layout trường Torque_FF của frame 0x00D chưa đo lại bằng candump —
-           kiểm tra trước khi dùng kèm gravity_feedforward.
-         - MIT: mặc định TẮT. Bỏ chú thích dòng dưới để mở. Cần khai thêm
-           <param name="mit_kp"> / <param name="mit_kd"> trong TỪNG <joint>
-           (đơn vị phía TRỤC RA DRIVER: Nm/rad và Nm*s/rad); để 0 thì MIT thoái
-           hoá thành mô-men thuần và driver không giữ tay nữa.
-           Khi TẮT, claim đồng thời position+effort vẫn bị TỪ CHỐI y như trước. -->
+         Đặt bằng:  ros2 param set /lqi_node gravity_scale "[a, 1.1, 0.8]"
+
+         ĐANG CÔ LẬP base_joint: shoulder và elbow bị khoá ở chế độ vị trí bằng
+         torque_mode_enable = false. Xong thì xoá hai dòng đó để cả 3 cùng chạy. -->
+
+    <!-- ================= BẢNG CHẾ ĐỘ =================
+         Chọn chế độ nào là do BỘ command_interface mà controller đang claim:
+           VI TRI  &lt;- 'position' [+ 'velocity' làm Vel_FF]   (JTC, đường PID)
+           VAN TOC &lt;- CHỈ 'velocity'                          (0x00D)
+           MO-MEN  &lt;- 'effort'                                (0x00E, LQI)
+           MIT     &lt;- 'position' + 'effort' cùng lúc           (0x008 impedance)
+         Đổi chế độ = switch_controllers, không cần build lại plugin.
+         VAN TOC và MIT CHƯA KIỂM CHỨNG TRÊN TAY THẬT. MIT mặc định TẮT. -->
     <!-- <param name="enable_mit_mode">true</param> -->
   </hardware>
+
   <joint name="base_joint">
     <command_interface name="position"/>
     <command_interface name="velocity"/>
-    <!-- effort: đường vào của LQI. Thêm interface này KHÔNG ảnh hưởng đường
-         PID vì JTC chỉ claim position+velocity, interface thừa nó không đụng. -->
     <command_interface name="effort"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">0</param>
-    <!-- Trần cứng mô-men PHÍA KHỚP, riêng khớp này. Lớp bảo vệ cuối, độc lập
-         với tau_scale bên lqi_node. cần 1.58 (ff đỉnh 0.44 + phản hồi 1.13) Nm;
-         để 2.5 = ~1.5 lần dư địa. Trần URDF <limit effort> là 5 Nm. -->
-    <param name="max_torque_joint_nm">2.5</param>
-    <param name="invert_direction">true</param>       <!-- them -->
+    <param name="invert_direction">true</param>
+
+    <!-- torque_sign = -1: đo được khớp này rơi 0.43 rad với dấu -1, và 0.77 tới
+         1.00 rad với dấu +1. Rơi ÍT HƠN với -1 nên -1 là chiều đúng.
+         max_torque_joint_nm 1.5: |G| đỉnh của khớp này 1.181 Nm, dư địa 27%. -->
+    <param name="torque_sign">-1</param>
+    <param name="torque_gear_ratio">1.0</param>
+    <param name="max_torque_joint_nm">1.5</param>
+
+    <!-- KHÔNG khai torque_mode_enable  =  mặc định true  =  ĐANG THỬ khớp này.
+
+         VÌ SAO ĐO LẠI: alpha = 2.0 tìm được lần trước là con số kém tin nhất
+         trong ba khớp, vì ba lý do:
+           . |G_base| chỉ 0.61 Nm ở tư thế thử, nhỏ nhất trong ba khớp, nên
+             "khoảng lơ lửng" do ma sát tĩnh rộng nhất: +/- f/G, tới +/-49%
+             nếu ma sát 0.3 Nm. 2.0 có thể đang ở MÉP khoảng chứ không phải giữa.
+           . 2.0 lệch hơn hẳn hai khớp kia (1.1 và 0.8). Nếu đây là hệ số quy đổi
+             của đường truyền thì ba khớp phải gần nhau, vì cùng loại driver,
+             cùng firmware.
+           . mô-men đo được ở khớp này nhiễu 293% giá trị trung bình.
+
+         CÁCH ĐO ĐÚNG: quét tìm CẢ HAI MÉP, không dừng ở giá trị đầu tiên thấy
+         đứng yên.
+             alpha_duoi = giá trị CUỐI CÙNG còn rơi
+             alpha_tren = giá trị ĐẦU TIÊN bắt đầu bật lên
+             alpha_chon = (alpha_duoi + alpha_tren) / 2
+         Bề rộng khoảng cho luôn ước lượng ma sát: f = G * (alpha_tren - alpha_duoi)/2
+
+         SAU ĐÓ LẶP Ở TƯ THẾ KHÁC. Hệ số quy đổi là tính chất đường truyền nên
+         KHÔNG đổi theo tư thế; sai mô hình thì đổi.
+             alpha giống nhau  -> hệ số quy đổi, cách làm hiện tại đúng
+             alpha khác rõ     -> mô hình G_base sai, phải sửa <axis>/<origin rpy>
+         Trường hợp sau thì hiệu chỉnh bằng alpha chỉ là vá tạm và sẽ sai ở
+         những tư thế khác trên quỹ đạo. -->
   </joint>
+
   <joint name="shoulder_joint">
     <command_interface name="position"/>
     <command_interface name="velocity"/>
-    <!-- effort: đường vào của LQI. Thêm interface này KHÔNG ảnh hưởng đường
-         PID vì JTC chỉ claim position+velocity, interface thừa nó không đụng. -->
     <command_interface name="effort"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">1</param>
-    <!-- Trần cứng mô-men PHÍA KHỚP, riêng khớp này. Lớp bảo vệ cuối, độc lập
-         với tau_scale bên lqi_node. cần 4.99 (ff đỉnh 3.64 + phản hồi 1.35) Nm;
-         để 7.5 = ~1.5 lần dư địa. Trần URDF <limit effort> là 40 Nm. -->
-    <param name="max_torque_joint_nm">7.5</param>
     <param name="gear_ratio">64.0</param>
+
+    <!-- torque_sign = +1: ĐÃ CHỐT. Với dấu +1 khớp này DỪNG ở q = 0.264, nằm
+         TRONG dải hợp lệ, giữ với biên độ 2e-05 rad. Đó là lơ lửng thật, không
+         phải tựa cữ. Với dấu -1 nó rơi 0.72 rad.
+         gravity_scale = 1.1, tức c = 0.909, mô hình thiếu 9%.
+         max_torque_joint_nm 5.0: |G| đỉnh 4.102 Nm, dư địa 22%. -->
+    <param name="torque_sign">1</param>
+    <param name="torque_gear_ratio">8.0</param>
+    <param name="max_torque_joint_nm">5.0</param>
+
+    <!-- KHOÁ để cô lập base_joint. Khớp này ở lại chế độ vị trí ngay cả khi
+         controller claim 'effort'; driver giữ cứng nó tại chỗ đang đứng.
+         XOÁ DÒNG NÀY khi đã đo xong base và muốn chạy cả 3 khớp. -->
+    <!-- <param name="torque_mode_enable">false</param> -->
   </joint>
+
   <joint name="elbow_joint">
     <command_interface name="position"/>
     <command_interface name="velocity"/>
-    <!-- effort: đường vào của LQI. Thêm interface này KHÔNG ảnh hưởng đường
-         PID vì JTC chỉ claim position+velocity, interface thừa nó không đụng. -->
     <command_interface name="effort"/>
     <state_interface name="position"/>
     <state_interface name="velocity"/>
     <param name="can_node_id">2</param>
-    <!-- Trần cứng mô-men PHÍA KHỚP, riêng khớp này. Lớp bảo vệ cuối, độc lập
-         với tau_scale bên lqi_node. cần 1.80 (ff đỉnh 1.51 + phản hồi 0.29) Nm;
-         để 3.0 = ~1.5 lần dư địa. Trần URDF <limit effort> là 5 Nm. -->
-    <param name="max_torque_joint_nm">3.0</param>
     <param name="invert_direction">true</param>
+
+    <!-- torque_sign = -1: với -1 khớp này bị ĐẨY NGƯỢC trọng lực (+1.31 rồi
+         +0.56 rad), với +1 thì RƠI (-1.79 rad). G_elbow dương suốt cả đường đi
+         nên buông ra phải GIẢM q. Suy ra -1 đúng chiều nhưng hơi mạnh.
+         gravity_scale = 0.8, tức c = 1.25, mô hình thừa 25%.
+         max_torque_joint_nm 2.0: |G| đỉnh 1.518 Nm, dư địa 32%. -->
+    <param name="torque_sign">-1</param>
+    <param name="torque_gear_ratio">1.0</param>
+    <param name="max_torque_joint_nm">2.0</param>
+
+    <!-- KHOÁ để cô lập base_joint. XOÁ DÒNG NÀY khi đã đo xong base. -->
+    <!-- <param name="torque_mode_enable">false</param> -->
   </joint>
 </ros2_control>
 
