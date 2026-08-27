@@ -72,6 +72,21 @@ làm URDF trôi lệch 10 ngày giữa hai thư mục.
 `trajectory.mat` đều là file **tự sinh** và đã nằm trong `.gitignore` từ
 27/08/2026. Đừng commit lại.
 
+### 0.3 SAU MỖI LẦN SỬA URDF: kiểm XML hợp lệ
+
+```bash
+python3 -c "import xml.etree.ElementTree as ET; \
+  ET.parse('src/gim_arm_description/urdf/gim_arm.urdf'); print('XML OK')"
+```
+
+**Đừng bỏ bước này** vì Pinocchio, MuJoCo và `robot_state_publisher` đều dùng
+tinyxml2, mà tinyxml2 **bỏ qua** một số lỗi XML thật. Đã bị đúng một lần ngày
+27/08/2026: comment mới có chuỗi `--` bên trong `<!-- ... -->`, vốn bị XML 1.0
+§2.5 cấm. Pinocchio và MuJoCo vẫn nạp bình thường, `verify_against_mujoco()` vẫn
+báo khớp tới 1e-10, nên lỗi không hề lộ ra; nhưng `xacro` và mọi công cụ Python
+dùng `ElementTree`/`lxml` thì **từ chối cả file**. Trong comment dù`—` (em dash)
+hoặc `->`, đừng dùng `--`.
+
 ---
 
 ## 1. Chạy trên BUS ẢO trước (không cắm động cơ)
@@ -165,6 +180,100 @@ lệch, chứ không phải lệch một hằng số.
 
 Quy trình đặt điểm 0 có sẵn ở `src/gim_arm_mujoco/README` mục 4. Đặt xong thì
 điền số đọc được vào `<param name="zero_offset_rad">` của từng khớp.
+
+#### Điểm 0 là tư thế BUÔNG THÕNG (đổi 27/08/2026)
+
+Trước 27/08 điểm 0 của URDF là tư thế CAD: tay chìa chéo ra trước, cánh tay trên
+lệch 24.6° và cẳng tay 41.3° so với phương trọng lực. Tư thế đó **không tái lập
+được bằng tay** nên không dùng làm mốc canh encoder được.
+
+Giờ q = 0 là tư thế tay buông thõng dọc theo trọng lực (cánh tay trên lệch 9.8°,
+cẳng tay 5.7°, khuỷu gấp 4.1° — không về 0 tuyệt đối được vì góc khuỷu nhỏ nhất
+của cơ cấu là 4.09° và base_joint giữ điểm 0 cũ).
+
+**KHÔNG canh bằng cách "buông tay rồi đọc encoder".** Nghe hợp lý nhưng sai: tay
+buông ra về tư thế THẾ NĂNG NHỎ NHẤT, còn q = 0 của URDF là tư thế HÌNH HỌC
+thẳng đứng — hai tư thế khác nhau (với bộ inertial ROS lệch 3.4°/7.3°, với bộ
+matlab lệch tới 69°), và base_joint thì rơi tì cữ vì `G_base(0) = 0.44 Nm ≠ 0`.
+Lấy tư thế nghỉ làm mốc là nạp thẳng sai số của `<inertial>` vào điểm 0.
+
+Cách đúng: **fit 3 offset từ mô-men giữ đo ở NHIỀU tư thế**, bằng
+`tools/calibrate_gravity.py`. Nó dùng chính cảm biến của tay (`Get_Torques`
+0x01C), không cần thước hay ni-vô, và không phụ thuộc `<inertial>` đúng hay sai —
+vì nó fit cả hệ số khối lượng và cho biết sai dư thuộc loại nào.
+
+```bash
+# T1: launch chạy suốt, tay ở chế độ VỊ TRÍ (driver giữ tay ở từng tư thế)
+ros2 launch gim_control origin_gim_arm_control.launch.py
+
+# in danh sách tư thế đo tốt (|G| trội hơn ma sát tĩnh ở cả 3 khớp)
+python3 tools/calibrate_gravity.py --suggest
+
+# với TỪNG tư thế: đi tới, giữ yên, rồi ghi
+ros2 control switch_controllers --deactivate gim_arm_group_controller \
+                               --activate forward_position_controller
+ros2 run gim_control goto_pose  -0.172  1.153  1.508 --time 8
+python3 tools/calibrate_gravity.py --add
+# ... lặp >= 4 tư thế khác nhau ...
+
+python3 tools/calibrate_gravity.py --fit
+```
+
+`--fit` in ra thẳng 3 dòng `<param name="zero_offset_rad">` để dán vào
+`gim_arm.urdf`, kèm hệ số khối lượng và phán quyết theo SAI DƯ:
+
+| sai dư | nghĩa là |
+|---|---|
+| nhỏ (< ~10% \|G\|) | chỉ lệch điểm 0 → dán 3 offset, xong |
+| lớn nhưng tỉ lệ với \|G\| | khối lượng URDF sai → xem hệ số nhân |
+| lớn và loạn xạ | hình học sai (`<origin rpy>` / `<axis>`), hoặc có tư thế đang tì cữ |
+
+Hai điều kiện để số fit ra có nghĩa:
+- **≥ 4 tư thế.** 3 tư thế cho 9 phương trình / 3 ẩn, luôn khớp hoàn hảo kể cả
+  khi mô hình sai hoàn toàn — sai dư bằng 0 ở đó không chứng minh gì.
+- **Tránh tư thế gần q = 0.** Ở đó \|G\| nhỏ nhất nên ma sát tĩnh trội. Muốn số
+  đẹp thì tới cùng một tư thế hai lần, một lần từ trên xuống một lần từ dưới
+  lên, `--add` cả hai; script tự lấy trung bình để khử ma sát tĩnh.
+
+Dán offset xong thì `colcon build --packages-select gim_arm_description` và
+**khởi động lại launch** (tham số chỉ đọc lúc `on_init`), rồi xác nhận bằng
+`ros2 run gim_control check_gravity_model can0`.
+
+#### Phép đo phụ: tư thế nghỉ, để chốt `<inertial>` của lower_arm_link
+
+`tools/set_zero.py` đặt cả 3 trục vào CLOSED_LOOP + mô-men 0 Nm, chờ tay lắng
+rồi đọc encoder. Đây KHÔNG phải cách canh điểm 0 (xem trên), mà là phép đo dứt
+điểm cho bộ `<inertial>` đang tranh chấp:
+
+```bash
+# Ctrl-C launch trước. Tháo tay khỏi người, kê đỡ, ĐỠ TAY BẰNG TAY -- tay sẽ rơi.
+python3 tools/set_zero.py --can can0
+```
+
+Mô hình dự đoán tư thế nghỉ khác nhau hẳn: bộ matlab (đang dùng) cho cẳng tay
+chệch **68.9°** so với phương trọng lực và khuỷu gấp 53°; bộ ROS 21/08 cho
+**6.9°** và khuỷu gấp 8°. Tay thật buông ra rơi gần thẳng đứng, nên nếu cẳng tay
+KHÔNG chệch tới 69° thì bộ matlab sai và phải đổi `lower_arm_link` về bộ ROS
+(giá trị giữ sẵn trong comment của `gim_arm.urdf`, cùng 2 bằng chứng hình học).
+
+Ba cách "hiển nhiên" khác đều KHÔNG dùng được, đã kiểm:
+- tắt động cơ (IDLE) rồi đọc: driver phát encoder = 0 ở IDLE
+- `lqi_node` với `gravity_scale = [0,0,0]`: phát 0.0 không đổi 0.51 s là
+  `command_stale()` (so bit-identical) coi nguồn phát đã chết và tụt về bù
+  trọng lực → tay bị giữ lên
+- `torque_sign_test.py --tau 0`: chạy một khớp mỗi lần, mà tư thế nghỉ là cân
+  bằng của cả cánh tay
+
+#### PHẢI ĐO LẠI `<limit>` sau khi đặt điểm 0
+
+`<limit>` trong `gim_arm.urdf` **giữ nguyên con số** cũ (đo 19/08 theo điểm 0
+cũ), nên khi điểm 0 dịch thì dải vận động vật lý mà chúng mô tả cũng dịch theo:
+shoulder −22.72°, elbow −18.52°. Tức con số hiện tại KHÔNG còn là cữ cơ khí thật.
+
+Quỹ đạo quét hiện tại vẫn nằm sâu trong dải đó (`safety_report` báo cách giới hạn
+gần nhất 0.291 rad, ngưỡng 0.05) nên không chặn việc chạy thử, NHƯNG `joint_margin_rad`
+và `safety_report` chỉ có ý nghĩa thật sau khi đo lại. Cách đo: từ điểm 0 mới,
+lái từng khớp chậm về hai phía tới khi chạm cữ, ghi lại 2 góc, điền vào `<limit>`.
 
 ### 2.1 Kiểm mô hình bằng số — làm TRƯỚC KHI cho người đeo vào
 

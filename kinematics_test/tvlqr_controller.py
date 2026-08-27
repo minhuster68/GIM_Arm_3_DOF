@@ -82,45 +82,68 @@ BA CHỖ CỐ Ý LÀM KHÁC setup_lqr.m -- đều có lý do đo được
    Thêm nữa max_int_e = [100, 200, 100] rad·s làm trọng số tích phân còn
    1e-4..2.5e-5 -> ba cực tích phân nằm ở -0.0005 rad/s, tức KHÂU TÍCH PHÂN
    COI NHƯ KHÔNG CÓ (thời gian xác lập 8000 s). "LQI" khi đó chỉ là LQR.
-   ---- tau_penalty_scale: quét trên chính URDF này, plant = mô hình + ma sát,
-        controller 100 Hz ZOH, bám đúng quỹ đạo của sweep_trajectory.py:
-            R x    |z|max   |s|max (rad/s)
-             128    1.193       192      <- PHÂN KỲ khi rời rạc hoá
-             256    0.969       134
-             512    0.953        94      <= MẶC ĐỊNH
-            1024    0.958        65
-            2048    0.979        35      (bằng băng thông bộ LQI cũ)
-        Chọn 512 chứ không phải 256: 256 chỉ cách ranh giới phân kỳ 1.5 lần theo
-        R (1.23 lần theo hệ số) -- không đủ dư địa cho sai mô hình + trễ + nhiễu
-        encoder trên tay thật. Ở 512, |s|max = 94 rad/s = 1/3.3 Nyquist của vòng.
+   ---- ĐO LẠI 27/08/2026 sau khi <inertial> của upper_arm/lower_arm chuyển sang
+        bộ matlab (Astiff = ∂G/∂q đổi theo, nên toàn bộ bảng dưới đây phải đo lại
+        nếu sau này đổi <inertial> lần nữa).
 
-   ---- max_int_e: chỗ này KHÔNG được chỉnh trên mô phỏng "mô hình hoàn hảo".
-        Với plant = đúng mô hình thì khâu tích phân chỉ thêm trễ, quét kiểu đó sẽ
-        kết luận sai là "bỏ tích phân đi". Phải đưa vào SAI MÔ HÌNH THẬT ĐÃ ĐO:
+   ---- tau_penalty_scale (max_int_e = 0.002), plant = mô hình + ma sát, sai mô
+        hình trọng lực 10%, controller 100 Hz ZOH, bám đúng quỹ đạo của
+        sweep_trajectory.py, sai số ĐẦU TAY RMS:
+            R x    |z|max   |s|max (rad/s)   cực chậm   sai số đầu tay
+             128    0.944       134             5.45        0.089 mm
+             256    0.950        94             4.85        0.123 mm
+             512    0.956        65             4.33        0.170 mm   <= MẶC ĐỊNH
+            1024    0.961        47             3.86        0.236 mm
+            2048    0.965        36             3.46        0.327 mm
+        Với bộ <inertial> này, R x128 vẫn ổn định (trước đó, với <inertial> của
+        ROS, R x128 cho |z|max = 1.193 tức PHÂN KỲ). Vẫn để mặc định 512: 0.17 mm
+        là đủ so với nhu cầu, và |s|max = 65 rad/s chỉ bằng 1/4.8 Nyquist của
+        vòng nên còn dư địa cho trễ CAN + sai mô hình mà bảng này không mô phỏng
+        hết. Muốn bám sát hơn thì hạ dần 512 -> 256, đừng nhảy thẳng xuống 128.
+
+   ---- max_int_e: chỗ này KHÔNG chỉnh được trên mô phỏng "mô hình hoàn hảo". Với
+        plant = đúng mô hình thì khâu tích phân chỉ thêm trễ, quét kiểu đó sẽ kết
+        luận sai là "bỏ tích phân đi". Phải đưa vào SAI MÔ HÌNH THẬT ĐÃ ĐO:
         gravity_scale trên tay thật là 1.1 ở shoulder và 0.8 ở elbow, tức mô hình
-        trọng lực lệch 10-25%. Đặt plant = 1.10 * G(q) rồi quét (R x512, sai số
-        ĐẦU TAY RMS, mm):
-          max_int_e   |z|max  |s|max  cực chậm  G sai 10%  G sai 25%  +trễ 1ck  +nhiễu q̇
-              0.001    0.942    95.4     5.67      0.087      0.096     0.089     0.416
-              0.002    0.953    93.6     4.57      0.163      0.181     0.166     0.478  <= MẶC ĐỊNH
-              0.005    0.964    93.0     3.53      0.352      8.650     0.356     0.578
-              0.020    0.974    92.9     2.58     13.288         --        --        --
-           matlab(100) 1.000       --       --     39.650         --        --        --
+        trọng lực lệch 10-25%. Quét ở R x512, sai số đầu tay RMS (mm):
+          max_int_e  |z|max  |s|max   G10%    G25%   +trễ1ck  +nhiễu q̇   int_kick (Nm)
+              0.001   0.945    69     0.089   0.102   0.131    0.438    [1.07, 11.04, 1.38]
+              0.002   0.956    65     0.170   0.198   0.189    0.504    [0.54,  5.53, 0.69]  <=
+              0.005   0.966    63     0.398   5.540   0.406    0.630    [0.22,  2.21, 0.28]
+              0.020   0.974    63    11.770  42.142  11.782   11.706    [0.06,  0.55, 0.07]
         Chọn 0.002 chứ KHÔNG phải 0.001 dù 0.001 bám tốt hơn 2 lần: ở 0.001 thì
-        RIÊNG khâu tích phân đã ra lệnh được 1.22 / 11.83 / 1.39 Nm khi ∫e chạm
-        kẹp i_limit = 0.004, tức 70-85% toàn bộ trần mô-men (1.75/14/1.75 ở
-        tau_scale 0.35) -- vượt ngưỡng cảnh báo của lqi_node.check_i_limit. Ở
-        0.002 là 0.61 / 5.91 / 0.70 Nm, vừa dưới ngưỡng. Xem integral_kick().
+        RIÊNG khâu tích phân đã ra lệnh được 1.07 / 11.04 / 1.38 Nm khi ∫e chạm
+        kẹp i_limit = 0.004, tức 61-79% toàn bộ trần mô-men (1.75/14/1.75 Nm ở
+        tau_scale 0.35) -> vượt ngưỡng cảnh báo của lqi_node.check_i_limit. Ở
+        0.002 là 0.54 / 5.53 / 0.69 Nm, vừa dưới ngưỡng. Xem integral_kick().
+        max_int_e = 0.020 (và cả bộ matlab 100/200/100) làm khâu tích phân yếu
+        tới mức không khử nổi sai mô hình 10% -> 11.8 mm.
 
-   ---- ĐỐI CHIẾU với bộ CŨ, cùng phép thử, cùng i_limit 0.004 (đầu tay RMS, mm):
-                              G sai 10%  G sai 25%  +trễ 1ck  +nhiễu q̇
-          TVLQR (mặc định)        0.163      0.181     0.166     0.478
-          LqiController cũ        0.495      1.046     0.500     0.626
-        Tức bộ mới bám tốt hơn 3 lần khi có sai mô hình. NHƯNG với plant = mô
-        hình HOÀN HẢO thì ngược lại, bộ cũ tốt hơn (0.758 mm so với 1.33 mm ở
-        R x512, và bộ cũ chỉ dùng |s|max 28.8 rad/s so với 94). Nói cách khác:
-        lợi thế của TVLQR ở đây đến từ trọng số tích phân được chỉnh lại cho
-        đúng sai mô hình thật, không phải từ bản thân kiến trúc.
+   ---- ĐỐI CHIẾU với LqiController cũ, cùng phép thử, CÙNG i_limit 0.004
+        (sai số đầu tay RMS, mm):
+                              G10%   G25%   +trễ1ck  +nhiễu q̇
+          TVLQR (mặc định)     0.170  0.198   0.189    0.504
+          LqiController cũ     5.633  6.682   5.667    5.603
+
+        ĐỌC CON SỐ NÀY CHO ĐÚNG: chênh 33 lần KHÔNG phải do kiến trúc TVLQR hơn.
+        Đã truy nguyên: với plant = ĐÚNG mô hình (không sai trọng lực gì cả) thì
+        LqiController vẫn ra sai số gần y hệt (đỉnh 9.1 mrad ở shoulder, 21.1 mrad
+        ở elbow, so với 9.4 / 24.8 mrad khi sai 10%). Tức thủ phạm KHÔNG phải sai
+        mô hình. Đo tiếp: trạng thái tích phân của LqiController nằm ĐÚNG TRÊN KẸP
+        i_limit = 0.004 suốt 69% thời gian ở shoulder và 86% ở elbow. Nới
+        i_limit lên 0.05 thì hết chạm kẹp và sai số elbow tụt 21.1 -> 15.5 mrad.
+        Nguyên nhân thật: trọng số mặc định của LqiController (q_int = 6e6, ra
+        k_i = 2449) được chọn ĐỘC LẬP với chốt an toàn i_limit = 0.004 của
+        lqi_node, nên khâu tích phân của nó biến thành bang-bang chạm kẹp.
+        lqi_node.check_i_limit() đã cảnh báo đúng chuyện này từ trước: riêng khâu
+        tích phân của bộ cũ ra lệnh được 1.83 / 1.89 / 0.44 Nm, vượt ngưỡng 50%
+        trần ở base.
+        Còn TVLQR thì max_int_e = 0.002 rad·s được chọn KHỚP với i_limit = 0.004
+        ngay từ đầu, nên ∫e không bao giờ chạm kẹp.
+        Kết luận trung thực: bảng trên so "bộ trọng số đã khớp chốt an toàn" với
+        "bộ trọng số chưa khớp", không phải so hai kiến trúc. Muốn so kiến trúc
+        cho công bằng thì phải chỉnh lại q_int của LqiController cho ∫e nằm trong
+        0.004, hoặc nới i_limit cho cả hai.
    Muốn chạy đúng số matlab để đối chiếu thì đặt
        max_int_e=[100,200,100], tau_penalty_scale=1.0, require_discrete_stable=False
    và CHỈ chạy trong mô phỏng.

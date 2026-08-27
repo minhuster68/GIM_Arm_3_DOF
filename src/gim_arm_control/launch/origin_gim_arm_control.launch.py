@@ -76,12 +76,45 @@ def generate_launch_description():
         ],
     )
 
-    # Đợi joint_state_broadcaster load xong rồi mới spawn 2 controller kia,
+    # lqi_effort_controller: ĐƯỜNG MÔ-MEN (LQR/LQI). Nạp sẵn nhưng KHÔNG active.
+    #
+    # Trước 27/08/2026 launch file này không nạp nó, nên lệnh trong RUNBOOK
+    #     ros2 control switch_controllers --activate lqi_effort_controller
+    # báo không tìm thấy controller -- phải load tay bằng
+    #     ros2 control load_controller lqi_effort_controller
+    # mới chạy được. Nạp sẵn ở đây để đường mô-men và đường PID cùng một launch,
+    # nên phép so PID/LQR không lệch nhau vì cách khởi động.
+    #
+    # --inactive là BẮT BUỘC, không phải cho gọn: lúc active nó claim
+    # command_interface 'effort', mà plugin sẽ đổi driver sang control_mode = 1
+    # (mô-men). Driver ở chế độ mô-men KHÔNG tự giữ tay -- PC im lặng là tay rơi.
+    # Nên trạng thái lúc khởi động phải là chế độ VỊ TRÍ.
+    #
+    # Không cần lo bật nhầm cả hai cùng lúc: gim_arm_system.cpp
+    # prepare_command_mode_switch() tính TẬP INTERFACE SẼ ĐƯỢC GIỮ SAU lần switch
+    # và TỪ CHỐI nếu bộ đó vừa có 'position' vừa có 'effort' (chỉ hợp lệ ở chế độ
+    # MIT, mặc định tắt). Nên phải deactivate gim_arm_group_controller trước:
+    #     ros2 control switch_controllers \
+    #         --deactivate gim_arm_group_controller --activate lqi_effort_controller
+    lqi_effort_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "lqi_effort_controller", "--controller-manager", "/controller_manager",
+            "--inactive",
+        ],
+    )
+
+    # Đợi joint_state_broadcaster load xong rồi mới spawn 3 controller kia,
     # tránh race condition lúc controller_manager vừa mới lên.
     delay_controllers_after_jsb = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
-            on_exit=[gim_arm_group_controller_spawner, forward_position_controller_spawner],
+            on_exit=[
+                gim_arm_group_controller_spawner,
+                forward_position_controller_spawner,
+                lqi_effort_controller_spawner,
+            ],
         )
     )
 

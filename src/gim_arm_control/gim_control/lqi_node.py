@@ -94,14 +94,20 @@ MÁY TRẠNG THÁI
 ===========================================================================
 NĂM CHỐT AN TOÀN -- đừng nới cái nào cho lần chạy đầu
 ===========================================================================
-  tau_scale 0.35        ĐỔI TỪ 0.30 NGÀY 27/08/2026. Đo lại |G| dọc ĐÚNG quỹ
-                        đạo quét trên URDF đã đồng bộ: đỉnh ở elbow 1.534 Nm =
-                        30.7% trần URDF (5 Nm), tức 0.30 cho trần 1.50 Nm --
-                        THIẾU 0.034 Nm, elbow không tự giữ nổi ở tư thế nặng
-                        nhất DÙ dấu mô-men đúng, và sẽ bị chẩn đoán sai thành
-                        lỗi dấu. tau_scale nhỏ nhất đủ cho cả 3 khớp là 0.307;
-                        0.35 để có dư địa 14%. base cần 0.153, shoulder 0.089.
-                        ĐỪNG hạ xuống dưới 0.31.
+  tau_scale 0.35        ĐỔI TỪ 0.30 NGÀY 27/08/2026, và giữ 0.35 để an toàn
+                        với CẢ HAI bộ <inertial> đang còn tranh chấp.
+                        Đo |G| dọc ĐÚNG quỹ đạo quét:
+                          bộ <inertial> đang dùng (matlab): đỉnh elbow 1.333 Nm
+                            = 26.7% trần URDF -> tau_scale tối thiểu 0.267
+                          bộ <inertial> của ROS 21/08     : đỉnh elbow 1.534 Nm
+                            = 30.7% -> tau_scale tối thiểu 0.307, tức 0.30 THIẾU
+                            0.034 Nm và elbow không tự giữ nổi ở tư thế nặng
+                            nhất DÙ dấu mô-men đúng
+                        Chưa đo trên tay thật xem bộ nào đúng (xem chú thích
+                        lower_arm_link trong gim_arm.urdf), nên chọn 0.35 vì nó
+                        đủ cho cả hai, dư địa 14% so với trường hợp xấu hơn.
+                        ĐỪNG hạ xuống dưới 0.31 trước khi chốt được bộ nào đúng.
+                        Với bộ matlab: base cần 0.126, shoulder 0.061.
   max_track_error_rad   0.05 cho lần đầu. Nếu dấu mô-men sai thì vòng kín có
     0.05                cực dương +18.96 rad/s (ω=5): sai số gấp 10 sau 121 ms.
                         Ở 0.35 thì lúc abort bắt được, base đã có 6.0 rad/s.

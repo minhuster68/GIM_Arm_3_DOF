@@ -26,9 +26,20 @@ try:
 except ImportError:
     from shapes import shoulder_sweep, discretize
 
-# Tâm quay vai trong hệ world, đọc thẳng từ mô hình (data.xanchor của
-# base_joint trong MuJoCo), không ước lượng bằng mắt.
-SHOULDER_PIVOT = (0.031, -0.538, 0.606)
+# Tâm quay vai trong hệ world, đọc thẳng từ mô hình (gốc khớp base_joint trong
+# khung base_footprint), không ước lượng bằng mắt.
+#
+# CẬP NHẬT 27/08/2026: bộ số cũ (0.031, -0.538, 0.606) đọc khi
+# base_footprint_to_base_link còn để rpy = 0.083. Góc đó đã đo lại thành 0.073
+# (xem chú thích trong gim_arm.urdf), nên tâm quay dịch 7.8 mm. Số dưới đây đọc
+# lại từ chính mô hình sau khi đổi:
+#     python3 -c "import pinocchio as pin, numpy as np
+#     from arm_dynamics import ArmDynamics
+#     d=ArmDynamics('gim_arm.urdf'); pin.forwardKinematics(d.model,d.data,np.zeros(3))
+#     print(d.data.oMi[1].translation)"
+# ĐỔI LẠI MỖI LẦN đổi rpy của base_footprint_to_base_link, nếu không quỹ đạo quét
+# sẽ quay quanh một tâm không phải tâm vai thật.
+SHOULDER_PIVOT = (0.031381, -0.532211, 0.611271)
 
 TOOL_OFFSET = (0.4031, 0.049, -0.029)
 
