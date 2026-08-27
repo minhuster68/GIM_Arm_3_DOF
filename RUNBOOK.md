@@ -7,13 +7,47 @@ Quy trình vận hành. Phần giải thích *vì sao* nằm ở
 
 ## 0. Build
 
+### 0.0 Hai điều kiện tiên quyết của MÔI TRƯỜNG
+
+Cả hai đều đã làm cả `lqi_node` lẫn `compare_pid_lqi.py` **không chạy nổi** trên
+máy này, và cả hai đều không liên quan gì tới code trong repo.
+
+**(a) `~/.local` có scipy mới hơn numpy.** scipy 1.15.3 (cài bằng pip vào
+`~/.local`) cần numpy >= 1.23.5, nhưng numpy là 1.21.5 (apt). Kết quả:
+`scipy.interpolate` và `scipy.optimize` vỡ ngay lúc import, nên
+`from scipy.interpolate import CubicSpline` trong `lqi_node.py` chết.
+
+```bash
+python3 -c "import scipy,numpy; print(scipy.__version__, numpy.__version__)"
+# 1.15.3 1.21.5  ->  ĐANG VỠ
+python3 -m pip uninstall scipy      # tụt về scipy 1.8.0 của apt, đã kiểm: chạy đúng
+# hoặc:  python3 -m pip install --user "numpy>=1.23.5,<2"
+```
+
+**(b) conda che `/usr/bin/python3` lúc build.** Nếu `~/miniconda3/bin` nằm trước
+`/usr/bin` trong `PATH` thì CMake bắt được python của conda, mà nó không có
+`catkin_pkg` -> `gim_arm_description` fail ngay ở `ament_package()`. Trước
+27/08/2026 lỗi này bị che vì `build/` được commit vào repo và `CMakeCache.txt`
+trong đó đã ghim `/usr/bin/python3` từ trước; nay `build/` không còn nằm trong
+git nên lần build sạch đầu tiên sẽ gặp.
+
+```bash
+conda deactivate                    # hoặc bỏ miniconda khỏi PATH cho shell build
+which python3                       # phải ra /usr/bin/python3
+```
+
+### 0.1 Build
+
 ```bash
 cd ~/git_gim_ws/GIM_Arm_3_DOF
 colcon build --symlink-install && source install/setup.bash
 ```
 
-`--symlink-install` đáng dùng: sửa URDF / YAML / file Python là có hiệu lực ngay,
-chỉ khi sửa C++ mới phải build lại.
+`--symlink-install` symlink URDF / mesh / YAML -> sửa là có hiệu lực ngay.
+NHƯNG **file `.py` của `gim_control` thì nó CHÉP, không symlink** (đã kiểm:
+`install/gim_control/lib/python3.10/site-packages/gim_control/*.py` là file
+thường). Nên sửa `tvlqr_controller.py` / `lqi_node.py` / `arm_dynamics.py` là
+**phải build lại**, giống như sửa C++.
 
 Kiểm tra plugin đúng là bản mới (phải ra số > 0):
 
@@ -23,6 +57,20 @@ strings install/gim_arm_hardware/lib/libgim_arm_system_hardware.so | grep -c Fee
 
 > `ls -la` trên file `.so` trong `install/` cho thấy ngày của **symlink**, không
 > phải của thư viện. Đừng dùng nó để kết luận build cũ hay mới.
+
+### 0.2 Một file thật, nhiều chỗ dùng
+
+`kinematics_test/` giữ file THẬT của 6 module dùng chung
+(`arm_dynamics.py`, `lqi_controller.py`, `tvlqr_controller.py`,
+`gim_arm_kinematics.py`, `shapes.py`, `sweep_trajectory.py`);
+`src/gim_arm_control/gim_control/` chỉ có symlink trỏ về. Ngược lại
+`kinematics_test/gim_arm.urdf` và `kinematics_test/meshes` là symlink trỏ vào
+`src/gim_arm_description/`. Đừng thay symlink bằng `cp` -- đó đúng là cơ chế đã
+làm URDF trôi lệch 10 ngày giữa hai thư mục.
+
+`build/`, `install/`, `log/`, `gim_arm_mujoco.urdf`, `gim_arm.xml`,
+`trajectory.mat` đều là file **tự sinh** và đã nằm trong `.gitignore` từ
+27/08/2026. Đừng commit lại.
 
 ---
 

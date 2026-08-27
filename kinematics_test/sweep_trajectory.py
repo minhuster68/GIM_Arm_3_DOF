@@ -1,7 +1,7 @@
 """
 sweep_trajectory.py — ĐỊNH NGHĨA DUY NHẤT của quỹ đạo quét trước mặt người
-đeo, dùng chung cho cả mô phỏng MuJoCo (test_sweep_mujoco.py) lẫn robot thật
-(draw_trajectory.py / origin_draw_trajectory.py).
+đeo, dùng chung cho CẢ BA đường: PID (origin_draw_trajectory.py), mô-men/LQR
+(lqi_node.py), và bàn so sánh trong mô phỏng (compare_pid_lqi.py).
 
 Để chung 1 chỗ vì đây là quỹ đạo chạy trên thiết bị ĐEO VÀO NGƯỜI: nếu tham
 số bị chép ra 2-3 nơi rồi sửa lệch nhau, cái đã kiểm chứng trong mô phỏng sẽ
@@ -16,7 +16,15 @@ vùng phía trước đều fail IK). Xem shapes.shoulder_sweep().
 
 import numpy as np
 
-from shapes import shoulder_sweep, discretize
+# Import chịu được CẢ HAI chỗ gọi, để file này chỉ tồn tại MỘT bản:
+#   . chạy như module của package ROS  -> gim_control.shapes
+#   . chạy trực tiếp trong kinematics_test/ -> shapes
+# Trước 27/08/2026 hai thư mục giữ 2 bản chép tay chỉ khác đúng dòng này, tức là
+# đúng cái cơ chế trôi lệch đã làm URDF lệch 10 ngày. Giờ gim_control/ là symlink.
+try:
+    from gim_control.shapes import shoulder_sweep, discretize
+except ImportError:
+    from shapes import shoulder_sweep, discretize
 
 # Tâm quay vai trong hệ world, đọc thẳng từ mô hình (data.xanchor của
 # base_joint trong MuJoCo), không ước lượng bằng mắt.

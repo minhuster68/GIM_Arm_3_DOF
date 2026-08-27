@@ -24,15 +24,25 @@
 
   <link name="base_link">
     <inertial>
-      <origin xyz="0.27344094303007 0.27938715952061 0.510149299908653" rpy="0 0 0" />
-      <mass value="6.66855777151619" />
+      <!-- ĐỒNG BỘ 27/08/2026 theo matlab (robot urdf_ver2, export SolidWorks
+           23/08/2026). KHÔNG ảnh hưởng động lực học: base_link là link GỐC và bị
+           hàn cứng xuống world, nên Pinocchio/MuJoCo bỏ qua quán tính của nó.
+           Vẫn đổi vì bản cũ TỰ MÂU THUẪN với chính mesh của nó: tâm khối khai
+           (0.27344, 0.27939, 0.51015) so với tâm hình học đo được từ
+           base_link.STL (0.27325, -0.50967, 0.27946) là lệch đúng một phép quay
+           +90 độ quanh trục x (kiểm cả 6 phần tử ma trận quán tính: iyy<->izz,
+           ixy<->ixz, iyz đổi dấu). Tức khối <inertial> cũ đến từ một lần export
+           có khung base_link khác, không phải từ mesh đang nằm trong repo.
+           Bản matlab khớp tâm hình học tới 0.5 mm. -->
+      <origin xyz="0.269439843183932 -0.510305429832032 0.28864640978465" rpy="0 0 0" />
+      <mass value="6.78071383810195" />
       <inertia
-        ixx="0.292932757999248"
-        ixy="2.42532565985983E-05"
-        ixz="1.4908094022849E-05"
-        iyy="0.157532051318604"
-        iyz="-0.0223597784843357"
-        izz="0.31549969202859" />
+        ixx="0.292982115231117"
+        ixy="-1.48741255187693E-05"
+        ixz="2.42892432158613E-05"
+        iyy="0.315548948805223"
+        iyz="0.0223532567301581"
+        izz="0.157616658426692" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -53,15 +63,29 @@
 
   <link name="shoulder_link">
     <inertial>
-      <origin xyz="-0.166448794327975 0.0056887985806402 -0.0172848581490532" rpy="0 0 0" />
-      <mass value="0.190732966677201" />
+      <!-- ĐỒNG BỘ 27/08/2026 theo matlab. ĐÂY LÀ THAY ĐỔI ĐỘNG LỰC HỌC LỚN
+           NHẤT của lần sync này: khối lượng 190.7 g -> 78.5 g (2.43 lần).
+           Lệch THẬT, không phải khác hệ quy chiếu -- đã đo thể tích trực tiếp từ
+           2 file STL: 190.58 cm3 (bản cũ, 24390 tam giác) so với 78.50 cm3 (bản
+           matlab, 3418 tam giác), đúng tỉ lệ 2.428 bằng tỉ lệ khối lượng. Bản cũ
+           dài hơn 4 cm theo trục x. Mỗi bản đều TỰ KHỚP với mesh của nó (tâm
+           khối lệch tâm hình học < 0.1 mm ở cả hai), nên đây là hai PHIÊN BẢN CAD
+           khác nhau của cùng chi tiết, không phải lỗi quy chiếu.
+           CẢNH BÁO: cả hai bản đều ra khối lượng riêng đúng 1.000 g/cm3
+           (78.544/78.50 và 190.733/190.58) -- dấu hiệu SolidWorks đang dùng vật
+           liệu mặc định (nước) cho chi tiết này, ở CẢ HAI lần export. Nên khối
+           lượng shoulder_link là số YẾU NHẤT trong URDF, cần cân thật rồi khai
+           lại; các link khác không có dấu hiệu này (upper_arm 1.466 g/cm3,
+           lower_arm 1.318 g/cm3, base 1.016 g/cm3). -->
+      <origin xyz="-0.12809 -0.0029768 -0.047288" rpy="0 0 0" />
+      <mass value="0.078544" />
       <inertia
-        ixx="0.000205948851297408"
-        ixy="-2.38990127172075E-07"
-        ixz="7.27163071554151E-05"
-        iyy="0.000237074859368272"
-        iyz="-8.24496296171646E-07"
-        izz="0.000153162765676654" />
+        ixx="0.00012089"
+        ixy="1.2041E-05"
+        ixz="7.2401E-05"
+        iyy="0.0001867"
+        iyz="-1.3727E-05"
+        izz="0.00010536" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -112,6 +136,32 @@
 
   <link name="upper_arm_link">
     <inertial>
+      <!-- 27/08/2026 -- GIỮ NGUYÊN THEO ROS, KHÔNG lấy theo matlab. Đây là chỗ
+           DUY NHẤT lần sync này đi khác kế hoạch ban đầu, vì có bằng chứng số:
+
+           <origin> của <inertial> là TÂM KHỐI, với chi tiết đặc thì nó phải nằm
+           rất gần TÂM HÌNH HỌC của mesh cùng khung. Đo trực tiếp từ 2 file STL:
+                            |COM - tâm hình học|    COM có trong hộp bao mesh?
+             bản ROS                   8.5 mm                 CÓ
+             bản matlab               36.9 mm                 CÓ
+           Khối lượng riêng của cả 2 bản GIỐNG NHAU tới 3 chữ số (1.466 g/cm3) và
+           thể tích mesh trùng tới 0.01 cm3 -> chắc chắn cùng chi tiết, cùng vật
+           liệu, nên TÂM KHỐI VẬT LÝ phải là một điểm. Hai file khai hai điểm
+           khác nhau (cách nhau 55 mm khi quy về khung world ở cùng tư thế), nên
+           đúng một trong hai sai; bản khớp mesh tốt hơn 4.3 lần là bản ROS.
+           Xem thêm lower_arm_link -- ở đó bản matlab SAI RÕ RÀNG (COM nằm NGOÀI
+           hộp bao mesh), cùng một kiểu lỗi, nên không phải trùng hợp.
+
+           KHÔNG cần quay lại theo khung mới: đã kiểm bằng số rằng hai URDF chỉ
+           lệch nhau ĐIỂM 0 của shoulder/elbow (FK_moi(q) == FK_cu(q+delta) với
+           delta = [0, 0.357, 0.479] rad, sai số 5e-10) -- tức khung link là MỘT,
+           chỉ tham số hoá khác. Nên <inertial> chép sang nguyên vẹn là đúng.
+
+           Bản matlab, giữ lại để đối chiếu nếu sau này cân/đo lại thấy nó đúng:
+             <origin xyz="-0.071952 0.095449 -0.072076" rpy="0 0 0" />
+             <mass value="1.1556" />
+             ixx 0.0040135  ixy -0.00040368  ixz -0.00142
+             iyy 0.0052121  iyz -0.00043608  izz 0.0017698           -->
       <origin xyz="-0.020736655172626 0.102615712569984 -0.0918424005027231" rpy="0 0 0" />
       <mass value="1.15563310050408" />
       <inertia
@@ -140,8 +190,14 @@
   </link>
 
   <joint name="shoulder_joint" type="revolute">
-    <origin xyz="-0.049966 0.001555 0.00099995" rpy="-1.375708549 0.010247217 1.396947503" />
-        <!-- <origin xyz="-0.049966 0.001555 0.00099995" rpy="-1.3842 -0.058173 1.7475" /> -->
+    <!-- ĐỒNG BỘ 27/08/2026: rpy lấy theo matlab, tức HOÀN NGUYÊN đợt sửa tay
+         12-13/08. Bằng chứng đây là hoàn nguyên chứ không phải thay đổi mới:
+         src/gim_arm_mujoco/gim_arm_mujoco.urdf (bản đóng băng TRƯỚC 12/8) đang
+         khai đúng rpy này. Giá trị sửa tay bị bỏ giữ lại trong comment dưới.
+         axis GIỮ THEO ROS (xem <axis> bên dưới), KHÔNG lấy theo matlab. -->
+    <origin xyz="-0.049966 0.001555 0.00099995" rpy="-1.3842 -0.058173 1.7475" />
+        <!-- bản sửa tay 12-13/08, ĐÃ BỎ:
+             <origin xyz="-0.049966 0.001555 0.00099995" rpy="-1.375708549 0.010247217 1.396947503" /> -->
     <parent link="shoulder_link" />
     <child link="upper_arm_link" />
     <axis xyz="0 -1 0" />
@@ -154,6 +210,25 @@
 
   <link name="lower_arm_link">
     <inertial>
+      <!-- 27/08/2026 -- GIỮ NGUYÊN THEO ROS, KHÔNG lấy theo matlab. Bản matlab
+           SAI, không phải "khác hệ quy chiếu":
+             . tâm khối matlab (0.053586, 0.21808, 0.029711) cách TÂM HÌNH HỌC
+               của chính mesh matlab 243.9 mm, và NẰM NGOÀI hộp bao mesh
+               (46 x 17 x 21 cm). Tâm khối của một chi tiết đặc không thể nằm
+               ngoài chi tiết đó.
+             . bản ROS: cách tâm hình học 19.7 mm, nằm trong hộp bao -> hợp lý.
+             . cả 2 bản cùng khối lượng riêng 1.318 g/cm3 và thể tích mesh lệch
+               0.03 cm3 -> cùng chi tiết, cùng vật liệu.
+           Đây là link ẢNH HƯỞNG G(q) MẠNH NHẤT: nếu lấy theo matlab thì tâm khối
+           cẳng tay dịch 247 mm trong khung world, làm G lệch tới 2.03 Nm ở CẢ
+           shoulder VÀ elbow -- cỡ 84% |G| đỉnh dọc quỹ đạo. Tức lấy bừa theo
+           matlab là phá đúng cái mô hình trọng lực đã hiệu chỉnh bằng tay.
+
+           Bản matlab, giữ lại để đối chiếu:
+             <origin xyz="0.053586 0.21808 0.029711" rpy="0 0 0" />
+             <mass value="0.84674" />
+             ixx 0.0011598  ixy -0.00049096  ixz 0.00016408
+             iyy 0.0011338  iyz 0.00023849   izz 0.0017743            -->
       <origin xyz="0.185270162663334 0.00970989472364725 0.0463325988746627" rpy="0 0 0" />
       <mass value="0.846776609767109" />
       <inertia
@@ -182,8 +257,11 @@
   </link>
 
   <joint name="elbow_joint" type="revolute">
-    <origin xyz="-0.014232 0 -0.21358" rpy="1.570809721 1.469492654 -3.141575913" />
-        <!-- <origin xyz="-0.014232 0 -0.21358" rpy="-1.5708 1.1931 0" /> -->
+    <!-- ĐỒNG BỘ 27/08/2026: rpy lấy theo matlab = hoàn nguyên đợt sửa tay
+         12-13/08, xem chú thích ở shoulder_joint. -->
+    <origin xyz="-0.014232 0 -0.21358" rpy="-1.5708 1.1931 0" />
+        <!-- bản sửa tay 12-13/08, ĐÃ BỎ:
+             <origin xyz="-0.014232 0 -0.21358" rpy="1.570809721 1.469492654 -3.141575913" /> -->
     <parent link="upper_arm_link" />
     <child link="lower_arm_link" />
     <axis xyz="0 0 -1" />

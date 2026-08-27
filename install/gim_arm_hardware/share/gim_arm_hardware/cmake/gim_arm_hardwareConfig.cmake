@@ -1,1 +1,0 @@
-/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_hardware/ament_cmake_core/gim_arm_hardwareConfig.cmake

@@ -592,6 +592,7 @@ class _NullCtx:
 def selftest(urdf_path, gains, node_id, step_rev, duration, input_mode):
     """Bơm một bước nhảy vị trí thẳng vào driver ảo rồi đo overshoot/settling
     — cùng chỉ số mà kinematics_test/step_response_test.py in ra trên máy
+    (script đó bỏ 27/08/2026)
     thật, nên hai bên so được với nhau."""
     sim = GimArmHardwareSim(urdf_path, can_interface=None, gains=gains)
     print("Cấu hình đọc từ URDF:")

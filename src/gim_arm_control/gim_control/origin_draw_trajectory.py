@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-draw_trajectory.py — cầu nối MỎNG duy nhất giữa gim_arm_kinematics.py (toán
+origin_draw_trajectory.py — cầu nối MỎNG duy nhất giữa gim_arm_kinematics.py (toán
 thuần, không ROS) và ROS 2 thật. Đóng gói chuỗi góc khớp thành
 FollowJointTrajectory rồi gửi qua action client.
 
@@ -8,9 +8,10 @@ Tự đọc vị trí khớp hiện tại qua /joint_states, tự chèn 1 đoạ
 về điểm đầu quỹ đạo vẽ trước khi vẽ thật. Có đồ thị REAL-TIME (actual vs
 desired, 3 khớp) cập nhật liên tục ngay trong lúc tay máy đang chạy.
 
-Quỹ đạo lấy từ gim_control/sweep_trajectory.py -- ĐÚNG file mà
-kinematics_test/test_sweep_mujoco.py dùng để mô phỏng, nên cái đã xem trong
-MuJoCo chính là cái chạy trên tay thật.
+Quỹ đạo lấy từ gim_control/sweep_trajectory.py -- ĐÚNG file mà nhánh mô-men
+(lqi_node.py) và bàn so sánh kinematics_test/compare_pid_lqi.py cũng dùng, nên
+PID và LQR/LQI bám cùng một quỹ đạo. gim_control/sweep_trajectory.py là symlink
+về kinematics_test/sweep_trajectory.py -- một file thật duy nhất.
 
 Đặt trong gim_control/gim_control/ (cùng chỗ với gim_arm_kinematics.py và
 shapes.py) -- import bên dưới dùng đúng đường dẫn package `gim_control.xxx`.

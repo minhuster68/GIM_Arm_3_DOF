@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/minh/git_gim_ws/GIM_Arm_3_DOF/build/gim_arm_description/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

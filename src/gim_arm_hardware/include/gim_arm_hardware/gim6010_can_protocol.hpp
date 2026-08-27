@@ -84,9 +84,12 @@ inline void pack_u32_le(uint8_t data[8], uint32_t field0, uint32_t field1 = 0) {
 // sai số thường trực e = v / pos_gain mới sinh ra được lệnh vận tốc -- đó là
 // nguồn trễ bám chính, và KHÔNG mất đi khi đổi input_mode. Điền Vel_FF khiến
 // vòng P không phải "kiếm" vận tốc từ sai số nữa; điền Torque_FF = G(q) khiến
-// nó không phải kiếm mô-men chống trọng lực từ sai số. Đo trong mô phỏng
-// (kinematics_test/compare_architectures.py): sai số đầu tay 2.066mm -> 0.437mm
-// khi thêm Vel_FF, -> 0.266mm khi thêm cả Torque_FF = G(q).
+// nó không phải kiếm mô-men chống trọng lực từ sai số. Đo trong mô phỏng: sai số
+// đầu tay 2.066mm -> 0.437mm khi thêm Vel_FF, -> 0.266mm khi thêm cả
+// Torque_FF = G(q). Script sinh ra 3 số này (kinematics_test/
+// compare_architectures.py) đã bỏ 27/08/2026; bảng đầy đủ còn trong
+// kinematics_test/LQI_README.md mục 5. Ba số đó đo trên URDF TRƯỚC đợt đồng bộ
+// 27/08/2026, phải đo lại nếu dùng làm số liệu báo cáo.
 inline int16_t encode_milli_i16(double x) {
   const double scaled = std::round(x * 1000.0);
   return static_cast<int16_t>(std::clamp(scaled, -32768.0, 32767.0));

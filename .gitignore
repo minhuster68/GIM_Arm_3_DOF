@@ -1,2 +1,25 @@
+# --- output cua colcon: KHONG BAO GIO commit ---
+# Truoc 27/08/2026 ba thu muc nay bi track (1113 file, 31 MB) -- moi lan build la
+# mot commit rac, va nhung .so/.o trong do khong tai lap duoc tu source nen chung
+# lam repo to ra ma khong them thong tin nao.
+build/
+install/
+log/
+
+# --- cache cua IDE / python ---
 .vscode/
 *.db
+__pycache__/
+*.py[cod]
+
+# --- file TU SINH, dung sinh lai bang script trong repo ---
+# gim_arm_mujoco.urdf / gim_arm.xml: mujoco_env.py va test_mujoco.py ghi de moi
+# lan chay (doi package:// -> duong dan tuong doi). Commit chung vao la de lech
+# voi gim_arm.urdf that.
+gim_arm_mujoco.urdf
+gim_arm.xml
+_tmp_gim_arm.xml
+_hl.xml
+_body_check.xml
+# export_mat.py sinh ra tu cache quy dao
+trajectory.mat

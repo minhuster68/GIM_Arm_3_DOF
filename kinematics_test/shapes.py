@@ -3,7 +3,9 @@ shapes.py — tham số hoá quỹ đạo hình học (task #5). Mỗi hình là
 path(t) -> np.array([x, y, z]), t chạy trong [0, 1].
 
 Mặt phẳng vẽ: vuông góc trục `plane` (một trong 'x','y','z'), cố định tại
-`plane_value`. Khớp đúng cách scan_workspace.py đã dùng để chọn vùng an toàn.
+`plane_value`. Khớp đúng cách scan_workspace.py đã dùng để chọn vùng an toàn
+(script đó bỏ 27/08/2026; vùng an toàn nó chọn ra nằm trong SWEEP của
+sweep_trajectory.py và trong BODY_BOXES mà safety_report() kiểm mỗi lần chạy).
 """
 
 import numpy as np

@@ -16,11 +16,22 @@ là bộ đang chạy trên tay máy.
 |---|---|
 | `arm_dynamics.py` | Mô hình Lagrange `M(q)q̈ + C(q,q̇)q̇ + G(q) = τ` lấy từ Pinocchio đọc URDF, cộng thêm quán tính rotor + ma sát. Có hàm tự kiểm chứng với MuJoCo. |
 | `lqi_controller.py` | Bộ LQI: tuyến tính hoá phản hồi + LQR có khâu tích phân, giải Riccati bằng `scipy`. |
+| `tvlqr_controller.py` | Bộ TVLQR: LQR biến thiên 9 trạng thái, giải Riccati lại ở từng điểm làm việc + feedforward nghịch động lực học. Cổng từ `setup_lqr.m` bên repo matlab. Mặc định của `lqi_node` từ 27/08/2026. |
 | `compare_pid_lqi.py` | Bàn so sánh PID cascade với LQI: cùng vật lý, cùng quỹ đạo, in bảng + vẽ đồ thị. |
-| `mit_mode.py` | Rã luật LQI thành 5 trường của `Mit_Control` (0x008), có mô phỏng lượng tử hoá 12 bit y như frame thật. |
-| `compare_architectures.py` | So 6 kiến trúc điều khiển để **chọn** cách đưa lên tay thật. |
-| `test_failsafe.py` | Mô phỏng máy chủ chết giữa chừng, đo tay trôi bao nhiêu ở từng chế độ. |
+| `mujoco_env.py` | Bọc MuJoCo: nạp URDF, thêm armature + actuator mô-men. |
 | `LQI_README.md` | Tài liệu này. |
+
+Đã bỏ ngày 27/08/2026 (số đo của chúng vẫn giữ trong tài liệu này, xem mục 5):
+`mit_mode.py`, `compare_architectures.py`, `test_failsafe.py` -- nhánh chế độ MIT
+chưa bao giờ kiểm chứng trên tay thật; và 8 script khảo sát 1 lần
+(`test_kinematics.py`, `test_shapes.py`, `test_work_space.py`,
+`test_draw_mujoco.py`, `test_sweep_mujoco.py`, `scan_workspace.py`,
+`draw_trajectory.py`, `step_response_test.py`) đã xong việc.
+
+`arm_dynamics.py`, `lqi_controller.py`, `gim_arm_kinematics.py`, `shapes.py`,
+`sweep_trajectory.py`, `tvlqr_controller.py` là file THẬT ở đây;
+`src/gim_arm_control/gim_control/` chỉ chứa symlink trỏ về. Trước 27/08 mỗi thứ
+có 2 bản chép tay -- đúng cơ chế trôi lệch đã làm URDF lệch 10 ngày.
 
 Chạy nhanh:
 
@@ -28,9 +39,8 @@ Chạy nhanh:
 cd kinematics_test
 python3 arm_dynamics.py           # tự kiểm mô hình với MuJoCo
 python3 lqi_controller.py         # tự kiểm bộ điều khiển + bảng ảnh hưởng trọng số
-python3 compare_pid_lqi.py        # PID vs LQI, xuất compare_pid_lqi.png
-python3 compare_architectures.py  # bảng chọn kiến trúc để lên tay thật
-python3 test_failsafe.py          # máy chủ chết thì tay làm gì
+python3 tvlqr_controller.py       # tự kiểm TVLQR + quét trọng số + ổn định rời rạc
+python3 compare_pid_lqi.py        # PID vs LQI, sinh compare_pid_lqi.png
 ```
 
 ---
@@ -291,8 +301,11 @@ python3 compare_pid_lqi.py --loops 3           # chạy 3 vòng, đo vòng 3
 
 ### Bảng quyết định
 
-Đo trên cùng quỹ đạo, cùng vật lý, cùng giới hạn mô-men (`compare_architectures.py`),
-kèm kết quả thử **máy chủ chết lúc t=5s** (`test_failsafe.py`):
+Đo trên cùng quỹ đạo, cùng vật lý, cùng giới hạn mô-men, kèm kết quả thử **máy
+chủ chết lúc t=5s**. Hai script sinh ra bảng này (`compare_architectures.py`,
+`test_failsafe.py`) đã bỏ ngày 27/08/2026; số giữ lại vì đây là căn cứ chọn
+kiến trúc, nhưng LƯU Ý chúng đo trên URDF TRƯỚC đợt đồng bộ 27/08 -- muốn dùng
+lại làm số liệu báo cáo thì phải đo lại.
 
 | Kiến trúc | Lệnh CAN | control / input mode | Sai số đầu tay | Máy chủ chết → tay trôi |
 |---|---|---|---|---|

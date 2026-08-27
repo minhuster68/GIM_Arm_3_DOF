@@ -4,10 +4,12 @@ lqi_node.py — chạy luật LQI trên tay thật, đẩy MÔ-MEN xuống phầ
 
 Đặt tại:  src/gim_arm_control/gim_control/lqi_node.py
 
-CẦN CÓ arm_dynamics.py và lqi_controller.py TRONG CÙNG PACKAGE:
+CẦN CÓ arm_dynamics.py, lqi_controller.py, tvlqr_controller.py TRONG CÙNG
+PACKAGE:
     cd src/gim_arm_control/gim_control
-    ln -s ../../../kinematics_test/arm_dynamics.py  arm_dynamics.py
-    ln -s ../../../kinematics_test/lqi_controller.py lqi_controller.py
+    ln -s ../../../kinematics_test/arm_dynamics.py    arm_dynamics.py
+    ln -s ../../../kinematics_test/lqi_controller.py  lqi_controller.py
+    ln -s ../../../kinematics_test/tvlqr_controller.py tvlqr_controller.py
 (symlink giữ MỘT file thật duy nhất -> 5 script trong kinematics_test/ vẫn chạy.
  Dùng `cp` cũng được, nhưng khi đó bạn có 2 bản sẽ trôi lệch dần.)
 
@@ -28,13 +30,34 @@ và mô-men LQI chỉ được cộng như feedforward vào vòng P -- tức đo
 KHÔNG PHẢI LQI.
 
 ===========================================================================
-BA CÁCH CHỌN HỆ SỐ -- tham số `tune_mode`
+BỐN CÁCH CHỌN HỆ SỐ -- tham số `tune_mode`
 ===========================================================================
-Cả ba cho ra cùng dạng K = [k_i, k_e, k_v] và cùng luật
+  "tvlqr"  (MẶC ĐỊNH TỪ 27/08/2026) -- KIẾN TRÚC KHÁC HẲN ba mode dưới, không
+      phải chỉ khác cách chọn số. Đây là bộ cổng từ repo matlab
+      (setup_lqr.m): LQR biến thiên, giải Riccati 9x9 LẠI Ở TỪNG ĐIỂM làm việc
+      trên hệ sai số CÓ XEN KÊNH giữa 3 khớp, cộng feedforward nghịch động lực
+      học. KHÔNG có bước tuyến tính hoá phản hồi.
+          τ = τ_ff(q_ref,q̇_ref,q̈_ref) - K(q_ref,q̇_ref)·[∫e; e; ė]
+      Trọng số theo luật Bryson (max_int_e / max_e / max_de / max_tau), xem
+      tvlqr_controller.py. Ba tham số riêng của mode này:
+        tau_penalty_scale  -- nhân vào R. MẶC ĐỊNH 512, KHÔNG phải 1.0 như
+             matlab: đã đo, bộ số nguyên bản của setup_lqr.m PHÂN KỲ khi rời
+             rạc hoá ở 100 Hz (|z|max = 23). Node sẽ TỪ CHỐI KHỞI ĐỘNG nếu
+             bộ trọng số bạn đặt phân kỳ, kèm số đo và cách sửa.
+        gravity_at_measured -- G(q) lấy ở tư thế ĐO ĐƯỢC (mặc định true) để
+             cơ chế gravity_scale của node này còn khử đúng. Đặt false để
+             chạy đúng kiểu matlab.
+        recompute_every -- tính lại K mỗi bao nhiêu chu kỳ. Mặc định 1; đo
+             được 0.52 ms/chu kỳ, tức 5% ngân sách 10 ms ở 100 Hz.
+      LƯU Ý KHI BÁO CÁO: trên phép thử mô phỏng cùng điều kiện, ở CÙNG băng
+      thông thì "weights" (bộ cũ) bám TỐT HƠN tvlqr. Đổi sang tvlqr là để dùng
+      đúng kiến trúc đã làm bên matlab, không phải vì nó bám tốt hơn.
+
+Ba mode dưới đây là bộ CŨ: cùng dạng K = [k_i, k_e, k_v] và cùng luật
     τ = M(q)·(q̈_ref - k_i∫e - k_e·e - k_v·ė) + C(q,q̇)q̇ + G(q)
 Chỉ khác CÁCH CHỌN 3 con số đó.
 
-  "omega_lqr"  (MẶC ĐỊNH) -- một nút vặn `omega`, nhưng đi qua Riccati thật.
+  "omega_lqr"  -- một nút vặn `omega`, nhưng đi qua Riccati thật.
       Q = diag(ω⁶, 3ω⁴, 3ω²),  R = 1   ->  K = [ω³, 3ω², 3ω]
       Đã kiểm: trùng với gán cực tới 1e-12. Nghĩa là "gán cực" chỉ là TRƯỜNG
       HỢP RIÊNG của LQR, không phải phương pháp khác.
@@ -71,9 +94,14 @@ MÁY TRẠNG THÁI
 ===========================================================================
 NĂM CHỐT AN TOÀN -- đừng nới cái nào cho lần chạy đầu
 ===========================================================================
-  tau_scale 0.30        KHÔNG thấp hơn: |G| đỉnh ở elbow là 1.518 Nm = 30.4%
-                        trần URDF. Thấp hơn thì tay không tự giữ nổi DÙ dấu
-                        mô-men đúng -> chẩn đoán sai thành lỗi dấu.
+  tau_scale 0.35        ĐỔI TỪ 0.30 NGÀY 27/08/2026. Đo lại |G| dọc ĐÚNG quỹ
+                        đạo quét trên URDF đã đồng bộ: đỉnh ở elbow 1.534 Nm =
+                        30.7% trần URDF (5 Nm), tức 0.30 cho trần 1.50 Nm --
+                        THIẾU 0.034 Nm, elbow không tự giữ nổi ở tư thế nặng
+                        nhất DÙ dấu mô-men đúng, và sẽ bị chẩn đoán sai thành
+                        lỗi dấu. tau_scale nhỏ nhất đủ cho cả 3 khớp là 0.307;
+                        0.35 để có dư địa 14%. base cần 0.153, shoulder 0.089.
+                        ĐỪNG hạ xuống dưới 0.31.
   max_track_error_rad   0.05 cho lần đầu. Nếu dấu mô-men sai thì vòng kín có
     0.05                cực dương +18.96 rad/s (ω=5): sai số gấp 10 sau 121 ms.
                         Ở 0.35 thì lúc abort bắt được, base đã có 6.0 rad/s.
@@ -102,11 +130,12 @@ from gim_control import sweep_trajectory
 from gim_control.arm_dynamics import ArmDynamics
 from gim_control.gim_arm_kinematics import GimArmKinematics
 from gim_control.lqi_controller import LqiController, LqiWeights
+from gim_control.tvlqr_controller import TvlqrController, TvlqrWeights
 
 WAIT, GRAVITY, APPROACH, TRACK, HOLD, ABORT = (
     "WAIT", "GRAVITY", "APPROACH", "TRACK", "HOLD", "ABORT")
 
-OMEGA_LQR, WEIGHTS, PLACE = "omega_lqr", "weights", "place"
+OMEGA_LQR, WEIGHTS, PLACE, TVLQR = "omega_lqr", "weights", "place", "tvlqr"
 
 
 # ----------------------------------------------------------------------
@@ -209,12 +238,23 @@ class LqiNode(Node):
         p("control_hz", 100.0)
 
         # --- chọn hệ số: xem docstring đầu file ---
-        p("tune_mode", WEIGHTS)       # weights | omega_lqr | place
+        p("tune_mode", TVLQR)        # tvlqr | weights | omega_lqr | place
         p("omega", 5.0)               # dùng cho omega_lqr và place
         p("q_int", 6.0e6)             # chỉ dùng khi tune_mode = weights
         p("q_pos", 1.5e5)
         p("q_vel", 1.0e3)
         p("r", 1.0)
+
+        # --- chỉ dùng khi tune_mode = tvlqr (luật Bryson, xem tvlqr_controller.py) ---
+        # max_tau rỗng -> lấy <limit effort> của URDF, đúng như setup_lqr.m ([5,40,5]).
+        p("max_int_e", [0.002, 0.002, 0.002])  # rad·s -- xem quét trong tvlqr_controller.py
+        p("max_e", [0.1, 0.1, 0.1])            # rad     (như matlab)
+        p("max_de", [2.0, 2.0, 2.0])           # rad/s   (như matlab)
+        p("max_tau", [0.0, 0.0, 0.0])          # Nm, toàn 0 = lấy theo URDF
+        p("tau_penalty_scale", 512.0)          # matlab = 1.0 -> PHÂN KỲ ở 100 Hz
+        p("gravity_at_measured", True)
+        p("recompute_every", 1)
+        p("require_discrete_stable", True)
 
         # gravity_scale: nhân vào G(q) trước khi gửi xuống, RIÊNG TỪNG KHỚP.
         #
@@ -234,7 +274,7 @@ class LqiNode(Node):
         p("friction_ff", False)
 
         # --- an toàn ---
-        p("tau_scale", 0.30)
+        p("tau_scale", 0.35)   # xem "NĂM CHỐT AN TOÀN" ở docstring: 0.30 THIẾU
         p("max_track_error_rad", 0.05)
         p("joint_margin_rad", 0.05)
         p("state_timeout", 0.25)
@@ -305,6 +345,31 @@ class LqiNode(Node):
                   i_limit=float(g("i_limit").value), tau_limit=self.tau_lim)
         log = self.get_logger()
 
+        if mode == TVLQR:
+            mt = np.asarray(g("max_tau").value, dtype=float)
+            weights = TvlqrWeights(
+                max_int_e=np.asarray(g("max_int_e").value, dtype=float),
+                max_e=np.asarray(g("max_e").value, dtype=float),
+                max_de=np.asarray(g("max_de").value, dtype=float),
+                max_tau=None if np.all(mt <= 0.0) else mt,
+                tau_penalty_scale=float(g("tau_penalty_scale").value))
+            log.info(
+                f"tune_mode = tvlqr (LQR biến thiên, kiến trúc setup_lqr.m)\n"
+                f"  -> Bryson: max_int_e={np.round(weights.max_int_e, 4)} rad·s, "
+                f"max_e={np.round(weights.max_e, 4)} rad, "
+                f"max_de={np.round(weights.max_de, 3)} rad/s\n"
+                f"  -> max_tau={'theo URDF ' + str(np.round(self.dyn.tau_max, 2)) if weights.max_tau is None else np.round(weights.max_tau, 3)} Nm"
+                f"  x tau_penalty_scale={weights.tau_penalty_scale:g}\n"
+                f"  -> giải Riccati 9x9 LẠI mỗi {int(g('recompute_every').value)} chu kỳ\n"
+                f"  BỎ QUA: omega, q_int, q_pos, q_vel, r trong yaml")
+            return TvlqrController(
+                self.dyn, weights=weights,
+                i_limit=float(g("i_limit").value), tau_limit=self.tau_lim,
+                control_hz=1.0 / self.dt_nom,
+                gravity_at_measured=bool(g("gravity_at_measured").value),
+                recompute_every=int(g("recompute_every").value),
+                require_discrete_stable=bool(g("require_discrete_stable").value))
+
         if mode == OMEGA_LQR:
             if w <= 0.0:
                 raise ValueError(f"tune_mode=omega_lqr cần omega > 0, đang là {w}")
@@ -344,7 +409,7 @@ class LqiNode(Node):
 
         raise ValueError(
             f"tune_mode = '{mode}' không hợp lệ. Chọn một trong: "
-            f"'{OMEGA_LQR}', '{WEIGHTS}', '{PLACE}'.")
+            f"'{TVLQR}', '{OMEGA_LQR}', '{WEIGHTS}', '{PLACE}'.")
 
     def gravity_scale(self):
         """Đọc lại mỗi chu kỳ để đổi được lúc đang chạy."""
@@ -363,11 +428,17 @@ class LqiNode(Node):
                             "urdf", "gim_arm.urdf")
 
     def check_i_limit(self, il):
-        # np.maximum.reduce, KHÔNG phải max(): max() so cả MẢNG -> ValueError.
-        M = np.maximum.reduce([np.diag(self.dyn.mass_matrix(q)) for q in
-                               (self.dyn.q_min, self.dyn.q_max,
-                                (self.dyn.q_min + self.dyn.q_max) / 2)])
-        kick = self.ctrl.K[:, 0] * il * M
+        # K của TvlqrController đã có đơn vị Nm (B = [0;0;M⁻¹]), KHÔNG phải đơn
+        # vị gia tốc như LqiController (τ = M·u) -- nên công thức K[:,0]*il*M_ii
+        # sai hẳn thứ nguyên ở bộ mới. Bộ mới tự khai integral_kick().
+        if hasattr(self.ctrl, "integral_kick"):
+            kick = self.ctrl.integral_kick(il)
+        else:
+            # np.maximum.reduce, KHÔNG phải max(): max() so cả MẢNG -> ValueError.
+            M = np.maximum.reduce([np.diag(self.dyn.mass_matrix(q)) for q in
+                                   (self.dyn.q_min, self.dyn.q_max,
+                                    (self.dyn.q_min + self.dyn.q_max) / 2)])
+            kick = self.ctrl.K[:, 0] * il * M
         if np.any(kick > 0.5 * self.tau_lim):
             self.get_logger().warn(
                 f"i_limit={il} cho phép RIÊNG khâu tích phân ra lệnh "

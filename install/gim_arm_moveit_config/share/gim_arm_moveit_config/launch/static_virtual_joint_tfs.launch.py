@@ -1,1 +1,0 @@
-/home/minh/git_gim_ws/GIM_Arm_3_DOF/src/gim_arm_moveit_config/launch/static_virtual_joint_tfs.launch.py
