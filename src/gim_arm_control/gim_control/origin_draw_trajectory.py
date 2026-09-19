@@ -66,8 +66,10 @@ class DrawTrajectoryNode(Node):
 
     def send_trajectory(
         self, joint_names, q_list, dt: float, transition_time: float = 3.0,
-        live_plot: bool = True,
+        return_time: float = 3.0, live_plot: bool = True,
     ):
+        if return_time <= 0.0:
+            raise ValueError("return_time phải > 0")
         current_q = self.get_current_joint_positions(joint_names)
         self.get_logger().info(f"Vị trí hiện tại: {[round(x, 4) for x in current_q]}")
         self.get_logger().info(
@@ -77,34 +79,67 @@ class DrawTrajectoryNode(Node):
         goal = FollowJointTrajectory.Goal()
         goal.trajectory.joint_names = joint_names
 
+        # Profile chung q/qd/qdd: một vòng khép kín, tăng tốc và giảm tốc theo
+        # minimum-jerk nên vận tốc/gia tốc đều bằng 0 ở đầu và cuối.
+        profile = sweep_trajectory.SmoothJointProfile(q_list, dt)
+        path_t, path_q, path_qd, path_qdd = profile.sample(dt)
+
         pt0 = JointTrajectoryPoint()
         pt0.positions = [float(x) for x in current_q]
+        pt0.velocities = [0.0] * len(joint_names)
+        pt0.accelerations = [0.0] * len(joint_names)
         pt0.time_from_start = Duration(sec=0, nanosec=0)
         goal.trajectory.points.append(pt0)
 
         desired_t = [0.0]
         desired_q = [list(current_q)]
 
-        pt1 = JointTrajectoryPoint()
-        pt1.positions = [float(x) for x in q_list[0]]
-        sec = int(transition_time)
-        nsec = int((transition_time - sec) * 1e9)
-        pt1.time_from_start = Duration(sec=sec, nanosec=nsec)
-        goal.trajectory.points.append(pt1)
-        desired_t.append(transition_time)
-        desired_q.append(list(q_list[0]))
-
-        t = transition_time + dt
-        for q in q_list[1:]:
+        for path_time, q, qd, qdd in zip(path_t, path_q, path_qd, path_qdd):
             pt = JointTrajectoryPoint()
             pt.positions = [float(x) for x in q]
+            pt.velocities = [float(x) for x in qd]
+            pt.accelerations = [float(x) for x in qdd]
+            t = transition_time + float(path_time)
             sec = int(t)
             nsec = int((t - sec) * 1e9)
             pt.time_from_start = Duration(sec=sec, nanosec=nsec)
             goal.trajectory.points.append(pt)
             desired_t.append(t)
             desired_q.append(list(q))
-            t += dt
+
+        # Sau khi khép vòng tại q_list[0], quay về đúng tư thế đã đọc trước
+        # khi chạy. Bậc 5 bảo đảm qdot=qddot=0 ở cả hai đầu, nên đoạn nối không
+        # tạo bước nhảy vận tốc hoặc gia tốc. Bỏ mẫu đầu vì nó trùng thời gian
+        # với điểm cuối của profile phía trên.
+        n_return = max(1, int(np.ceil(return_time / dt)))
+        return_t = np.linspace(0.0, return_time, n_return + 1)
+        u = return_t / return_time
+        h = 10.0 * u**3 - 15.0 * u**4 + 6.0 * u**5
+        hd = (30.0 * u**2 - 60.0 * u**3 + 30.0 * u**4) / return_time
+        hdd = (60.0 * u - 180.0 * u**2 + 120.0 * u**3) / return_time**2
+        q_return_start = np.asarray(path_q[-1], dtype=float)
+        dq_return = np.asarray(current_q, dtype=float) - q_return_start
+
+        for rt, hs, hds, hdds in zip(return_t[1:], h[1:], hd[1:], hdd[1:]):
+            q = q_return_start + hs * dq_return
+            qd = hds * dq_return
+            qdd = hdds * dq_return
+            pt = JointTrajectoryPoint()
+            pt.positions = [float(x) for x in q]
+            pt.velocities = [float(x) for x in qd]
+            pt.accelerations = [float(x) for x in qdd]
+            t = transition_time + profile.duration + float(rt)
+            sec = int(t)
+            nsec = int((t - sec) * 1e9)
+            pt.time_from_start = Duration(sec=sec, nanosec=nsec)
+            goal.trajectory.points.append(pt)
+            desired_t.append(t)
+            desired_q.append(list(q))
+
+        self.get_logger().info(
+            f"Profile minimum-jerk: {profile.duration:.1f}s, "
+            f"sau đó về tư thế ban đầu trong {return_time:.1f}s."
+        )
 
         desired_q_arr = np.array(desired_q)
 
@@ -233,7 +268,8 @@ class DrawTrajectoryNode(Node):
         refresh_plot(force=True)
 
         self.print_tracking_error(
-            joint_names, ctrl_err_t, ctrl_err_q, t_start[0], transition_time)
+            joint_names, ctrl_err_t, ctrl_err_q, t_start[0], transition_time,
+            profile.duration)
 
         if live_plot:
             print("Vẽ xong -- đóng cửa sổ đồ thị để kết thúc chương trình.")
@@ -242,7 +278,10 @@ class DrawTrajectoryNode(Node):
 
         return result.error_code == 0
 
-    def print_tracking_error(self, joint_names, err_t, err_q, t_start, transition_time):
+    def print_tracking_error(
+        self, joint_names, err_t, err_q, t_start, transition_time,
+        trajectory_duration,
+    ):
         """In SỐ ĐO sai số bám, lấy thẳng từ trường `error` của JTC.
 
         Không có con số thì không tune được: mắt không phân biệt nổi 0.44mm với
@@ -265,7 +304,9 @@ class DrawTrajectoryNode(Node):
         t = np.array(err_t)
         e = np.array(err_q)
         if t_start is not None:
-            keep = (t - t_start) >= transition_time
+            relative_t = t - t_start
+            keep = ((relative_t >= transition_time)
+                    & (relative_t <= transition_time + trajectory_duration))
             if keep.sum() >= 10:
                 t, e = t[keep], e[keep]
 
@@ -305,7 +346,8 @@ def main():
     q_list = [r.q for r in results]
     node.send_trajectory(
         kin.joint_names, q_list, dt=sweep_trajectory.DT,
-        transition_time=sweep_trajectory.TRANSITION_TIME, live_plot=True,
+        transition_time=sweep_trajectory.TRANSITION_TIME,
+        return_time=sweep_trajectory.RETURN_TIME, live_plot=True,
     )
 
     node.destroy_node()

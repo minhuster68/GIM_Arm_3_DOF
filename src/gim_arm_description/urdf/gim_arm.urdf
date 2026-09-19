@@ -170,8 +170,9 @@
     <param name="can_interface">can0</param>
 
     <!-- Feedforward cho Set_Input_Pos (0x00C), chỉ có tác dụng ở CHẾ ĐỘ VỊ TRÍ.
-         Phải để false khi lấy số nền PID, vì 3 lần chạy nền đã đo với false. -->
-    <param name="velocity_feedforward">false</param>
+         Đang bật để qdot của profile minimum-jerk được truyền xuống Vel_FF.
+         Đặt lại false khi cần tái lập các lần đo nền PID cũ. -->
+    <param name="velocity_feedforward">true</param>
     <param name="gravity_feedforward">false</param>
     <param name="effort_stale_cycles">50</param>
 

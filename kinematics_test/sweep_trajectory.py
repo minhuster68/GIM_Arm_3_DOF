@@ -15,59 +15,18 @@ vùng phía trước đều fail IK). Xem shapes.shoulder_sweep().
 """
 
 import numpy as np
+from scipy.interpolate import CubicSpline
 
-# Import chịu được CẢ HAI chỗ gọi, để file này chỉ tồn tại MỘT bản:
-#   . chạy như module của package ROS  -> gim_control.shapes
-#   . chạy trực tiếp trong kinematics_test/ -> shapes
-# Trước 27/08/2026 hai thư mục giữ 2 bản chép tay chỉ khác đúng dòng này, tức là
-# đúng cái cơ chế trôi lệch đã làm URDF lệch 10 ngày. Giờ gim_control/ là symlink.
 try:
     from gim_control.shapes import shoulder_sweep, discretize
 except ImportError:
     from shapes import shoulder_sweep, discretize
 
-# Tâm quay vai trong hệ world, đọc thẳng từ mô hình (gốc khớp base_joint trong
-# khung base_footprint), không ước lượng bằng mắt.
-#
-# CẬP NHẬT 27/08/2026: bộ số cũ (0.031, -0.538, 0.606) đọc khi
-# base_footprint_to_base_link còn để rpy = 0.083. Góc đó đã đo lại thành 0.073
-# (xem chú thích trong gim_arm.urdf), nên tâm quay dịch 7.8 mm. Số dưới đây đọc
-# lại từ chính mô hình sau khi đổi:
-#     python3 -c "import pinocchio as pin, numpy as np
-#     from arm_dynamics import ArmDynamics
-#     d=ArmDynamics('gim_arm.urdf'); pin.forwardKinematics(d.model,d.data,np.zeros(3))
-#     print(d.data.oMi[1].translation)"
-# ĐỔI LẠI MỖI LẦN đổi rpy của base_footprint_to_base_link, nếu không quỹ đạo quét
-# sẽ quay quanh một tâm không phải tâm vai thật.
+
 SHOULDER_PIVOT = (0.031381, -0.532211, 0.611271)
 
 TOOL_OFFSET = (0.4031, 0.049, -0.029)
 
-# ĐO LẠI GIỚI HẠN KHỚP 19/08/2026 -> QUỸ ĐẠO CŨ KHÔNG CÒN DÙNG ĐƯỢC.
-# Giới hạn thật đo bằng encoder (xem <limit> trong gim_arm.urdf) chặt hơn số
-# cũ rất nhiều ở base_joint: trần 1.0226 rad thay vì 1.57. Bộ tham số cũ
-# (radius 0.56, az_center 30, az_amp 26) đẩy base_joint lên đúng 1.0226 --
-# CHẠM TRẦN, margin 0.000 rad, 8/90 điểm IK không hội tụ, sai số 9.9mm.
-# Đừng khôi phục lại bộ số đó.
-#
-# Bộ tham số dưới đây là kết quả quét tìm kiếm có ràng buộc trên giới hạn MỚI,
-# không phải số ước lượng. Ràng buộc:
-#   - IK hội tụ toàn bộ, sai số <= 0.1mm
-#   - cond(J) < 10.5 (tránh singularity)
-#   - cách giới hạn khớp >= 0.10 rad
-#   - đầu tay hở >= 8cm so với hộp bao người ngồi + ghế (BODY_BOXES bên dưới)
-#   - tầm vận động vai nằm trong vùng KHÔNG ĐAU cho người đeo:
-#       el <= +10 độ  -> không nâng tay cao hơn vai (tránh chạm mỏm cùng vai)
-#       el >= -28 độ  -> hạ xuống vừa phải, không thúc vào đùi
-#       az  -30..+46 độ -> khép/dang ngang trong tầm sinh lý
-# Bản quét đầu tiên cho ra 68cm rộng -- xem trong MuJoCo thấy TO QUÁ so với nhu
-# cầu thật, nên đã thu biên độ góc còn 80% (az_amp 38->30.4, el_amp 17->13.6).
-# radius_amp GIỮ NGUYÊN 0.04 chứ không thu theo: nó không làm quỹ đạo trông to
-# hơn (chiều sâu 8.4cm so với 8.2cm nếu thu) nhưng giữ được biên độ khuỷu 36.8
-# độ thay vì tụt còn 30 độ. Thu cả 3 thì mất biên độ khuỷu mà chẳng nhỏ thêm.
-# Kết quả: 56cm rộng x 22cm cao x 8cm sâu, cond 8.4, margin 0.218 rad,
-# hở đùi/ghế 14.1cm. Biên độ khớp: base 64.6 / shoulder 37.4 / elbow 36.8 độ
-# (bộ cũ chỉ 52.8 / 19.7 / 12.3 -- vẫn rộng hơn ở CẢ BA khớp dù đã thu 20%).
 SWEEP = dict(
     pivot=SHOULDER_PIVOT,
     radius=0.52,         # độ vươn tay (m) -- lùi từ 0.56 về giữa vỏ cầu tầm
@@ -76,7 +35,7 @@ SWEEP = dict(
     az_center_deg=8.0,   # tâm quét ngang, 0 = thẳng trước mặt, + = sang phải.
                          # Kéo từ 30 về 8: giới hạn base_joint mới cắt mất phía
                          # phải, dư địa còn lại nằm ở phía trong (az âm)
-    el_center_deg=-8.0,  # tâm quét dọc, - = thấp hơn vai
+    el_center_deg=-12.0, # hạ tâm quét thêm 4 độ (~3.2 cm tại bán kính 0.52 m)
     az_amp_deg=30.4,     # biên độ ngang -> quét az -22..+38 độ
     el_amp_deg=13.6,     # biên độ dọc  -> quét el -22..+6 độ
     radius_amp=0.04,     # "thở" độ vươn +-4cm -> KHUỶU cũng có biên độ thật
@@ -87,23 +46,13 @@ SWEEP = dict(
 N_POINTS = 90        # số điểm 1 vòng
 DT = 0.3             # giây giữa 2 điểm -> 1 vòng ~27s
 TRANSITION_TIME = 5.0  # giây để đi êm từ tư thế hiện tại về điểm đầu quỹ đạo
+RETURN_TIME = 5.0      # giây để đi êm từ cuối quỹ đạo về lại tư thế ban đầu
 
 # Ngưỡng an toàn khi chạy trên tay thật
 MAX_ERR_MM = 0.1
 MAX_COND = 15.0
 MIN_JOINT_MARGIN_RAD = 0.05
 
-# Hộp bao NGƯỜI NGỒI + GHẾ trong hệ world (m). TRƯỚC ĐÂY chỉ tồn tại dưới dạng
-# comment "đầu tay hở >= 8cm so với hộp bao ghế + người ngồi" -- tức là KHÔNG hề
-# được kiểm, ai sửa tham số SWEEP cũng không có gì chặn lại. Đưa thành số thật ở
-# đây để safety_report() kiểm được, vì đây là ràng buộc duy nhất mà IK/cond/
-# giới hạn khớp đều không nhìn thấy: quỹ đạo hoàn toàn hợp lệ về mặt động học
-# vẫn có thể đập thẳng vào mặt hoặc vào đùi người ngồi.
-#
-# Dựng từ 3 mốc đã có sẵn trong repo, không phải đo người thật:
-#   vai (0.031, -0.538, 0.606) | mặt ngồi z = 0.145 | mép trước ghế y = -0.215
-# Người ngồi quay mặt theo +Y. NẾU ĐỔI GHẾ hoặc đổi vóc người thì sửa lại đây
-# TRƯỚC khi chạy, đừng nới ngưỡng MIN_BODY_CLEARANCE_M.
 BODY_BOXES = {
     # thân + đầu: mặt trước ngực ~10cm trước tâm khớp vai
     "thân/đầu": dict(x=(-0.28, 0.34), y=(-0.85, -0.42), z=(0.28, 0.95)),
@@ -114,12 +63,69 @@ BODY_BOXES = {
 }
 MIN_BODY_CLEARANCE_M = 0.08
 
-# Tốc độ khớp tối đa cho phép, tính theo TỈ LỆ so với <limit velocity> của
-# từng khớp trong URDF (base/elbow 15.708 rad/s, shoulder chỉ 1.963 rad/s vì
-# gear 64). So theo tỉ lệ chứ không theo 1 con số chung, vì 3 khớp có trần
-# phần cứng lệch nhau tới 8 lần: một con số chung sẽ vừa quá lỏng cho
-# base/elbow vừa quá chặt cho shoulder.
 MAX_JOINT_SPEED_FRACTION = 0.25
+
+
+class SmoothJointProfile:
+    """Profile khớp một vòng, khởi hành và kết thúc với qdot=qddot=0.
+
+    Spline tuần hoàn giữ hình dạng đường đi qua các waypoint IK. Đa thức
+    minimum-jerk bậc 5 làm time-scaling cho pha chạy, nhờ đó vận tốc không còn
+    là hệ quả ngầm của các điểm position: q, qdot và qddot đều được định nghĩa
+    giải tích và đồng bộ từ cùng một nguồn.
+    """
+
+    def __init__(self, q_way, dt_way=DT):
+        q_way = np.asarray(q_way, dtype=float)
+        if q_way.ndim != 2 or len(q_way) < 3:
+            raise ValueError("q_way phải có dạng (N, số_khớp), với N >= 3")
+        if dt_way <= 0:
+            raise ValueError("dt_way phải > 0")
+
+        self.n = len(q_way)
+        self.dt_way = float(dt_way)
+        self.duration = self.n * self.dt_way
+        phase_way = np.arange(self.n + 1, dtype=float)
+        q_closed = np.vstack([q_way, q_way[:1]])
+        self.sp = CubicSpline(
+            phase_way, q_closed, axis=0, bc_type="periodic")
+
+    def at(self, t):
+        """Trả về (q, qdot, qddot) tại thời gian t, t có thể là scalar/array."""
+        ta = np.asarray(t, dtype=float)
+        u = np.clip(ta / self.duration, 0.0, 1.0)
+
+        # h(0)=0, h(1)=1 và hdot=hddot=0 ở cả hai đầu.
+        h = 10.0 * u**3 - 15.0 * u**4 + 6.0 * u**5
+        hd = (30.0 * u**2 - 60.0 * u**3 + 30.0 * u**4) / self.duration
+        hdd = (60.0 * u - 180.0 * u**2 + 120.0 * u**3) / self.duration**2
+
+        phase = self.n * h
+        phase_dot = self.n * hd
+        phase_ddot = self.n * hdd
+        # phase=n ở đúng điểm cuối tương đương phase=0 của spline tuần hoàn.
+        phase_wrapped = np.mod(phase, self.n)
+
+        q = self.sp(phase_wrapped)
+        q_phase = self.sp(phase_wrapped, 1)
+        q_phase2 = self.sp(phase_wrapped, 2)
+        if ta.ndim == 0:
+            qd = q_phase * phase_dot
+            qdd = q_phase2 * phase_dot**2 + q_phase * phase_ddot
+        else:
+            qd = q_phase * phase_dot[..., None]
+            qdd = (q_phase2 * phase_dot[..., None]**2
+                   + q_phase * phase_ddot[..., None])
+        return q, qd, qdd
+
+    def sample(self, sample_dt=DT):
+        """Lấy mẫu đều và luôn bao gồm chính xác điểm kết thúc."""
+        if sample_dt <= 0:
+            raise ValueError("sample_dt phải > 0")
+        count = max(1, int(np.ceil(self.duration / sample_dt)))
+        t = np.linspace(0.0, self.duration, count + 1)
+        q, qd, qdd = self.at(t)
+        return t, q, qd, qdd
 
 
 def build_positions(n_points: int = N_POINTS):
@@ -170,8 +176,13 @@ def safety_report(kin, positions, results, dt: float = DT):
     err_mm = max(r.position_error_m for r in results) * 1000
     conds = np.array([np.linalg.cond(kin.jacobian(q)[:3, :]) for q in qs])
     margin = float(min((qs - lo).min(), (hi - qs).min()))
-    # tốc độ TỪNG khớp: chênh lệch góc lớn nhất giữa 2 điểm liền kề / dt
-    speeds = np.abs(np.diff(np.vstack([qs, qs[:1]]), axis=0)).max(axis=0) / dt
+    # Kiểm đúng profile sẽ gửi: spline tuần hoàn + time-scaling minimum-jerk.
+    # Lấy mẫu dày 100 lần mỗi khoảng waypoint để không bỏ sót đỉnh qdot.
+    profile = SmoothJointProfile(qs, dt)
+    check_t = np.linspace(0.0, profile.duration, len(qs) * 100 + 1)
+    _, qd_check, qdd_check = profile.at(check_t)
+    speeds = np.abs(qd_check).max(axis=0)
+    accels = np.abs(qdd_check).max(axis=0)
     vel_limit = np.asarray(kin.model.velocityLimit, dtype=float)
     allowed = MAX_JOINT_SPEED_FRACTION * vel_limit
     used_frac = speeds / vel_limit
@@ -190,10 +201,11 @@ def safety_report(kin, positions, results, dt: float = DT):
         f"cách giới hạn khớp gần nhất {margin:.3f} rad (ngưỡng {MIN_JOINT_MARGIN_RAD})",
         f"  biên độ mỗi khớp (độ): {np.degrees(qs.max(axis=0)-qs.min(axis=0)).round(1)} "
         f"-> {kin.joint_names}",
-        f"  tốc độ khớp (rad/s, dt={dt}s): {speeds.round(3)} | "
+        f"  tốc độ đỉnh profile (rad/s, dt={dt}s): {speeds.round(3)} | "
         f"trần URDF: {vel_limit.round(3)} | "
         f"dùng {(used_frac*100).round(1)}% (cho phép "
         f"{MAX_JOINT_SPEED_FRACTION*100:.0f}%)",
+        f"  gia tốc đỉnh profile (rad/s^2): {accels.round(3)}",
         f"  hở người ngồi + ghế (ngưỡng {MIN_BODY_CLEARANCE_M*100:.0f}cm): "
         + " | ".join(f"{k} {v*100:.1f}cm" for k, v in clearances.items()),
     ]

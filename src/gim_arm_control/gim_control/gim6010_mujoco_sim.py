@@ -677,6 +677,16 @@ def main():
     p.add_argument("--viewer", action="store_true", help="mở cửa sổ MuJoCo")
     p.add_argument("--realtime", type=float, default=1.0,
                    help="hệ số tốc độ, 1.0 = thời gian thực, 0.25 = chậm 4 lần")
+    p.add_argument(
+        "--initial-q", nargs=3, type=float,
+        metavar=("BASE", "SHOULDER", "ELBOW"),
+        default=[0.0, 0.0, 0.0],
+        help="tư thế ban đầu của 3 khớp, đơn vị rad (mặc định: 0 0 0)",
+    )
+    p.add_argument(
+        "--hold-initial", action="store_true",
+        help="giữ tư thế ban đầu ngay cả khi ros2_control chưa kết nối",
+    )
     p.add_argument("--no-idle-zero", action="store_true",
                    help="phát vị trí thật cả khi IDLE (máy thật phát 0)")
     p.add_argument("--pos-gain", type=float, default=DEFAULT_POS_GAIN)
@@ -706,6 +716,7 @@ def main():
     try:
         sim = GimArmHardwareSim(args.urdf, args.can,
                                 idle_reports_zero=not args.no_idle_zero,
+                                initial_q=args.initial_q,
                                 gains=gains)
     except OSError as e:
         print(f"Không mở được interface CAN '{args.can}': {e}\n"
@@ -714,6 +725,11 @@ def main():
               f"  sudo ip link add dev {args.can} type vcan\n"
               f"  sudo ip link set up {args.can}")
         return 1
+
+    if args.hold_initial:
+        for i, drv in enumerate(sim.drivers):
+            joint_rad, _ = sim.physics.joint_state(i)
+            drv.arm(joint_rad)
 
     print(f"Đã mở CAN '{args.can}'. Cấu hình đọc từ URDF:")
     for c in sim.axes_cfg:
