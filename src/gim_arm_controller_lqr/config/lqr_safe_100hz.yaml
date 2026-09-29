@@ -1,0 +1,24 @@
+lqr_controller:
+  ros__parameters:
+    # Torque/HOLD chạy 200 Hz để ổn định các khớp quán tính thấp. Gain LQR
+    # chỉ cập nhật mỗi 2 chu kỳ, nên lịch gain vẫn đúng 100 Hz như tên profile.
+    control_hz: 200.0
+    tau_scale: 0.35
+    autostart: false
+    # Profile ROS cũ, giữ riêng để thử nghiệm sau khi đã đối chiếu MATLAB.
+    max_int_e: [0.002, 0.002, 0.002]
+    max_e: [0.1, 0.1, 0.1]
+    max_de: [2.0, 2.0, 2.0]
+    max_tau: [5.0, 40.0, 5.0]
+    tau_penalty_scale: 512.0
+    linearization_step: 0.00001
+    integral_limit: 0.004
+    gravity_at_measured: true
+    recompute_every: 2
+    require_discrete_stable: true
+    # Khác profile matlab_reference: giải DARE trực tiếp trên (Ad,Bd) ZOH,
+    # không lấy gain CARE liên tục áp sang vòng ROS rời rạc.
+    use_discrete_lqr: true
+    # Mật độ lấy mẫu của bảng K dọc quỹ đạo. Gain vẫn được thiết kế cho
+    # control_hz; 20 Hz chỉ là mật độ schedule vì K biến thiên chậm.
+    gain_schedule_hz: 20.0

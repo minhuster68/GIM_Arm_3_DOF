@@ -1,0 +1,21 @@
+cascade_pid_controller:
+  ros__parameters:
+    control_hz: 100.0
+    # Đúng trần MATLAB. Launch chung mặc định override xuống 0.35 khi bring-up.
+    tau_scale: 1.0
+    autostart: false
+    # Clutch ON: bù trọng lực + damping để người dùng kéo tay robot.
+    drag_kd: [0.3, 1.0, 0.3]
+    # Sau RETURN, không dùng lại Cascade PID rất cứng để giữ HOME. Gravity
+    # feedforward + PID mềm này dập vận tốc và xóa sai số tĩnh quanh HOME.
+    hold_kp: [5.0, 12.0, 4.0]
+    hold_kd: [1.0, 3.0, 0.8]
+    hold_ki: [0.8, 2.0, 0.8]
+    hold_i_torque_limit_nm: [0.5, 1.0, 0.5]
+    # Đúng setup_pid.m.
+    kpp: [46.0, 60.0, 36.0]
+    kvp: [8.0, 9.5, 10.0]
+    kvi: [7.6, 7.6, 7.6]
+    torque_constant: 0.47
+    # 0 = không kẹp tích phân, đúng PID block trong urdf.slx.
+    velocity_integral_limit: 0.0

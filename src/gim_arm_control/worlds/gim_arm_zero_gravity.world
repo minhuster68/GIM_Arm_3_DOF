@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <!-- Gravity is enabled by the launch file only after the position
+         controller has received HOME. This prevents an uncontrolled drop
+         while controller_manager is loading. -->
+    <gravity>0 0 0</gravity>
+    <physics name="default_physics" default="0" type="ode">
+      <max_step_size>0.0005</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>2000</real_time_update_rate>
+      <!-- The arm contains light, low-inertia links between much heavier
+           bodies.  ODE's default 50 quick-solver iterations leave a
+           step-size-locked joint-velocity mode (about 191 Hz at 2 kHz),
+           which aliases into the 100/200 Hz effort loop.  200 iterations
+           converges the constraints sufficiently to remove that mode. -->
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>200</iters>
+        </solver>
+      </ode>
+    </physics>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+  </world>
+</sdf>

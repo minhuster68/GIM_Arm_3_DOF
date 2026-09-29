@@ -1,0 +1,17 @@
+cascade_pid_controller:
+  ros__parameters:
+    # Profile thử nghiệm riêng trên Gazebo; pid.yaml vẫn giữ nguyên số MATLAB.
+    # Giảm băng thông vòng tốc độ/ vị trí để tránh kích dao động khớp nhẹ.
+    control_hz: 2000.0
+    tau_scale: 0.50
+    autostart: false
+    kpp: [18.0, 24.0, 14.0]
+    kvp: [2.0, 3.0, 2.5]
+    kvi: [1.5, 1.5, 1.5]
+    torque_constant: 0.47
+    velocity_integral_limit: 0.0
+    drag_kd: [0.3, 1.0, 0.3]
+    hold_kp: [5.0, 12.0, 4.0]
+    hold_kd: [1.0, 3.0, 0.8]
+    hold_ki: [0.8, 2.0, 0.8]
+    hold_i_torque_limit_nm: [0.5, 1.0, 0.5]

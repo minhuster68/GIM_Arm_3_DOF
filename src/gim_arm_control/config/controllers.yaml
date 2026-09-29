@@ -11,11 +11,10 @@ controller_manager:
     gim_arm_group_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    # ĐƯỜNG LQI. Khai thêm 1 controller KHÔNG ảnh hưởng đường PID: controller
-    # chỉ tác động khi được activate, và nó claim `effort` -- khác hẳn
-    # position/velocity mà JTC dùng. Chưa activate thì với phần cứng nó không
-    # tồn tại.
-    lqi_effort_controller:
+    # ĐƯỜNG MÔ-MEN DÙNG CHUNG cho cascade PID, LQR, MPC và SMC. Controller
+    # chỉ tác động khi được activate và chỉ một node thuật toán được phép phát
+    # lên topic commands tại một thời điểm.
+    gim_arm_effort_controller:
       type: forward_command_controller/ForwardCommandController
 
 forward_position_controller:
@@ -54,22 +53,22 @@ gim_arm_group_controller:
       stopped_velocity_tolerance: 0.01
       goal_time: 0.0
 
-# ─────────────────────────── ĐƯỜNG LQI ───────────────────────────
-# Cầu nối giữa lqi_node (tính mô-men bằng Pinocchio + scipy) và command
+# ───────────────────── ĐƯỜNG MÔ-MEN DÙNG CHUNG ─────────────────────
+# Cầu nối giữa node thuật toán (PID/LQR/MPC/SMC) và command
 # interface `effort` của plugin phần cứng. ros2_control KHÔNG cho một node bên
 # ngoài ghi trực tiếp vào command interface -- phải có controller claim nó, và
 # forward_command_controller là loại mỏng nhất: đọc topic, ghi thẳng, không
 # tính gì.
 #
-# Đây cũng chính là cơ chế khiến LQI và PID loại trừ nhau. Hai bên claim hai bộ
+# Đây cũng chính là cơ chế khiến torque controller và JTC loại trừ nhau.
 # interface khác nhau, nên đổi qua lại bằng:
 #   ros2 control switch_controllers \
-#       --deactivate gim_arm_group_controller --activate lqi_effort_controller
+#       --deactivate gim_arm_group_controller --activate gim_arm_effort_controller
 #
 # CẦN CÓ TRƯỚC: bản patch mô-men trong gim_arm_hardware (interface `effort` +
 # prepare/perform_command_mode_switch) và <command_interface name="effort"/>
 # trong gim_arm.urdf. Thiếu là controller này KHÔNG load được.
-lqi_effort_controller:
+gim_arm_effort_controller:
   ros__parameters:
     joints:
       - base_joint

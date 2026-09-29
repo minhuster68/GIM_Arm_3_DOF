@@ -1,0 +1,11 @@
+smc_controller:
+  ros__parameters:
+    control_hz: 100.0
+    # Đúng trần MATLAB. Launch chung mặc định override xuống 0.35 khi bring-up.
+    tau_scale: 1.0
+    autostart: false
+    # Đúng setup_smc.m.
+    lambda_gain: [15.0, 85.0, 155.0]
+    ks: [5.0, 137.0, 180.0]
+    kr: [30.0, 130.0, 90.0]
+    phi: [0.03, 0.05, 0.15]

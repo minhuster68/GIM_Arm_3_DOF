@@ -921,7 +921,7 @@ hardware_interface::return_type GimArmSystemHardware::prepare_command_mode_switc
   // Tính trên TẬP SẼ ĐƯỢC GIỮ SAU lần switch này, không phải trên start_interfaces.
   // Xem ghi chú dài ở khai báo projected_claim() trong header: dùng thẳng
   // start_interfaces làm chốt chặn này VÔ HIỆU đúng trong kịch bản nguy hiểm
-  // nhất -- bật lqi_effort_controller trong khi JTC vẫn đang chạy.
+  // nhất -- bật gim_arm_effort_controller trong khi JTC vẫn đang chạy.
   const std::set<std::string> claim = projected_claim(start_interfaces, stop_interfaces);
 
   if (claim.empty()) {
@@ -929,7 +929,7 @@ hardware_interface::return_type GimArmSystemHardware::prepare_command_mode_switc
   }
 
   // Chốt chặn quan trọng nhất của cả bản patch. controller_manager KHÔNG tự
-  // chặn việc bật đồng thời JTC (position+velocity) và lqi_effort_controller
+  // chặn việc bật đồng thời JTC (position+velocity) và gim_arm_effort_controller
   // (effort), vì chúng claim 2 bộ interface KHÁC nhau. Nhưng plugin chỉ gửi
   // được MỘT loại frame mỗi chu kỳ, nên bật cả hai là hành vi không xác định
   // trên một thiết bị có thể làm người bị thương.

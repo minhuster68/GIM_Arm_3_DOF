@@ -52,15 +52,15 @@
 
   <link name="shoulder_link">
     <inertial>
-      <origin xyz="-0.12809 -0.0029768 -0.047288" rpy="0 0 0" />
+      <origin xyz="-0.12963 0.0049354 -0.047727" rpy="0 0 0" />
       <mass value="0.078544" />
       <inertia
-        ixx="0.00012089"
-        ixy="1.2041E-05"
-        ixz="7.2401E-05"
-        iyy="0.0001867"
-        iyz="-1.3727E-05"
-        izz="0.00010536" />
+        ixx="0.00012022"
+        ixy="8.4806E-07"
+        ixz="7.3469E-05"
+        iyy="0.00018895"
+        iyz="-7.8739E-07"
+        izz="0.00010379" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -90,15 +90,15 @@
 
   <link name="upper_arm_link">
     <inertial>
-      <origin xyz="-0.071952 0.095449 -0.072076" rpy="0 0 0" />
-      <mass value="1.1556" />
+      <origin xyz="-0.022717 0.105 -0.10081" rpy="0 0 0" />
+      <mass value="1.2678" />
       <inertia
-        ixx="0.0040135"
-        ixy="-0.00040368"
-        ixz="-0.00142"
-        iyy="0.0052121"
-        iyz="-0.00043608"
-        izz="0.0017698" />
+        ixx="0.0046939"
+        ixy="-0.00010628"
+        ixz="-0.00025724"
+        iyy="0.0053714"
+        iyz="-0.00041298"
+        izz="0.0011133" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -127,15 +127,15 @@
 
   <link name="lower_arm_link">
     <inertial>
-      <origin xyz="0.053586 0.21808 0.029711" rpy="0 0 0" />
-      <mass value="0.84674" />
+      <origin xyz="0.20796 0.011597 0.034173" rpy="0 0 0" />
+      <mass value="0.73459" />
       <inertia
-        ixx="0.0011598"
-        ixy="-0.00049096"
-        ixz="0.00016408"
-        iyy="0.0011338"
-        iyz="0.00023849"
-        izz="0.0017743" />
+        ixx="0.00058901"
+        ixy="2.0268E-05"
+        ixz="0.000249"
+        iyy="0.0015799"
+        iyz="8.7918E-06"
+        izz="0.0017158" />
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -182,7 +182,7 @@
              shoulder        +1            1.1         đã chốt
              elbow           -1            0.8         đã chốt
 
-         Đặt bằng:  ros2 param set /lqi_node gravity_scale "[a, 1.1, 0.8]"
+         Đặt bằng trên node đang chạy: gravity_scale = [a, 1.1, 0.8]
 
          ĐANG CÔ LẬP base_joint: shoulder và elbow bị khoá ở chế độ vị trí bằng
          torque_mode_enable = false. Xong thì xoá hai dòng đó để cả 3 cùng chạy. -->
@@ -191,7 +191,7 @@
          Chọn chế độ nào là do BỘ command_interface mà controller đang claim:
            VI TRI  &lt;- 'position' [+ 'velocity' làm Vel_FF]   (JTC, đường PID)
            VAN TOC &lt;- CHỈ 'velocity'                          (0x00D)
-           MO-MEN  &lt;- 'effort'                                (0x00E, LQI)
+           MO-MEN  &lt;- 'effort'                      (0x00E, PID/LQR/MPC/SMC)
            MIT     &lt;- 'position' + 'effort' cùng lúc           (0x008 impedance)
          Đổi chế độ = switch_controllers, không cần build lại plugin.
          VAN TOC và MIT CHƯA KIỂM CHỨNG TRÊN TAY THẬT. MIT mặc định TẮT. -->
@@ -208,7 +208,7 @@
     <param name="invert_direction">true</param>
     <param name="torque_sign">-1</param>
     <param name="torque_gear_ratio">1.0</param>
-    <param name="max_torque_joint_nm">1.5</param>
+    <param name="max_torque_joint_nm">5.0</param>
   </joint>
 
   <joint name="shoulder_joint">
@@ -221,7 +221,7 @@
     <param name="gear_ratio">64.0</param>
     <param name="torque_sign">1</param>
     <param name="torque_gear_ratio">8.0</param>
-    <param name="max_torque_joint_nm">5.0</param>
+    <param name="max_torque_joint_nm">40.0</param>
   </joint>
 
   <joint name="elbow_joint">
@@ -234,7 +234,7 @@
     <param name="invert_direction">true</param>
     <param name="torque_sign">-1</param>
     <param name="torque_gear_ratio">1.0</param>
-    <param name="max_torque_joint_nm">2.0</param>
+    <param name="max_torque_joint_nm">5.0</param>
   </joint>
 </ros2_control>
 

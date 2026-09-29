@@ -76,12 +76,13 @@ def generate_launch_description():
         ],
     )
 
-    # lqi_effort_controller: ĐƯỜNG MÔ-MEN (LQR/LQI). Nạp sẵn nhưng KHÔNG active.
+    # gim_arm_effort_controller: đường MÔ-MEN chung cho PID/LQR/MPC/SMC.
+    # Nạp sẵn nhưng KHÔNG active.
     #
     # Trước 27/08/2026 launch file này không nạp nó, nên lệnh trong RUNBOOK
-    #     ros2 control switch_controllers --activate lqi_effort_controller
+    #     ros2 control switch_controllers --activate gim_arm_effort_controller
     # báo không tìm thấy controller -- phải load tay bằng
-    #     ros2 control load_controller lqi_effort_controller
+    #     ros2 control load_controller gim_arm_effort_controller
     # mới chạy được. Nạp sẵn ở đây để đường mô-men và đường PID cùng một launch,
     # nên phép so PID/LQR không lệch nhau vì cách khởi động.
     #
@@ -95,12 +96,12 @@ def generate_launch_description():
     # và TỪ CHỐI nếu bộ đó vừa có 'position' vừa có 'effort' (chỉ hợp lệ ở chế độ
     # MIT, mặc định tắt). Nên phải deactivate gim_arm_group_controller trước:
     #     ros2 control switch_controllers \
-    #         --deactivate gim_arm_group_controller --activate lqi_effort_controller
-    lqi_effort_controller_spawner = Node(
+    #         --deactivate gim_arm_group_controller --activate gim_arm_effort_controller
+    effort_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "lqi_effort_controller", "--controller-manager", "/controller_manager",
+            "gim_arm_effort_controller", "--controller-manager", "/controller_manager",
             "--inactive",
         ],
     )
@@ -113,7 +114,7 @@ def generate_launch_description():
             on_exit=[
                 gim_arm_group_controller_spawner,
                 forward_position_controller_spawner,
-                lqi_effort_controller_spawner,
+                effort_controller_spawner,
             ],
         )
     )

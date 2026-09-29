@@ -18,11 +18,11 @@ NÓ NẰM ĐÂU TRONG HỆ THỐNG
 ===========================================================================
     origin_draw_trajectory --FollowJointTrajectory--> JTC --(pos+vel)--┐
                                                                       ├-> hardware -> CAN
-    lqi_node --Float64MultiArray--> lqi_effort_controller --(effort)---┘
+    lqi_node --Float64MultiArray--> gim_arm_effort_controller --(effort)---┘
 
 Hai đường claim hai bộ command interface KHÁC NHAU nên đổi qua lại bằng:
     ros2 control switch_controllers \
-        --deactivate gim_arm_group_controller --activate lqi_effort_controller
+        --deactivate gim_arm_group_controller --activate gim_arm_effort_controller
 
 Plugin phần cứng phải có prepare/perform_command_mode_switch() để đổi driver
 sang control_mode = 1 (mô-men). KHÔNG có bước đó thì driver vẫn ở chế độ vị trí
@@ -240,7 +240,7 @@ class LqiNode(Node):
         p = self.declare_parameter
         p("urdf_file", "")
         p("cache_file", os.path.join(tempfile.gettempdir(), "gim_lqi_way.npz"))
-        p("command_topic", "/lqi_effort_controller/commands")
+        p("command_topic", "/gim_arm_effort_controller/commands")
         p("control_hz", 100.0)
 
         # --- chọn hệ số: xem docstring đầu file ---
@@ -545,7 +545,7 @@ class LqiNode(Node):
         self.phase = ABORT
         self.get_logger().error(
             f"ABORT: {why}. Tụt về bù trọng lực. Deactivate "
-            "lqi_effort_controller rồi kiểm tra trước khi chạy lại.")
+            "gim_arm_effort_controller rồi kiểm tra trước khi chạy lại.")
         self.dump()
 
     def dump(self):

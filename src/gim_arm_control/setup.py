@@ -14,6 +14,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
+        (os.path.join('share', package_name, 'worlds'), glob('worlds/*.world')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -31,6 +32,9 @@ setup(
             'lqi_node = gim_control.lqi_node:main',
             'goto_pose = gim_control.goto_pose:main',
             'export_mat = gim_control.export_mat:main',
+            'plot_ee_error = gim_control.plot_ee_error:main',
+            'plot_joint_tracking = gim_control.plot_ee_error:main',
+            'analyze_lqr_diagnostics = gim_control.analyze_lqr_diagnostics:main',
         ],
     },
 )

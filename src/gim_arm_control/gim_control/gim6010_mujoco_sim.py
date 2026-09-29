@@ -42,10 +42,10 @@ NHỮNG THỨ ĐƯỢC GIẢ LẬP ĐÚNG
     0x01F Save_Configuration
   - 0x001 Heartbeat, 0x009 Get_Encoder_Estimates (10ms), 0x014 Get_Iq,
     0x017 Get_Bus_Voltage_Current, 0x01C Get_Torques
-  - Đơn vị phía rotor (rev, rev/s) — đúng như 0x00C/0x009 thật, KHÔNG phải
-    phía trục ra. Quy đổi rotor<->khớp lấy gear_ratio / invert_direction /
-    zero_offset_rad đọc thẳng từ khối <ros2_control> trong URDF, nên không
-    bao giờ lệch với gim_arm_system.cpp.
+  - Vị trí/vận tốc dùng đơn vị phía rotor (rev, rev/s). Mô-men CAN dùng đơn
+    vị phía trục ra của hộp số nội bộ 8:1, đúng quy ước đã đo trên driver thật.
+    Mọi hệ số gear_ratio / invert_direction / torque_sign /
+    torque_gear_ratio đọc thẳng từ khối <ros2_control> trong URDF.
   - Cascade điều khiển của ODrive: bộ lọc input_mode=3 (POS_FILTER bậc 2)
     -> P vị trí -> PI vận tốc -> giới hạn mô-men.
   - Quán tính rotor phản chiếu qua hộp số (armature = J_rotor * N^2), giới
@@ -92,6 +92,7 @@ ROTOR_INERTIA_KGM2 = 26.3e-7     # 26.3 g*cm^2
 # Quy về khớp sẽ là 0.625*8 = 5 Nm cho base/elbow, 0.625*64 = 40 Nm cho
 # shoulder — khớp với <limit effort> trong URDF ở base/elbow.
 ROTOR_TORQUE_LIM_NM = 0.625
+DRIVER_INTERNAL_RATIO = 8.0
 VEL_LIMIT_REV_S = 20.0           # controller.config.vel_limit, phía rotor
 
 # Gain mặc định = mặc định gốc của ODrive. Đổi bằng cờ dòng lệnh, hoặc gửi
@@ -178,23 +179,27 @@ class CanBus:
 # ─────────────────────── đọc cấu hình từ URDF ───────────────────────
 
 class AxisConfig:
-    def __init__(self, node_id, joint_name, gear_ratio, direction, zero_offset):
+    def __init__(self, node_id, joint_name, gear_ratio, direction, zero_offset,
+                 torque_sign, torque_gear_ratio, max_torque_joint):
         self.node_id = int(node_id)
         self.joint_name = joint_name
         self.gear_ratio = float(gear_ratio)
         self.direction = float(direction)
         self.zero_offset = float(zero_offset)
+        self.torque_sign = float(torque_sign)
+        self.torque_gear_ratio = float(torque_gear_ratio)
+        self.max_torque_joint = float(max_torque_joint)
 
     def __repr__(self):
         return (f"node {self.node_id} -> {self.joint_name} "
                 f"(gear {self.gear_ratio:g}, dir {self.direction:+.0f}, "
-                f"offset {self.zero_offset:.4f} rad)")
+                f"offset {self.zero_offset:.4f} rad, "
+                f"tau_sign {self.torque_sign:+.0f}, "
+                f"tau_gear {self.torque_gear_ratio:g})")
 
 
 def parse_axes_from_urdf(urdf_path: str):
-    """Lấy node_id / gear_ratio / invert_direction / zero_offset_rad từ khối
-    <ros2_control> — cùng nguồn sự thật mà on_init() của plugin C++ đọc, nên
-    sim không thể lệch cấu hình với phần cứng."""
+    """Đọc cấu hình vị trí và mô-men từ cùng khối ros2_control với plugin."""
     root = ET.parse(urdf_path).getroot()
     block = root.find("ros2_control")
     if block is None:
@@ -205,12 +210,16 @@ def parse_axes_from_urdf(urdf_path: str):
         params = {p.get("name"): (p.text or "").strip() for p in joint.findall("param")}
         if "can_node_id" not in params:
             raise RuntimeError(f"Khớp '{joint.get('name')}' thiếu can_node_id")
+        gear_ratio = float(params.get("gear_ratio", 8.0))
         axes.append(AxisConfig(
             node_id=params["can_node_id"],
             joint_name=joint.get("name"),
-            gear_ratio=params.get("gear_ratio", 8.0),
+            gear_ratio=gear_ratio,
             direction=-1.0 if params.get("invert_direction") == "true" else 1.0,
             zero_offset=params.get("zero_offset_rad", 0.0),
+            torque_sign=params.get("torque_sign", 1.0),
+            torque_gear_ratio=params.get("torque_gear_ratio", gear_ratio),
+            max_torque_joint=params.get("max_torque_joint_nm", 5.0),
         ))
     return axes
 
@@ -308,8 +317,7 @@ class ArmPhysics:
 # ─────────────────────── cascade PID của ODrive ───────────────────────
 
 class OdriveAxis:
-    """Bản dựng lại vòng điều khiển của ODrive, làm việc hoàn toàn ở ĐƠN VỊ
-    PHÍA ROTOR (rev, rev/s, Nm tại rotor) — đúng như driver thật."""
+    """Bản dựng vòng điều khiển và quy đổi CAN của một driver GIM6010."""
 
     def __init__(self, cfg: AxisConfig):
         self.cfg = cfg
@@ -366,6 +374,20 @@ class OdriveAxis:
             self.torque_measured = 0.0
             return 0.0
 
+        if self.control_mode == 1:
+            # Set_Input_Torque mang đơn vị mô-men phía trục ra của hộp số nội
+            # bộ 8:1. Plugin C++ đã đổi từ joint-space bằng:
+            #   tau_drv = torque_sign * tau_joint / torque_gear_ratio
+            # nên simulator phải dùng đúng phép nghịch đảo. Không chạy vòng P
+            # vị trí/PI vận tốc trong TORQUE mode.
+            driver_limit = (
+                self.cfg.max_torque_joint / self.cfg.torque_gear_ratio)
+            self.torque_setpoint = self.input_torque
+            self.torque_measured = max(
+                -driver_limit, min(driver_limit, self.input_torque))
+            return (self.torque_measured * self.cfg.torque_sign
+                    * self.cfg.torque_gear_ratio)
+
         pos_est = self.joint_rad_to_rotor_rev(joint_rad)
         vel_est = joint_vel_rad_s * self.cfg.direction / (2.0 * math.pi) * self.cfg.gear_ratio
 
@@ -374,7 +396,8 @@ class OdriveAxis:
         if self.input_mode == 3:
             ki = 2.0 * self.input_filter_bandwidth
             kp = 0.25 * ki * ki
-            accel = kp * (self.input_pos - self.pos_setpoint) + ki * (self.input_vel - self.vel_setpoint)
+            accel = (kp * (self.input_pos - self.pos_setpoint)
+                     + ki * (self.input_vel - self.vel_setpoint))
             self.vel_setpoint += dt * accel
             self.pos_setpoint += dt * self.vel_setpoint
         else:
@@ -450,6 +473,7 @@ class GimArmHardwareSim:
 
         elif cmd_id == CMD_SET_CONTROLLER_MODE and dlc >= 8:
             drv.control_mode, drv.input_mode = struct.unpack_from("<II", data, 0)
+            drv.vel_integrator_torque = 0.0
             print(f"[node {node_id}] control_mode={drv.control_mode} "
                   f"input_mode={drv.input_mode}")
 
@@ -503,12 +527,17 @@ class GimArmHardwareSim:
                           struct.pack("<ff", pos_rev, vel_rev))
 
         if only == CMD_GET_TORQUES:
+            # Firmware báo mô-men theo đơn vị CAN ở trục ra hộp số nội 8:1.
+            # Trong position/velocity mode cascade bên trên đang tính ở rotor,
+            # nên nhân 8; torque mode đã trực tiếp dùng đúng đơn vị CAN.
+            unit_scale = 1.0 if drv.control_mode == 1 else DRIVER_INTERNAL_RATIO
             self.bus.send(make_can_id(cfg.node_id, CMD_GET_TORQUES),
                           struct.pack("<ff",
-                                      drv.torque_setpoint * cfg.gear_ratio * cfg.direction,
-                                      drv.torque_measured * cfg.gear_ratio * cfg.direction))
+                                      drv.torque_setpoint * unit_scale,
+                                      drv.torque_measured * unit_scale))
         if only == CMD_GET_IQ:
-            iq = drv.torque_measured / TORQUE_CONSTANT_NM_PER_A
+            unit_scale = 1.0 if drv.control_mode == 1 else DRIVER_INTERNAL_RATIO
+            iq = drv.torque_measured * unit_scale / TORQUE_CONSTANT_NM_PER_A
             self.bus.send(make_can_id(cfg.node_id, CMD_GET_IQ),
                           struct.pack("<ff", iq, iq))
         if only == CMD_GET_BUS_VOLTAGE_CURRENT:
@@ -545,7 +574,9 @@ class GimArmHardwareSim:
 
     def run(self, use_viewer=False, realtime=1.0):
         dt = self.physics.model.opt.timestep
-        print(f"\nĐang giả lập {len(self.drivers)} driver ở {CONTROL_HZ:.0f} Hz. Ctrl-C để dừng.\n")
+        print(
+            f"\nĐang giả lập {len(self.drivers)} driver ở "
+            f"{CONTROL_HZ:.0f} Hz. Ctrl-C để dừng.\n")
 
         viewer_ctx = None
         if use_viewer:
@@ -633,8 +664,9 @@ def selftest(urdf_path, gains, node_id, step_rev, duration, input_mode):
 
     step = target_rev - start_rev
     peak = pos.max() if step > 0 else pos.min()
-    overshoot = max(0.0, (peak - target_rev) / step * 100) if step > 0 else \
-                max(0.0, (target_rev - peak) / (-step) * 100)
+    overshoot = (
+        max(0.0, (peak - target_rev) / step * 100) if step > 0
+        else max(0.0, (target_rev - peak) / (-step) * 100))
     band = 0.02 * abs(step)
     settled = np.abs(pos - target_rev) <= band
     settling = next((ts[i] for i in range(len(ts)) if settled[i:].all()), None)
@@ -643,7 +675,8 @@ def selftest(urdf_path, gains, node_id, step_rev, duration, input_mode):
     print(f"\nBước nhảy {step_rev:+.3f} rev phía rotor "
           f"(= {abs(step_rev) / sim.axes_cfg[idx].gear_ratio * 360:.2f} deg tại khớp)")
     print(f"  overshoot        : {overshoot:.1f} %")
-    print(f"  settling (±2%)   : {f'{settling:.3f} s' if settling is not None else 'chưa ổn định'}")
+    settling_text = f"{settling:.3f} s" if settling is not None else "chưa ổn định"
+    print(f"  settling (±2%)   : {settling_text}")
     print(f"  sai số cuối       : {final_err_deg:.3f} deg tại khớp")
     print(f"  vật lý ổn định    : {'có' if sim.physics.healthy() else 'KHÔNG (NaN)'}")
     print("\nNhắc lại: vòng ở đây chạy "

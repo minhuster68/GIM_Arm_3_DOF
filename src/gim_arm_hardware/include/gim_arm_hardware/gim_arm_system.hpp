@@ -148,7 +148,7 @@ private:
   // VÌ SAO KHÔNG DÙNG THẲNG start_interfaces: ros2_control chỉ đưa vào
   // start_interfaces những interface của controller ĐANG BẬT LẦN NÀY, không
   // phải toàn bộ những gì đang được giữ. Nên nếu chỉ nhìn start_interfaces:
-  //   - JTC đang chạy (position+velocity), bật thêm lqi_effort_controller ->
+  //   - JTC đang chạy (position+velocity), bật thêm gim_arm_effort_controller ->
   //     start = [effort] -> "chế độ mô-men" -> ĐƯỢC CHẤP NHẬN, driver đổi sang
   //     control_mode = 1 trong khi JTC vẫn đang ghi vị trí. Đây đúng là thứ mà
   //     chốt chặn trong prepare_command_mode_switch() nói là nó chặn.
@@ -376,7 +376,7 @@ private:
 
   // Vị trí chốt cho các khớp bị khoá, lấy tại thời điểm chuyển sang chế độ
   // mô-men. Không dùng hw_commands_ vì controller đang active là
-  // lqi_effort_controller, nó không ghi vào mảng đó.
+  // gim_arm_effort_controller, nó không ghi vào mảng đó.
   std::vector<double> hold_position_;
 
   // ---- Feedforward (xem ghi chú pack_set_input_pos trong gim6010_can_protocol.hpp) ----
