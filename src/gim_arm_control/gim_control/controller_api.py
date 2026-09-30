@@ -1,4 +1,4 @@
-"""Giao diện nhỏ giữa runner dùng chung và các bộ điều khiển mô-men."""
+"""Giao diện dùng chung giữa runner và các bộ điều khiển mô-men."""
 
 from abc import ABC, abstractmethod
 from typing import Protocol
@@ -7,7 +7,7 @@ import numpy as np
 
 
 class TorqueController(Protocol):
-    """Mọi thuật toán phải trả về mô-men tổng tại khớp, đơn vị Nm."""
+    """Giao diện mà PID, LQR, MPC và SMC phải triển khai."""
 
     last: dict
 
@@ -22,7 +22,7 @@ class TorqueController(Protocol):
 
 
 class ControllerFactory(ABC):
-    """Adapter để package thuật toán khai tham số và dựng controller."""
+    """Adapter để mỗi package khai tham số và dựng controller của nó."""
 
     algorithm_name = "unknown"
 
@@ -32,13 +32,13 @@ class ControllerFactory(ABC):
 
     @abstractmethod
     def build(self, node, dynamics, tau_limit, control_hz) -> TorqueController:
-        """Dựng controller sau khi URDF và giới hạn mô-men đã sẵn sàng."""
+        """Dựng controller sau khi mô hình và giới hạn mô-men sẵn sàng."""
 
 
 def vector_parameter(
         node, name: str, size: int, *, positive=False,
         nonnegative=False) -> np.ndarray:
-    """Đọc parameter vector, cho phép một số vô hướng dùng chung mọi khớp."""
+    """Đọc vector parameter; cho phép dùng một số cho mọi khớp."""
     value = np.asarray(node.get_parameter(name).value, dtype=float)
     if value.size == 1:
         value = np.full(size, float(value.ravel()[0]))

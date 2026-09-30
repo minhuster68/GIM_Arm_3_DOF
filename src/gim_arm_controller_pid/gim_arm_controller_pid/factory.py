@@ -22,7 +22,8 @@ class CascadePidFactory(ControllerFactory):
         if torque_constant <= 0.0:
             raise ValueError("torque_constant phải > 0")
         if integral_limit < 0.0:
-            raise ValueError("velocity_integral_limit phải >= 0 (0 = tắt kẹp)")
+            raise ValueError(
+                "velocity_integral_limit phải >= 0 (0 = tắt kẹp)")
         return CascadePidController(
             dynamics,
             kpp=vector_parameter(node, "kpp", n, positive=True),

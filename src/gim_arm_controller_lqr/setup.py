@@ -8,7 +8,7 @@ package_name = "gim_arm_controller_lqr"
 setup(
     name=package_name,
     version="0.1.0",
-    packages=find_packages(),
+    packages=find_packages(exclude=["test"]),
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
@@ -20,6 +20,7 @@ setup(
     maintainer_email="minhvuviet20051311123456789@gmail.com",
     description="Time-varying LQR torque controller for GIM Arm 3-DOF",
     license="TODO",
+    extras_require={"test": ["pytest"]},
     entry_points={
         "console_scripts": ["lqr_node = gim_arm_controller_lqr.node:main"],
     },

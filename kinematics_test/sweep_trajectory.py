@@ -1,7 +1,6 @@
 """
 sweep_trajectory.py — ĐỊNH NGHĨA DUY NHẤT của quỹ đạo quét trước mặt người
-đeo, dùng chung cho CẢ BA đường: PID (origin_draw_trajectory.py), mô-men/LQR
-(lqi_node.py), và bàn so sánh trong mô phỏng (compare_pid_lqi.py).
+đeo, dùng chung cho đường position và runner mô-men PID/LQR/MPC/SMC.
 
 Để chung 1 chỗ vì đây là quỹ đạo chạy trên thiết bị ĐEO VÀO NGƯỜI: nếu tham
 số bị chép ra 2-3 nơi rồi sửa lệch nhau, cái đã kiểm chứng trong mô phỏng sẽ

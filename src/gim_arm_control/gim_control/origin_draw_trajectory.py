@@ -8,10 +8,10 @@ Tự đọc vị trí khớp hiện tại qua /joint_states, tự chèn 1 đoạ
 về điểm đầu quỹ đạo vẽ trước khi vẽ thật. Có đồ thị REAL-TIME (actual vs
 desired, 3 khớp) cập nhật liên tục ngay trong lúc tay máy đang chạy.
 
-Quỹ đạo lấy từ gim_control/sweep_trajectory.py -- ĐÚNG file mà nhánh mô-men
-(lqi_node.py) và bàn so sánh kinematics_test/compare_pid_lqi.py cũng dùng, nên
-PID và LQR/LQI bám cùng một quỹ đạo. gim_control/sweep_trajectory.py là symlink
-về kinematics_test/sweep_trajectory.py -- một file thật duy nhất.
+Quỹ đạo lấy từ gim_control/sweep_trajectory.py -- cùng nguồn mà runner mô-men
+PID/LQR/MPC/SMC sử dụng, nên các bộ điều khiển bám đúng cùng một quỹ đạo.
+gim_control/sweep_trajectory.py là symlink về kinematics_test/
+sweep_trajectory.py -- một file thật duy nhất.
 
 Đặt trong gim_control/gim_control/ (cùng chỗ với gim_arm_kinematics.py và
 shapes.py) -- import bên dưới dùng đúng đường dẫn package `gim_control.xxx`.

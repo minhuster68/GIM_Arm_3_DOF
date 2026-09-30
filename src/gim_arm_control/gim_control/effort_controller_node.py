@@ -127,6 +127,9 @@ class EffortControllerNode(Node):
         self.deadline_misses = 0
         self.diagnostic_lqr = (factory.algorithm_name == "lqr"
                                and bool(get("log_file").value))
+        self.diagnostic_mpc = (factory.algorithm_name == "mpc"
+                               and bool(get("log_file").value))
+        self.mpc_solver_rejections = 0
         self.state_seq = 0
         self.state_header_ns = -1
         self.state_rx_wall_ns = -1
@@ -161,7 +164,8 @@ class EffortControllerNode(Node):
         if self.fixed_track_gain_index < -1:
             raise ValueError("fixed_track_gain_index phải >= -1")
         if self.fixed_track_gain_index >= 0 and (
-                factory.algorithm_name != "lqr" or not self.diagnostic_segment):
+                factory.algorithm_name != "lqr"
+                or not self.diagnostic_segment):
             raise ValueError(
                 "fixed_track_gain_index chỉ dùng với LQR diagnostic_segment")
         self.controller_schedule_ready = False
@@ -186,7 +190,8 @@ class EffortControllerNode(Node):
 
         self.diagnostic_hold = bool(get("diagnostic_hold").value)
         if self.diagnostic_hold and self.diagnostic_segment:
-            raise ValueError("Chỉ chọn một trong diagnostic_hold và diagnostic_segment")
+            raise ValueError(
+                "Chỉ chọn một trong diagnostic_hold và diagnostic_segment")
         if self.diagnostic_hold or self.diagnostic_segment:
             q_target_deg = np.asarray([
                 get("diagnostic_q1_deg").value,
@@ -387,7 +392,8 @@ class EffortControllerNode(Node):
         self.clock_rx_wall_ns = time.time_ns()
 
     def _append_tracking_row(self, tick_wall_ns, phase_elapsed, dt,
-                             compute_time, q_ref, qd_ref, tau, event="CONTROL"):
+                             compute_time, q_ref, qd_ref, tau,
+                             event="CONTROL"):
         row = [
             tick_wall_ns * 1e-9, self.phase, dt, compute_time,
             *self.q, *self.qd, *q_ref, *qd_ref, *tau,
@@ -416,6 +422,24 @@ class EffortControllerNode(Node):
                 *(last.get("tau_integral", missing)),
                 *(last.get("tau_position", missing)),
                 *(last.get("tau_velocity", missing)),
+            ])
+        elif self.diagnostic_mpc:
+            last = self.controller.last if event == "CONTROL" else {}
+            missing = np.full(self.n, np.nan)
+            row.extend([
+                int(bool(last.get("solver_success", False))),
+                int(bool(last.get("solver_accepted", False))),
+                last.get("solver_status", -1),
+                last.get("solve_time", float("nan")),
+                last.get("iterations", -1),
+                last.get("constraint_violation", float("nan")),
+                last.get("primal_residual", float("nan")),
+                last.get("dual_residual", float("nan")),
+                last.get("solver_rho", float("nan")),
+                *(last.get("tau_ff", missing)),
+                *(last.get("tau_feedback", missing)),
+                *(last.get("tau_raw", missing)),
+                *(last.get("saturated", missing)),
             ])
         self.rows.append(row)
 
@@ -605,8 +629,10 @@ class EffortControllerNode(Node):
             else self.max_track_error)
         if error > error_limit:
             if self.diagnostic_lqr and self.phase in (APPROACH, TRACK, RETURN):
-                previous_tau = (self.last_command if self.last_command is not None
-                                else np.zeros(self.n))
+                previous_tau = (
+                    self.last_command
+                    if self.last_command is not None
+                    else np.zeros(self.n))
                 self._append_tracking_row(
                     tick_wall_ns, elapsed, dt, float("nan"),
                     q_ref, qd_ref, previous_tau,
@@ -625,6 +651,16 @@ class EffortControllerNode(Node):
         tau = np.asarray(self.controller.compute(
             self.q, self.qd, q_ref, qd_ref, qdd_ref, dt), dtype=float)
         compute_time = time.perf_counter() - started
+        if (self.factory.algorithm_name == "mpc"
+                and not self.controller.last.get("solver_accepted", False)):
+            self.mpc_solver_rejections += 1
+            if self.mpc_solver_rejections in (1, 10, 100):
+                last = self.controller.last
+                self.get_logger().warn(
+                    "MPC từ chối nghiệm solver, dùng warm-start khả thi: "
+                    f"status={last.get('solver_status')}, "
+                    f"violation={last.get('constraint_violation'):.3g} "
+                    f"({self.mpc_solver_rejections} lần)")
         if compute_time > self.deadline_warn:
             self.deadline_misses += 1
             if self.deadline_misses in (1, 10, 100):
@@ -747,6 +783,14 @@ class EffortControllerNode(Node):
                     "tau_ff", "tau_raw", "tau_controller", "integral",
                     "tau_integral", "tau_position", "tau_velocity"):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
+        elif self.diagnostic_mpc:
+            header.extend([
+                "solver_success", "solver_accepted", "solver_status",
+                "solve_time", "solver_iterations", "constraint_violation",
+                "primal_residual", "dual_residual", "solver_rho",
+            ])
+            for prefix in ("tau_ff", "tau_feedback", "tau_raw", "saturated"):
+                header.extend(f"{prefix}_{name}" for name in self.joint_names)
         self._write_csv_atomic(path, header, self.rows)
         if self.diagnostic_lqr and self.state_rows:
             state_path = os.path.splitext(path)[0] + "_states.csv"
@@ -788,6 +832,12 @@ def run_controller(factory):
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
+    except RuntimeError:
+        # Humble can race a subscription take with SIGINT shutdown and raise
+        # instead of delivering KeyboardInterrupt.  Preserve real runtime
+        # failures while keeping an intentional Ctrl-C shutdown clean.
+        if rclpy.ok():
+            raise
     finally:
         node.dump()
         node.destroy_node()

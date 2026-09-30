@@ -30,6 +30,7 @@ def generate_launch_description():
     algorithm = LaunchConfiguration("algorithm")
     pid_profile = LaunchConfiguration("pid_profile")
     lqr_profile = LaunchConfiguration("lqr_profile")
+    mpc_profile = LaunchConfiguration("mpc_profile")
     lqr_recompute_every = LaunchConfiguration("lqr_recompute_every")
     lqr_tau_penalty_scale = LaunchConfiguration("lqr_tau_penalty_scale")
     lqr_gravity_at_measured = LaunchConfiguration(
@@ -87,13 +88,21 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "pid_profile", default_value="matlab_reference",
             choices=["matlab_reference", "gazebo_smooth"],
-            description="PID only: original MATLAB gains or a separately tuned Gazebo profile"),
+            description=(
+                "PID only: original MATLAB gains or a separately tuned "
+                "Gazebo profile")),
         DeclareLaunchArgument(
             "lqr_profile", default_value="matlab_reference",
             choices=["matlab_reference", "safe_100hz"],
             description=(
                 "LQR only: exact MATLAB weights or the discretely-stable "
                 "100 Hz Gazebo/hardware bring-up profile")),
+        DeclareLaunchArgument(
+            "mpc_profile", default_value="gazebo_safe",
+            choices=["matlab_reference", "gazebo_safe"],
+            description=(
+                "MPC only: validated MATLAB slew limits or a delay-robust "
+                "100 Hz Gazebo bring-up profile")),
         DeclareLaunchArgument(
             "lqr_recompute_every",
             default_value=PythonExpression([
@@ -123,8 +132,10 @@ def generate_launch_description():
                 "inverse dynamics entirely at the reference state")),
         DeclareLaunchArgument("autostart", default_value="false"),
         DeclareLaunchArgument("tau_scale", default_value=PythonExpression([
-            "'0.50' if '", algorithm, "' == 'pid' and '", pid_profile,
-            "' == 'gazebo_smooth' else '0.35'",
+            "'1.0' if '", algorithm,
+            "' == 'mpc' else ('0.50' if '", algorithm,
+            "' == 'pid' and '", pid_profile,
+            "' == 'gazebo_smooth' else '0.35')",
         ])),
         DeclareLaunchArgument("control_hz", default_value=PythonExpression([
             "'2000.0' if '", algorithm, "' == 'pid' and '", pid_profile,
@@ -174,6 +185,11 @@ def generate_launch_description():
             config_file = PythonExpression([
                 "'lqr_safe_100hz.yaml' if '", lqr_profile,
                 "' == 'safe_100hz' else 'lqr.yaml'",
+            ])
+        if name == "mpc":
+            config_file = PythonExpression([
+                "'mpc_gazebo_safe.yaml' if '", mpc_profile,
+                "' == 'gazebo_safe' else 'mpc.yaml'",
             ])
         parameter_overrides = [common_overrides]
         if name == "lqr":

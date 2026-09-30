@@ -14,7 +14,7 @@ Ba cách "hiển nhiên" đều KHÔNG dùng được:
      KHÔNG được: driver GIM6010-8 chỉ điền dữ liệu thật vào
      Get_Encoder_Estimates (0x009) SAU khi vào CLOSED_LOOP; ở IDLE nó phát 0.
 
-  2) Chạy lqi_node với gravity_scale = [0,0,0] để nó phát 0 Nm.
+  2) Chạy một node torque với gravity_scale = [0,0,0] để nó phát 0 Nm.
      KHÔNG được: gim_arm_system.cpp command_stale() so BIT-IDENTICAL. Phát 0.0
      không đổi 51 chu kỳ (0.51 s) là plugin coi nguồn phát đã chết và TỤT VỀ BÙ
      TRỌNG LỰC -> tay bị giữ lên, đúng cái ta không muốn.

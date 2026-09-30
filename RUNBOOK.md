@@ -1,7 +1,7 @@
 # RUNBOOK — chạy và tune GIM Arm 3DOF
 
-Quy trình vận hành. Phần giải thích *vì sao* nằm ở
-[kinematics_test/LQI_README.md](kinematics_test/LQI_README.md).
+Quy trình phần cứng legacy và các phép đo hiệu chỉnh. Lệnh chạy bốn thuật toán
+hiện tại nằm trong [src/README.md](src/README.md).
 
 ---
 
@@ -9,13 +9,12 @@ Quy trình vận hành. Phần giải thích *vì sao* nằm ở
 
 ### 0.0 Hai điều kiện tiên quyết của MÔI TRƯỜNG
 
-Cả hai đều đã làm cả `lqi_node` lẫn `compare_pid_lqi.py` **không chạy nổi** trên
-máy này, và cả hai đều không liên quan gì tới code trong repo.
+Cả hai từng làm các chương trình SciPy/ROS **không chạy nổi** trên máy này và
+không liên quan tới code trong repo.
 
 **(a) `~/.local` có scipy mới hơn numpy.** scipy 1.15.3 (cài bằng pip vào
 `~/.local`) cần numpy >= 1.23.5, nhưng numpy là 1.21.5 (apt). Kết quả:
-`scipy.interpolate` và `scipy.optimize` vỡ ngay lúc import, nên
-`from scipy.interpolate import CubicSpline` trong `lqi_node.py` chết.
+`scipy.interpolate`, `scipy.linalg` và `scipy.optimize` vỡ ngay lúc import.
 
 ```bash
 python3 -c "import scipy,numpy; print(scipy.__version__, numpy.__version__)"
@@ -46,8 +45,8 @@ colcon build --symlink-install && source install/setup.bash
 `--symlink-install` symlink URDF / mesh / YAML -> sửa là có hiệu lực ngay.
 NHƯNG **file `.py` của `gim_control` thì nó CHÉP, không symlink** (đã kiểm:
 `install/gim_control/lib/python3.10/site-packages/gim_control/*.py` là file
-thường). Nên sửa `tvlqr_controller.py` / `lqi_node.py` / `arm_dynamics.py` là
-**phải build lại**, giống như sửa C++.
+thường). Nên sửa runner, dynamics hoặc package thuật toán là **phải build lại**,
+giống như sửa C++.
 
 Kiểm tra plugin đúng là bản mới (phải ra số > 0):
 
@@ -60,9 +59,9 @@ strings install/gim_arm_hardware/lib/libgim_arm_system_hardware.so | grep -c Fee
 
 ### 0.2 Một file thật, nhiều chỗ dùng
 
-`kinematics_test/` giữ file THẬT của 6 module dùng chung
-(`arm_dynamics.py`, `lqi_controller.py`, `tvlqr_controller.py`,
-`gim_arm_kinematics.py`, `shapes.py`, `sweep_trajectory.py`);
+`kinematics_test/` giữ file THẬT của 4 module mô hình/quỹ đạo dùng chung
+(`arm_dynamics.py`, `gim_arm_kinematics.py`, `shapes.py`,
+`sweep_trajectory.py`);
 `src/gim_arm_control/gim_control/` chỉ có symlink trỏ về. Ngược lại
 `kinematics_test/gim_arm.urdf` và `kinematics_test/meshes` là symlink trỏ vào
 `src/gim_arm_description/`. Đừng thay symlink bằng `cp` -- đó đúng là cơ chế đã
@@ -258,7 +257,7 @@ KHÔNG chệch tới 69° thì bộ matlab sai và phải đổi `lower_arm_link
 
 Ba cách "hiển nhiên" khác đều KHÔNG dùng được, đã kiểm:
 - tắt động cơ (IDLE) rồi đọc: driver phát encoder = 0 ở IDLE
-- `lqi_node` với `gravity_scale = [0,0,0]`: phát 0.0 không đổi 0.51 s là
+- một node torque với `gravity_scale = [0,0,0]`: phát 0.0 không đổi 0.51 s là
   `command_stale()` (so bit-identical) coi nguồn phát đã chết và tụt về bù
   trọng lực → tay bị giữ lên
 - `torque_sign_test.py --tau 0`: chạy một khớp mỗi lần, mà tư thế nghỉ là cân
@@ -364,8 +363,8 @@ Cứ giữ `input_mode = 1`.
 
 > **Trọng số LQR (`q_int`, `q_pos`, `q_vel`, `r`) KHÔNG dùng ở đây.** Bước hiện
 > tại chỉ dùng `G(q)` từ mô hình Lagrange làm feedforward; phần phản hồi vẫn là
-> cascade của driver. Mục 4 của `LQI_README.md` chỉ áp dụng khi chuyển sang chế
-> độ mô-men (`control_mode = 1`).
+> cascade của driver. Các trọng số LQR chỉ áp dụng khi chuyển sang chế độ
+> mô-men (`control_mode = 1`).
 
 ---
 

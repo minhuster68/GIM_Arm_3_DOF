@@ -18,9 +18,56 @@ DRY_FRICTION_PER_N = 0.004
 # transform from base_link to base_footprint.  Keep a small visual clearance
 # above Gazebo's z=0 ground plane instead of letting the chair sink into it.
 GAZEBO_BASE_HEIGHT_M = 0.300
+PAYLOAD_LINK = "tool_payload_link"
+PAYLOAD_JOINT = "tool_payload_joint"
+PAYLOAD_RADIUS_M = 0.025
 
 
-def build_gazebo_description(urdf_path, controllers_path):
+def _add_point_payload(root, mass_kg, offset_xyz):
+    """Attach a small spherical payload to the tool point in the Gazebo URDF."""
+    mass_kg = float(mass_kg)
+    if mass_kg < 0.0:
+        raise ValueError("payload_mass_kg phải >= 0")
+    if mass_kg == 0.0:
+        return
+    offset = tuple(float(value) for value in offset_xyz)
+    if len(offset) != 3:
+        raise ValueError("payload_offset_xyz phải có đúng 3 phần tử")
+
+    link = ET.SubElement(root, "link", {"name": PAYLOAD_LINK})
+    inertial = ET.SubElement(link, "inertial")
+    ET.SubElement(inertial, "origin", {"xyz": "0 0 0", "rpy": "0 0 0"})
+    ET.SubElement(inertial, "mass", {"value": f"{mass_kg:.9g}"})
+    # A point mass is singular for a rigid-body solver.  Use the inertia of a
+    # 25 mm sphere while keeping the centre of mass exactly at the tool point.
+    inertia_value = 0.4 * mass_kg * PAYLOAD_RADIUS_M ** 2
+    ET.SubElement(inertial, "inertia", {
+        "ixx": f"{inertia_value:.9g}",
+        "ixy": "0", "ixz": "0",
+        "iyy": f"{inertia_value:.9g}",
+        "iyz": "0",
+        "izz": f"{inertia_value:.9g}",
+    })
+    visual = ET.SubElement(link, "visual")
+    geometry = ET.SubElement(visual, "geometry")
+    ET.SubElement(
+        geometry, "sphere", {"radius": f"{PAYLOAD_RADIUS_M:.9g}"})
+    material = ET.SubElement(visual, "material", {"name": "payload_red"})
+    ET.SubElement(material, "color", {"rgba": "0.85 0.12 0.12 1"})
+
+    joint = ET.SubElement(
+        root, "joint", {"name": PAYLOAD_JOINT, "type": "fixed"})
+    ET.SubElement(joint, "parent", {"link": "lower_arm_link"})
+    ET.SubElement(joint, "child", {"link": PAYLOAD_LINK})
+    ET.SubElement(joint, "origin", {
+        "xyz": " ".join(f"{value:.9g}" for value in offset),
+        "rpy": "0 0 0",
+    })
+
+
+def build_gazebo_description(
+        urdf_path, controllers_path, payload_mass_kg=0.0,
+        payload_offset_xyz=(0.0, 0.0, 0.0)):
     """Replace only the hardware backend while preserving robot dynamics."""
     root = ET.parse(urdf_path).getroot()
 
@@ -105,6 +152,11 @@ def build_gazebo_description(urdf_path, controllers_path):
             dynamics = ET.SubElement(joint, "dynamics")
         dynamics.set("damping", str(VISCOUS_PER_N2 * gear_ratio ** 2))
         dynamics.set("friction", str(DRY_FRICTION_PER_N * gear_ratio))
+
+    # This link exists only in the Gazebo runtime description.  ArmDynamics
+    # continues to read the source URDF, so the controller does not compensate
+    # this mass and sees it as an unknown payload/disturbance.
+    _add_point_payload(root, payload_mass_kg, payload_offset_xyz)
 
     gazebo = ET.SubElement(root, "gazebo")
     plugin = ET.SubElement(

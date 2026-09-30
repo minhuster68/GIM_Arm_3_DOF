@@ -8,6 +8,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     ExecuteProcess,
     IncludeLaunchDescription,
+    OpaqueFunction,
     RegisterEventHandler,
     SetEnvironmentVariable,
 )
@@ -17,9 +18,10 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 from gim_control.gazebo_description import build_gazebo_description
+from gim_control.sweep_trajectory import TOOL_OFFSET
 
 
-def generate_launch_description():
+def _launch_setup(context):
     description_share = get_package_share_directory("gim_arm_description")
     control_share = get_package_share_directory("gim_control")
     gazebo_share = get_package_share_directory("gazebo_ros")
@@ -30,8 +32,12 @@ def generate_launch_description():
         control_share, "config", "controllers_gazebo.yaml")
     world_path = os.path.join(
         control_share, "worlds", "gim_arm_zero_gravity.world")
+    payload_mass_kg = float(
+        LaunchConfiguration("payload_mass_kg").perform(context))
     robot_description = build_gazebo_description(
-        urdf_path, controllers_path)
+        urdf_path, controllers_path,
+        payload_mass_kg=payload_mass_kg,
+        payload_offset_xyz=TOOL_OFFSET)
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -155,16 +161,7 @@ def generate_launch_description():
         target_action=hold_home,
         on_exit=[enable_gravity],
     ))
-    gazebo_model_path = os.pathsep.join(filter(None, [
-        "/usr/share/gazebo-11/models",
-        os.environ.get("GAZEBO_MODEL_PATH", ""),
-    ]))
-
-    return LaunchDescription([
-        DeclareLaunchArgument("gui", default_value="true"),
-        DeclareLaunchArgument("verbose", default_value="false"),
-        DeclareLaunchArgument("gravity_z", default_value="-9.81"),
-        SetEnvironmentVariable("GAZEBO_MODEL_PATH", gazebo_model_path),
+    return [
         gazebo,
         state_publisher,
         spawn_robot,
@@ -175,4 +172,23 @@ def generate_launch_description():
         load_trajectory,
         command_home,
         start_gravity,
+    ]
+
+
+def generate_launch_description():
+    gazebo_model_path = os.pathsep.join(filter(None, [
+        "/usr/share/gazebo-11/models",
+        os.environ.get("GAZEBO_MODEL_PATH", ""),
+    ]))
+    return LaunchDescription([
+        DeclareLaunchArgument("gui", default_value="true"),
+        DeclareLaunchArgument("verbose", default_value="false"),
+        DeclareLaunchArgument("gravity_z", default_value="-9.81"),
+        DeclareLaunchArgument(
+            "payload_mass_kg",
+            default_value="0.0",
+            description=(
+                "Unmodelled point payload at the EE tool offset; Gazebo only")),
+        SetEnvironmentVariable("GAZEBO_MODEL_PATH", gazebo_model_path),
+        OpaqueFunction(function=_launch_setup),
     ])

@@ -29,7 +29,6 @@ setup(
             'origin_draw_trajectory = gim_control.origin_draw_trajectory:main',
             'sniff_can_ff = gim_control.sniff_can_ff:main',
             'check_gravity_model = gim_control.check_gravity_model:main',
-            'lqi_node = gim_control.lqi_node:main',
             'goto_pose = gim_control.goto_pose:main',
             'export_mat = gim_control.export_mat:main',
             'plot_ee_error = gim_control.plot_ee_error:main',

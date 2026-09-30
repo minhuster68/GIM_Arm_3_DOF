@@ -2,7 +2,7 @@ import numpy as np
 
 from gim_control.controller_api import ControllerFactory, vector_parameter
 
-from .controller import LqrController, TvlqrWeights
+from .controller import LqrController, LqrWeights
 
 
 class LqrFactory(ControllerFactory):
@@ -26,7 +26,7 @@ class LqrFactory(ControllerFactory):
     def build(self, node, dynamics, tau_limit, control_hz):
         n = dynamics.nq
         configured_tau = vector_parameter(node, "max_tau", n)
-        weights = TvlqrWeights(
+        weights = LqrWeights(
             max_int_e=vector_parameter(node, "max_int_e", n, positive=True),
             max_e=vector_parameter(node, "max_e", n, positive=True),
             max_de=vector_parameter(node, "max_de", n, positive=True),

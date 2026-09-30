@@ -1,0 +1,32 @@
+mpc_controller:
+  ros__parameters:
+    control_hz: 100.0
+    tau_scale: 1.0
+    autostart: false
+    hold_kd: [0.1, 0.3, 0.1]
+
+    # Cùng bộ robust đã validate trong mpc_result_robust_validated.mat.
+    prediction_horizon: 40
+    control_horizon: 10
+    # Tăng Qz x64 để khử tải không biết trước trong horizon ngắn 0.4 s. Bộ
+    # MATLAB gốc vẫn được giữ nguyên trong mpc.yaml để đối chiếu.
+    q_integral: [128.0, 128.0, 128.0]
+    q_position: [0.62709973, 1.56774934, 0.62709973]
+    q_velocity: [0.02, 0.02, 0.02]
+    r_input: [0.00971045, 0.00971045, 0.00971045]
+    r_rate: [0.03, 0.03, 0.03]
+    output_scale_integral: [0.25, 0.25, 0.25]
+    output_scale_position: [0.05, 0.05, 0.05]
+    output_scale_velocity: [0.10, 0.10, 0.10]
+    input_scale: [5.0, 40.0, 5.0]
+
+    # ADMM giải QP dưới chu kỳ 10 ms, cho phép giữ slew của bộ MATLAB thay vì
+    # làm mềm controller để bù cho độ trễ SLSQP.
+    torque_slew_rate: [50.0, 200.0, 50.0]
+    integral_limit: 0.0
+    linearization_step: 0.00001
+    max_solver_iterations: 60
+    qp_solver: admm
+    admm_rho: 0.1
+    admm_iterations: 100
+    admm_tolerance: 0.0001
