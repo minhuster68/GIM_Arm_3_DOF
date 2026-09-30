@@ -314,10 +314,47 @@ tục chẩn đoán/tune trong Gazebo, chưa được xem là profile LQR đã n
 tuyệt đối chưa chuyển sang tay thật. Không nới `max_track_error_rad` để che
 spike; cần xử lý sai khác plant/độ trễ và kiểm lại vận tốc khớp trước.
 
-Các YAML thuật toán chính đặt `tau_scale: 1.0` để đúng trần MATLAB
-`[5, 40, 5] Nm`. Launch chung cố ý override mặc định xuống 0.35 cho bring-up.
-Chỉ truyền `tau_scale:=1.0` để đối chiếu toàn biên trên simulator trước khi có
-quy trình an toàn tương ứng trên tay thật.
+### SMC rời rạc 100 Hz trên Gazebo
+
+`smc.yaml` giữ nguyên profile MATLAB liên tục để đối chiếu. Trong lớp biên,
+hệ số của reaching law là `alpha = ks + kr/phi`; profile gốc cho
+`alpha=[1005,2737,780] 1/s`. Khi giữ lệnh gia tốc trong một chu kỳ 10 ms,
+xấp xỉ computed-torque lý tưởng đã có bán kính phổ
+`rho=[9.814,38.260,13.565] > 1`, phù hợp với hiện tượng bão hòa mô-men và
+safety abort ngay đầu APPROACH. Tăng trần mô-men không sửa được mất ổn định
+rời rạc này.
+
+Profile `smc_gazebo_safe.yaml` dùng:
+
+```text
+lambda = [30, 35, 40]
+ks     = [25, 30, 30]
+kr     = [40, 100, 100]
+phi    = [2, 5, 4]
+```
+
+Khi đó `alpha=[45,50,55] 1/s` và `rho=[0.7703,0.7427,0.7168]`. Factory sẽ
+in các giá trị này khi khởi động và phát cảnh báo nếu bất kỳ `rho >= 1`.
+Launch chọn profile an toàn bằng `smc_profile:=gazebo_safe` (mặc định cho
+SMC), chạy ở 100 Hz và dùng `tau_scale=0.50` khi không truyền đè.
+
+Hai lượt kiểm tra đầy đủ APPROACH/TRACK/RETURN/HOLD trên Gazebo đều hoàn tất:
+
+| Tải tại tool tip | `tau_scale` | max sai số TRACK q1/q2/q3 | max sai số vận tốc | max bước mô-men |
+|---|---:|---:|---:|---:|
+| 0 kg | 0.50 | `[0.176,0.254,0.338]` độ | `[0.024,0.034,0.043]` rad/s | `[0.176,0.150,0.051]` Nm |
+| 0.5 kg | 0.75 | `[0.641,0.686,2.472]` độ | `[0.031,0.036,0.048]` rad/s | `[0.254,0.236,0.084]` Nm |
+
+Với tải 0.5 kg, riêng gravity ở elbow cần khoảng `3.52 Nm`, lớn hơn trần
+`2.50 Nm` của `tau_scale=0.50`; vì vậy lượt có tải phải truyền
+`tau_scale:=0.75`. Đây mới là xác minh trên Gazebo, chưa phải nghiệm thu trên
+phần cứng thật.
+
+Các YAML `matlab_reference` đặt `tau_scale: 1.0` để đúng trần MATLAB
+`[5, 40, 5] Nm`. Launch chung hạ trần theo profile bring-up; riêng SMC
+`gazebo_safe` mặc định dùng 0.50. Chỉ truyền `tau_scale:=1.0` để đối chiếu
+toàn biên trên simulator trước khi có quy trình an toàn tương ứng trên tay
+thật.
 
 ## Quan hệ với mô hình MATLAB
 

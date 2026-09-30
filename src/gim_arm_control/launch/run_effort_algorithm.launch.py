@@ -31,6 +31,7 @@ def generate_launch_description():
     pid_profile = LaunchConfiguration("pid_profile")
     lqr_profile = LaunchConfiguration("lqr_profile")
     mpc_profile = LaunchConfiguration("mpc_profile")
+    smc_profile = LaunchConfiguration("smc_profile")
     lqr_recompute_every = LaunchConfiguration("lqr_recompute_every")
     lqr_tau_penalty_scale = LaunchConfiguration("lqr_tau_penalty_scale")
     lqr_gravity_at_measured = LaunchConfiguration(
@@ -46,6 +47,11 @@ def generate_launch_description():
             LaunchConfiguration("max_track_error_rad"), value_type=float),
         "max_transition_error_rad": ParameterValue(
             LaunchConfiguration("max_transition_error_rad"), value_type=float),
+        "stale_recovery_threshold": ParameterValue(
+            LaunchConfiguration("stale_recovery_threshold"),
+            value_type=float),
+        "stale_recovery_time": ParameterValue(
+            LaunchConfiguration("stale_recovery_time"), value_type=float),
         "approach_time": ParameterValue(
             LaunchConfiguration("approach_time"), value_type=float),
         "return_time": ParameterValue(
@@ -104,6 +110,12 @@ def generate_launch_description():
                 "MPC only: validated MATLAB slew limits or a delay-robust "
                 "100 Hz Gazebo bring-up profile")),
         DeclareLaunchArgument(
+            "smc_profile", default_value="gazebo_safe",
+            choices=["matlab_reference", "gazebo_safe"],
+            description=(
+                "SMC only: original continuous-time MATLAB gains or the "
+                "validated 100 Hz Gazebo profile")),
+        DeclareLaunchArgument(
             "lqr_recompute_every",
             default_value=PythonExpression([
                 "'2' if '", lqr_profile,
@@ -133,9 +145,11 @@ def generate_launch_description():
         DeclareLaunchArgument("autostart", default_value="false"),
         DeclareLaunchArgument("tau_scale", default_value=PythonExpression([
             "'1.0' if '", algorithm,
-            "' == 'mpc' else ('0.50' if '", algorithm,
+            "' == 'mpc' else ('0.50' if ('", algorithm,
             "' == 'pid' and '", pid_profile,
-            "' == 'gazebo_smooth' else '0.35')",
+            "' == 'gazebo_smooth') or ('", algorithm,
+            "' == 'smc' and '", smc_profile,
+            "' == 'gazebo_safe') else '0.35')",
         ])),
         DeclareLaunchArgument("control_hz", default_value=PythonExpression([
             "'2000.0' if '", algorithm, "' == 'pid' and '", pid_profile,
@@ -146,6 +160,16 @@ def generate_launch_description():
         DeclareLaunchArgument("max_track_error_rad", default_value="0.05"),
         DeclareLaunchArgument(
             "max_transition_error_rad", default_value="0.10"),
+        DeclareLaunchArgument(
+            "stale_recovery_threshold", default_value="0.03",
+            description=(
+                "State-feedback gap in seconds that activates damped-hold "
+                "recovery")),
+        DeclareLaunchArgument(
+            "stale_recovery_time", default_value="0.25",
+            description=(
+                "Damped-hold duration before an interrupted trajectory "
+                "resumes")),
         DeclareLaunchArgument("approach_time", default_value="5.0"),
         DeclareLaunchArgument("return_time", default_value="5.0"),
         DeclareLaunchArgument("loops", default_value="1.0"),
@@ -190,6 +214,11 @@ def generate_launch_description():
             config_file = PythonExpression([
                 "'mpc_gazebo_safe.yaml' if '", mpc_profile,
                 "' == 'gazebo_safe' else 'mpc.yaml'",
+            ])
+        if name == "smc":
+            config_file = PythonExpression([
+                "'smc_gazebo_safe.yaml' if '", smc_profile,
+                "' == 'gazebo_safe' else 'smc.yaml'",
             ])
         parameter_overrides = [common_overrides]
         if name == "lqr":

@@ -1,0 +1,23 @@
+smc_controller:
+  ros__parameters:
+    control_hz: 100.0
+    # Không tải dùng tau_scale=0.50 từ launch. Với payload 0.5 kg tại tool
+    # tip phải truyền tau_scale:=0.75 vì riêng gravity của tải cần ~3.52 Nm
+    # ở elbow; trần 0.50 chỉ cho phép 2.50 Nm.
+    tau_scale: 0.50
+    autostart: false
+
+    # Damping mềm trong GRAVITY/HOLD tránh kích vận tốc lúc chuyển từ position
+    # sang effort ở 100 Hz.
+    hold_kd: [0.1, 0.3, 0.1]
+
+    # Profile rời rạc 100 Hz đã kiểm tra trọn APPROACH/TRACK/RETURN/HOLD trên
+    # Gazebo với payload 0 và 0.5 kg. smc.yaml vẫn giữ nguyên bộ MATLAB liên
+    # tục để đối chiếu; không dùng bộ đó trực tiếp ở 100 Hz.
+    # Trong lớp biên, alpha = ks + kr/phi = [45, 50, 55] 1/s, nên các cực
+    # computed-torque lý tưởng là -lambda và -alpha thay vì tới -2737 1/s
+    # như profile MATLAB gốc.
+    lambda_gain: [30.0, 35.0, 40.0]
+    ks: [25.0, 30.0, 30.0]
+    kr: [40.0, 100.0, 100.0]
+    phi: [2.0, 5.0, 4.0]

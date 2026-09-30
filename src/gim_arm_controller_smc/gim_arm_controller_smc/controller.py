@@ -4,8 +4,11 @@ import numpy as np
 
 
 class SmcController:
-    def __init__(self, dynamics, lambda_gain, ks, kr, phi, tau_limit=None):
+    def __init__(
+            self, dynamics, lambda_gain, ks, kr, phi,
+            control_hz=100.0, tau_limit=None):
         self.dyn = dynamics
+        self.dt = 1.0 / float(control_hz)
         self.lambda_gain = np.asarray(lambda_gain, dtype=float)
         self.ks = np.asarray(ks, dtype=float)
         self.kr = np.asarray(kr, dtype=float)
@@ -16,6 +19,25 @@ class SmcController:
 
     def reset(self):
         self.last = {}
+
+    def sampled_spectral_radius(self):
+        """Estimate sampled stability for the ideal computed-torque plant."""
+        # Inside the saturation boundary, the reaching law is linear:
+        # e_ddot + (lambda + alpha)e_dot + lambda*alpha*e = 0,
+        # alpha = ks + kr/phi.  Apply a ZOH to the acceleration command over
+        # one sample and inspect the resulting double-integrator map.
+        alpha = self.ks + self.kr / self.phi
+        radii = []
+        for lambda_value, alpha_value in zip(self.lambda_gain, alpha):
+            kp = lambda_value * alpha_value
+            kd = lambda_value + alpha_value
+            matrix = np.array([
+                [1.0 - 0.5 * kp * self.dt**2,
+                 self.dt - 0.5 * kd * self.dt**2],
+                [-kp * self.dt, 1.0 - kd * self.dt],
+            ])
+            radii.append(float(np.max(np.abs(np.linalg.eigvals(matrix)))))
+        return np.asarray(radii)
 
     def compute(self, q, qd, q_ref, qd_ref, qdd_ref, dt):
         q = np.asarray(q, dtype=float)
@@ -50,10 +72,13 @@ class SmcController:
         return tau
 
     def describe(self, q_nominal=None):
+        alpha = self.ks + self.kr / self.phi
         return (
             "SMC: s=error_rate+lambda*error; reaching law dùng saturation "
             "để giảm chattering\n"
             f"  lambda={self.lambda_gain}, ks={self.ks}, kr={self.kr}, "
             f"phi={self.phi}\n"
+            f"  alpha_boundary=ks+kr/phi={alpha}, "
+            f"rho_ZOH_ideal={np.round(self.sampled_spectral_radius(), 4)}\n"
             f"  tau=inverse_dynamics(q_do, qdot_do, virtual_acceleration), "
             f"tau_limit={self.tau_limit} Nm")

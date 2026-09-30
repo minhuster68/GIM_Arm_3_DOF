@@ -63,6 +63,8 @@ class EffortControllerNode(Node):
         declare("max_transition_error_rad", 0.10)
         declare("joint_margin_rad", 0.05)
         declare("state_timeout", 0.25)
+        declare("stale_recovery_threshold", 0.03)
+        declare("stale_recovery_time", 0.25)
         declare("approach_time", 5.0)
         declare("return_time", 5.0)
         declare("loops", 1.0)
@@ -97,6 +99,9 @@ class EffortControllerNode(Node):
             get("max_transition_error_rad").value)
         self.joint_margin = float(get("joint_margin_rad").value)
         self.state_timeout = float(get("state_timeout").value)
+        self.stale_recovery_threshold = float(
+            get("stale_recovery_threshold").value)
+        self.stale_recovery_time = float(get("stale_recovery_time").value)
         self.approach_time = float(get("approach_time").value)
         self.return_time = float(get("return_time").value)
         loops = float(get("loops").value)
@@ -107,6 +112,10 @@ class EffortControllerNode(Node):
             raise ValueError("approach_time và return_time phải > 0")
         if self.max_track_error <= 0.0 or self.max_transition_error <= 0.0:
             raise ValueError("các ngưỡng sai số phải > 0")
+        if (self.stale_recovery_threshold < 0.0
+                or self.stale_recovery_time < 0.0):
+            raise ValueError(
+                "stale_recovery_threshold/time phải >= 0")
         self.command_heartbeat = float(get("command_heartbeat_nm").value)
         if not 0.0 <= self.command_heartbeat <= 1.0e-3:
             raise ValueError("command_heartbeat_nm phải nằm trong [0, 1e-3]")
@@ -116,7 +125,8 @@ class EffortControllerNode(Node):
 
         self.phase = WAIT
         self.q = self.qd = self.measured_effort = self.state_stamp = None
-        self.phase_t0 = self.previous_tick = None
+        self.previous_tick = None
+        self.phase_elapsed = 0.0
         self.home_q = self.reference = None
         self.hand_guiding = False
         self.manual_hold_latched = False
@@ -131,6 +141,11 @@ class EffortControllerNode(Node):
                                and bool(get("log_file").value))
         self.mpc_solver_rejections = 0
         self.state_seq = 0
+        self.last_control_state_seq = -1
+        self.stale_state_skips = 0
+        self.consecutive_stale_time = 0.0
+        self.recovery_steps_remaining = 0
+        self.recovery_target = None
         self.state_header_ns = -1
         self.state_rx_wall_ns = -1
         self.clock_sim_ns = -1
@@ -213,7 +228,7 @@ class EffortControllerNode(Node):
                 hold_time = float(get("diagnostic_hold_time").value)
                 self.trajectory = TimedHold(q_target, hold_time)
                 self.get_logger().warn(
-                    "CHẾ ĐỘ CHẨN ĐOÁN LQR GIỮ TƯ THẾ: "
+                    "CHẾ ĐỘ CHẨN ĐOÁN GIỮ TƯ THẾ: "
                     f"q_ref={np.round(q_target_deg, 3)} deg trong "
                     f"{hold_time:g}s")
                 track_description = f"TRACK_HOLD {hold_time:g}s"
@@ -372,12 +387,12 @@ class EffortControllerNode(Node):
             np.asarray([msg.effort[i] for i in indices], dtype=float)
             if len(msg.effort) >= len(msg.name)
             else np.full(self.n, np.nan))
+        self.state_seq += 1
+        self.state_header_ns = (
+            int(msg.header.stamp.sec) * 1_000_000_000
+            + int(msg.header.stamp.nanosec))
+        self.state_rx_wall_ns = time.time_ns()
         if self.diagnostic_lqr:
-            self.state_seq += 1
-            self.state_header_ns = (
-                int(msg.header.stamp.sec) * 1_000_000_000
-                + int(msg.header.stamp.nanosec))
-            self.state_rx_wall_ns = time.time_ns()
             if self.phase in (APPROACH, TRACK, RETURN):
                 self.state_rows.append([
                     self.state_header_ns, self.state_rx_wall_ns,
@@ -398,6 +413,12 @@ class EffortControllerNode(Node):
             tick_wall_ns * 1e-9, self.phase, dt, compute_time,
             *self.q, *self.qd, *q_ref, *qd_ref, *tau,
         ]
+        if self.diagnostic_lqr or self.diagnostic_mpc:
+            row.extend([
+                event, phase_elapsed, tick_wall_ns,
+                self.last_publish_wall_ns, self.state_seq,
+                self.state_header_ns, self.state_rx_wall_ns,
+            ])
         if self.diagnostic_lqr:
             last = self.controller.last if event == "CONTROL" else {}
             gain = last.get("K")
@@ -409,11 +430,7 @@ class EffortControllerNode(Node):
                 self.previous_logged_k = gain.copy()
             missing = np.full(self.n, np.nan)
             row.extend([
-                event, phase_elapsed, tick_wall_ns,
-                self.last_publish_wall_ns, self.state_seq,
-                self.state_header_ns,
-                self.state_rx_wall_ns, self.clock_sim_ns,
-                self.clock_rx_wall_ns,
+                self.clock_sim_ns, self.clock_rx_wall_ns,
                 last.get("gain_schedule_index", -1), gain_delta,
                 *(last.get("tau_ff", missing)),
                 *(last.get("tau_raw", missing)),
@@ -482,10 +499,93 @@ class EffortControllerNode(Node):
         response.success = True
         return response
 
+    def _reference_at_phase(self, elapsed):
+        """Return the active reference without advancing its logical clock."""
+        if self.phase == TRACK:
+            loop_time = min(
+                elapsed % self.trajectory.duration,
+                self.trajectory.duration)
+            return self.trajectory.at(loop_time)
+        return self.reference.at(elapsed)
+
+    def _hold_command_for_stale_state(self, tick_wall_ns, timer_dt):
+        """Keep the previous torque when the timer outruns joint states."""
+        self.stale_state_skips += 1
+        self.consecutive_stale_time += timer_dt
+        if self.last_command is not None:
+            self._publish(self.last_command)
+        if ((self.diagnostic_lqr or self.diagnostic_mpc)
+                and self.phase in (APPROACH, TRACK, RETURN)):
+            q_ref, qd_ref, _ = self._reference_at_phase(
+                self.phase_elapsed)
+            held_tau = (
+                self.last_command.copy()
+                if self.last_command is not None
+                else np.full(self.n, np.nan))
+            self._append_tracking_row(
+                tick_wall_ns, self.phase_elapsed, timer_dt,
+                float("nan"), q_ref, qd_ref, held_tau,
+                event="STALE_STATE_HOLD")
+        if self.stale_state_skips in (1, 10, 100, 1000):
+            self.get_logger().warn(
+                "Bỏ qua control tick vì chưa có /joint_states mới; "
+                f"giữ torque trước ({self.stale_state_skips} lần, "
+                f"timer_dt={timer_dt*1000:.2f} ms)")
+
+    def _begin_stale_recovery(self, stale_time):
+        """Start a damped hold before handing control back to the algorithm."""
+        steps = int(np.ceil(self.stale_recovery_time / self.dt_nom))
+        if steps <= 0:
+            return
+        self.recovery_steps_remaining = steps
+        self.recovery_target = self.q.copy()
+        self.hold_integral.fill(0.0)
+        self.controller.reset()
+        self.get_logger().warn(
+            "/joint_states đã ngừng "
+            f"{stale_time*1000:.1f} ms; giữ tư thế và dập vận tốc "
+            f"{self.stale_recovery_time:g}s trước khi chạy tiếp "
+            f"pha {self.phase}")
+
+    def _stale_recovery_torque(self):
+        """Gravity/PD command used while state feedback settles after a gap."""
+        gravity = self._gravity_scale() * self.dynamics.gravity(self.q)
+        position = self.hold_kp * (self.recovery_target - self.q)
+        # Some algorithm profiles deliberately use a very soft HOLD damping.
+        # Recovery must at least retain the hand-guiding damping.
+        damping_gain = np.maximum(self.hold_kd, self.drag_kd)
+        damping = -damping_gain * self.qd
+        return np.clip(
+            gravity + position + damping,
+            -self.tau_limit, self.tau_limit)
+
+    def _run_stale_recovery(self, tick_wall_ns, timer_dt):
+        """Freeze trajectory time and issue one valid damped-hold step."""
+        q_ref, qd_ref, _ = self._reference_at_phase(self.phase_elapsed)
+        tau = self._stale_recovery_torque()
+        self._publish(tau)
+        if ((self.diagnostic_lqr or self.diagnostic_mpc)
+                and self.phase in (APPROACH, TRACK, RETURN)):
+            self._append_tracking_row(
+                tick_wall_ns, self.phase_elapsed, timer_dt,
+                0.0, q_ref, qd_ref, tau,
+                event="STALE_RECOVERY_HOLD")
+        self.recovery_steps_remaining -= 1
+        if self.recovery_steps_remaining <= 0:
+            self.recovery_steps_remaining = 0
+            self.recovery_target = None
+            # Drop integral, warm-start and previous-feedback state accumulated
+            # before the data gap. The final recovery command is close to
+            # gravity after the velocity has settled, so this reset is smooth.
+            self.controller.reset()
+            self.get_logger().info(
+                f"Kết thúc phục hồi /joint_states; tiếp tục {self.phase} "
+                f"tại t={self.phase_elapsed:.3f}s")
+
     def _tick(self):
         tick_wall_ns = time.time_ns()
         now = self.get_clock().now()
-        dt = self.dt_nom if self.previous_tick is None else max(
+        timer_dt = self.dt_nom if self.previous_tick is None else max(
             1e-4, (now - self.previous_tick).nanoseconds * 1e-9)
         self.previous_tick = now
         if self.q is None:
@@ -497,6 +597,22 @@ class EffortControllerNode(Node):
         # clock này; callback kế tiếp sẽ cập nhật state_stamp theo giờ Gazebo.
         if self.state_stamp.nanoseconds > 0 and age > self.state_timeout:
             self._abort(f"/joint_states cũ {age*1000:.0f} ms")
+
+        # Timer và subscription chạy trong cùng single-threaded executor. Sau
+        # một scheduler stall, timer có thể được phục vụ trước các JointState
+        # đang xếp hàng. Không được đưa mẫu q/qd cũ vào controller trong khi
+        # reference đã tiến: đó là nguồn cú giật đã đo ở PID/LQR/MPC. Giữ lệnh
+        # trước và đóng băng thời gian quỹ đạo cho tới khi state_seq thay đổi.
+        if self.state_seq == self.last_control_state_seq:
+            self._hold_command_for_stale_state(tick_wall_ns, timer_dt)
+            return
+        self.last_control_state_seq = self.state_seq
+        stale_time = self.consecutive_stale_time
+        self.consecutive_stale_time = 0.0
+        # Mọi controller được thiết kế ở control_hz cố định. Một tick hợp lệ
+        # luôn tương ứng đúng một bước mô hình; khoảng wall-time bị hụt không
+        # được tích phân bù vào I-state hay slew constraint.
+        dt = self.dt_nom
 
         if self.phase == WAIT:
             # Chụp HOME khi node vừa nhận state, lúc position controller vẫn
@@ -550,21 +666,33 @@ class EffortControllerNode(Node):
             self.controller.reset()
             self.hold_integral.fill(0.0)
             self.manual_hold_latched = False
-            self.phase, self.phase_t0 = APPROACH, now
+            self.phase = APPROACH
+            self.phase_elapsed = 0.0
             self.get_logger().info(
                 f"GRAVITY -> APPROACH ({self.approach_time:g}s), "
                 f"START={np.round(start_q, 4)}, "
                 f"HOME={np.round(self.home_q, 4)}")
 
-        elapsed = 0.0 if self.phase_t0 is None else (
-            now - self.phase_t0).nanoseconds * 1e-9
+        # A state gap freezes not only the reference clock but also phase
+        # transitions. Recover at the exact point where valid feedback ended.
+        if (self.phase in (APPROACH, TRACK, RETURN)
+                and stale_time > 0.0
+                and stale_time >= self.stale_recovery_threshold
+                and self.recovery_steps_remaining == 0):
+            self._begin_stale_recovery(stale_time)
+        if (self.phase in (APPROACH, TRACK, RETURN)
+                and self.recovery_steps_remaining > 0):
+            self._run_stale_recovery(tick_wall_ns, timer_dt)
+            return
+
+        elapsed = self.phase_elapsed
         if self.phase == APPROACH and elapsed >= self.approach_time:
             if self.fixed_track_gain_index >= 0:
                 self.controller.set_fixed_gain_index(
                     self.fixed_track_gain_index)
                 self.get_logger().warn(
                     f"TRACK dùng K_{self.fixed_track_gain_index} cố định")
-            self.phase, self.phase_t0, elapsed = TRACK, now, 0.0
+            self.phase, self.phase_elapsed, elapsed = TRACK, 0.0, 0.0
             self.get_logger().info("APPROACH -> TRACK")
         elif (
             self.phase == TRACK
@@ -574,7 +702,7 @@ class EffortControllerNode(Node):
                 self.controller.set_fixed_gain_index(None)
             sweep_end = self.trajectory.at(self.trajectory.duration)[0]
             self.reference = Quintic(sweep_end, self.home_q, self.return_time)
-            self.phase, self.phase_t0, elapsed = RETURN, now, 0.0
+            self.phase, self.phase_elapsed, elapsed = RETURN, 0.0, 0.0
             self.get_logger().info(f"TRACK -> RETURN ({self.return_time:g}s)")
         elif self.phase == RETURN and elapsed >= self.return_time:
             self.reference = Hold(self.home_q)
@@ -583,7 +711,7 @@ class EffortControllerNode(Node):
             # riêng, mềm hơn và có damping trực tiếp theo vận tốc đo được.
             self.controller.reset()
             self.hold_integral.fill(0.0)
-            self.phase, self.phase_t0, elapsed = HOLD, now, 0.0
+            self.phase, self.phase_elapsed, elapsed = HOLD, 0.0, 0.0
             # Không ghi CSV ngay trong callback điều khiển. Với 2 kHz, một
             # vòng tạo hàng chục nghìn dòng; ghi đồng bộ sẽ ngừng phát torque
             # gần một giây và tự kích hoạt state-timeout. File được ghi sạch
@@ -612,15 +740,7 @@ class EffortControllerNode(Node):
                 dt, integrate=self.manual_hold_latched))
             return
 
-        if self.phase == TRACK:
-            # Mỗi vòng SmoothSweep dừng êm ở cùng waypoint đầu/cuối. Modulo
-            # chỉ phục vụ cấu hình loops > 1; mặc định và bài MATLAB là 1 vòng.
-            loop_time = min(
-                elapsed % self.trajectory.duration,
-                self.trajectory.duration)
-            q_ref, qd_ref, qdd_ref = self.trajectory.at(loop_time)
-        else:
-            q_ref, qd_ref, qdd_ref = self.reference.at(elapsed)
+        q_ref, qd_ref, qdd_ref = self._reference_at_phase(elapsed)
 
         error = float(np.max(np.abs(self.q - q_ref)))
         error_limit = (
@@ -628,13 +748,14 @@ class EffortControllerNode(Node):
             if self.phase in (APPROACH, RETURN)
             else self.max_track_error)
         if error > error_limit:
-            if self.diagnostic_lqr and self.phase in (APPROACH, TRACK, RETURN):
+            if ((self.diagnostic_lqr or self.diagnostic_mpc)
+                    and self.phase in (APPROACH, TRACK, RETURN)):
                 previous_tau = (
                     self.last_command
                     if self.last_command is not None
                     else np.zeros(self.n))
                 self._append_tracking_row(
-                    tick_wall_ns, elapsed, dt, float("nan"),
+                    tick_wall_ns, elapsed, timer_dt, float("nan"),
                     q_ref, qd_ref, previous_tau,
                     event="ABORT_TRACK_ERROR_PREVIOUS_TAU")
             self._abort(
@@ -683,8 +804,9 @@ class EffortControllerNode(Node):
 
         if self.phase in (APPROACH, TRACK, RETURN):
             self._append_tracking_row(
-                tick_wall_ns, elapsed, dt, compute_time,
+                tick_wall_ns, elapsed, timer_dt, compute_time,
                 q_ref, qd_ref, tau)
+            self.phase_elapsed += self.dt_nom
 
     def _gravity_torque(self):
         return np.clip(
@@ -772,11 +894,15 @@ class EffortControllerNode(Node):
         header = ["t_wall", "phase", "dt", "compute_time"]
         for prefix in ("q", "qd", "qref", "qdref", "tau"):
             header.extend(f"{prefix}_{name}" for name in self.joint_names)
-        if self.diagnostic_lqr:
+        if self.diagnostic_lqr or self.diagnostic_mpc:
             header.extend([
                 "event", "phase_elapsed_s", "tick_wall_ns",
                 "publish_wall_ns", "state_seq", "state_header_sim_ns",
-                "state_rx_wall_ns", "clock_sim_ns", "clock_rx_wall_ns",
+                "state_rx_wall_ns",
+            ])
+        if self.diagnostic_lqr:
+            header.extend([
+                "clock_sim_ns", "clock_rx_wall_ns",
                 "gain_schedule_index", "gain_delta_fro",
             ])
             for prefix in (
