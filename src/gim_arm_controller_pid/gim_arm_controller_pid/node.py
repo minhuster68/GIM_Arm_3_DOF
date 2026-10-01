@@ -1,6 +1,6 @@
 from gim_control.effort_controller_node import run_controller
 
-from .factory import CascadePidFactory
+from ..resource.factory import CascadePidFactory
 
 
 def main():

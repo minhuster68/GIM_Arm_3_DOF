@@ -18,4 +18,4 @@ cascade_pid_controller:
     kvi: [7.6, 7.6, 7.6]
     torque_constant: 0.47
     # 0 = không kẹp tích phân, đúng PID block trong urdf.slx.
-    # velocity_integral_limit: 0.0
+    velocity_integral_limit: 0.0
