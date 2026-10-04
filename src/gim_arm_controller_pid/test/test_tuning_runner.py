@@ -17,6 +17,7 @@ from gim_control.effort_controller_node import (
     ABORT, APPROACH, GRAVITY, HOLD, RETURN, TRACK, EffortControllerNode,
 )
 from gim_control.plot_ee_error import load_log
+from gim_control.sweep_trajectory import DT, N_POINTS
 
 
 class TestTuningRunner(unittest.TestCase):
@@ -136,6 +137,62 @@ class TestTuningRunner(unittest.TestCase):
         self.assertEqual(node.phase, ABORT)
         np.testing.assert_allclose(node.last_command, node._gravity_torque())
         self.assertFalse(any(row[1] == APPROACH for row in node.rows))
+
+
+class TestOriginalSweepRunner(unittest.TestCase):
+    def test_original_sweep_runs_one_complete_loop_then_returns_to_home(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log_file = str(Path(directory) / 'sweep.csv')
+            params = str(Path(__file__).resolve().parents[1]
+                         / 'config/pid_hardware_soft.yaml')
+            rclpy.init(args=[
+                '--ros-args', '--params-file', params,
+                '-p', 'diagnostic_hold:=false', '-p', 'diagnostic_segment:=false',
+                '-p', 'cascade_hold:=true', '-p', 'cache_file:=""', '-p', 'loops:=1.0',
+                '-p', 'approach_time:=16.0', '-p', 'return_time:=16.0',
+                '-p', 'log_file:=' + log_file])
+            node = None
+            try:
+                node = EffortControllerNode(CascadePidFactory())
+
+                def capture(tau):
+                    node.last_command = np.asarray(tau).copy()
+                    node.last_publish_wall_ns = time.time_ns()
+
+                def state(q, qd):
+                    msg = JointState()
+                    msg.name = node.joint_names
+                    msg.position = list(np.asarray(q, dtype=float))
+                    msg.velocity = list(np.asarray(qd, dtype=float))
+                    node._on_state(msg)
+
+                with patch.object(node, '_publish', side_effect=capture):
+                    state(np.zeros(3), np.zeros(3))
+                    node._tick()
+                    self.assertEqual(node.trajectory.duration, N_POINTS * DT)
+                    node.set_parameters([Parameter('autostart', value=True)])
+                    phases = set()
+                    for _ in range(6100):
+                        if node.phase == GRAVITY:
+                            q, qd = np.zeros(3), np.zeros(3)
+                        else:
+                            q, qd, _ = node._reference_at_phase(node.phase_elapsed)
+                        state(q, qd)
+                        node._tick()
+                        phases.add(node.phase)
+                        if node.phase == HOLD:
+                            break
+                    self.assertEqual(phases, {APPROACH, TRACK, RETURN, HOLD})
+                    np.testing.assert_allclose(node.home_q, np.zeros(3))
+                    np.testing.assert_allclose(node.reference.at(0)[0], np.zeros(3))
+                    node.dump()
+                    log = load_log(log_file)
+                    self.assertTrue(np.any(log['phase'] == TRACK))
+                    self.assertEqual(log['phase'][-1], HOLD)
+            finally:
+                if node is not None:
+                    node.destroy_node()
+                rclpy.shutdown()
 
 
 if __name__ == '__main__':

@@ -5,9 +5,9 @@ cascade_pid_controller:
     autostart: false
     gravity_scale: [1.0, 1.0, 1.0]
     cascade_hold: true
-    kpp: [25.0, 30.0, 10.0]
-    kvp: [0.8, 0.8, 0.8]
-    kvi: [5.0, 1.0, 5.0]
+    kpp: [25.0, 35.0, 10.0]
+    kvp: [0.8, 0.7, 0.7]
+    kvi: [2.0, 1.5, 4.0]
     velocity_integral_limit: 0.5
     max_transition_error_rad: 0.10
     max_track_error_rad: 0.10

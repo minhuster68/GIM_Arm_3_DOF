@@ -1,4 +1,4 @@
-"""Test cascade PID on one joint or synchronized shoulder/elbow references."""
+"""Test cascade PID on isolated joints or synchronized multi-joint references."""
 
 import math
 import os
@@ -11,7 +11,7 @@ from launch_ros.substitutions import FindPackageShare
 
 
 JOINTS = ('base', 'shoulder', 'elbow')
-SELECTIONS = JOINTS + ('shoulder_elbow',)
+SELECTIONS = JOINTS + ('shoulder_elbow', 'all')
 
 
 def _launch_setup(context):
@@ -20,11 +20,13 @@ def _launch_setup(context):
 
     joint = get('joint')
     if joint not in SELECTIONS:
-        raise ValueError('joint phải là base, shoulder, elbow hoặc shoulder_elbow')
+        raise ValueError('joint phải là base, shoulder, elbow, shoulder_elbow hoặc all')
     target_deg = [0.0, 0.0, 0.0]
-    if joint == 'shoulder_elbow':
+    if joint in ('shoulder_elbow', 'all'):
         target_deg[1] = float(get('shoulder_deg'))
         target_deg[2] = float(get('elbow_deg'))
+        if joint == 'all':
+            target_deg[0] = float(get('base_deg'))
     else:
         target_deg[JOINTS.index(joint)] = float(get('target_deg'))
     durations = {name: float(get(name)) for name in ('move_time', 'hold_time', 'return_time')}
@@ -63,11 +65,14 @@ def generate_launch_description():
         DeclareLaunchArgument('joint', default_value='elbow', choices=list(SELECTIONS)),
         DeclareLaunchArgument('target_deg', default_value='30.0'),
         DeclareLaunchArgument(
+            'base_deg', default_value='5.0',
+            description='Absolute base target in degrees for joint:=all.'),
+        DeclareLaunchArgument(
             'shoulder_deg', default_value='15.0',
-            description='Absolute shoulder target in degrees for joint:=shoulder_elbow.'),
+            description='Absolute shoulder target for joint:=shoulder_elbow or all.'),
         DeclareLaunchArgument(
             'elbow_deg', default_value='30.0',
-            description='Absolute elbow target in degrees for joint:=shoulder_elbow.'),
+            description='Absolute elbow target for joint:=shoulder_elbow or all.'),
         DeclareLaunchArgument('move_time', default_value='6.0'),
         DeclareLaunchArgument('hold_time', default_value='3.0'),
         DeclareLaunchArgument('return_time', default_value='6.0'),

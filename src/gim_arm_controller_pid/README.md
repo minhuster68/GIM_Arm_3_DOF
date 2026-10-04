@@ -8,6 +8,8 @@ position trước khi khởi động bài thử. Không khởi động lại lau
 giữa các lần tune để giữ nguyên mốc zero phần mềm.
 Có thể thử shoulder và elbow đồng thời với `shoulder_elbow`; base giữ bằng
 position mode của driver. Hai khớp dùng cùng thời gian đi/giữ/về, với góc đích riêng.
+Chọn `joint:=all` để cả ba khớp chạy cùng một quỹ đạo đi/giữ/về; đặt riêng
+`base_deg`, `shoulder_deg`, `elbow_deg` và dùng phần cứng `torque_joint:=all`.
 
 Trong mọi pha đi, giữ đích, quay về và giữ HOME:
 
@@ -223,6 +225,154 @@ khi `cascade_hold=true`. Lệnh plot ở phần trên cũng đọc được log 
 Trước khi effort controller active, torque trong CSV là lệnh node tính và
 publish, chưa phải torque được áp dụng xuống driver. Đối chiếu thời điểm
 switch khi đọc pha chờ này.
+
+## Thử đồng thời cả ba khớp
+
+Dùng gain hiện có trong `pid_hardware_soft.yaml`, không thay gain khi đổi
+bài thử. Quỹ đạo bậc 5 đi từ HOME tới `[5,5,5]` độ trong 8 s, giữ 3 s,
+quay về HOME trong 8 s rồi giữ HOME. Các góc đích là góc tuyệt đối theo
+mốc zero ROS, theo thứ tự `[base, shoulder, elbow]`.
+
+Nếu đang chạy bài thử cô lập, chuyển về position trước, dừng PID cũ rồi kê
+đỡ tay và dừng launch phần cứng cũ để đổi lựa chọn torque. Build lại:
+
+```bash
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF
+source /opt/ros/humble/setup.bash
+colcon build --packages-select gim_control gim_arm_controller_pid --symlink-install
+source install/setup.bash
+```
+
+Source workspace ở các terminal mới. Đặt và kê đỡ tay đúng tư thế zero
+trước khi thiết lập lại zero phần mềm. Terminal phần cứng:
+
+```bash
+ros2 launch gim_control origin_gim_arm_control.launch.py \
+  can_interface:=can0 set_zero_on_startup:=true zero_method:=software \
+  torque_joint:=all
+```
+
+Với URDF hiện tại cả ba khớp đều được phép vào torque; không có khớp giữ
+bằng position mode khi effort controller active. Terminal PID:
+
+```bash
+ros2 launch gim_control pid_joint_tuning.launch.py \
+  joint:=all base_deg:=5 shoulder_deg:=5 elbow_deg:=5 \
+  move_time:=8 hold_time:=3 return_time:=8 \
+  params_file:=src/gim_arm_controller_pid/config/pid_hardware_soft.yaml \
+  log_file:=results/pid_all_5_run01.csv
+```
+
+Chờ `READY_PID` với HOME gần `[0,0,0]`. Terminal lệnh:
+
+```bash
+ros2 control switch_controllers \
+  --strict --activate-asap \
+  --deactivate gim_arm_group_controller \
+  --activate gim_arm_effort_controller
+```
+
+Quan sát giữ HOME trước; chỉ khi tay đứng yên, không rung rõ, mới chạy:
+
+```bash
+ros2 param set /cascade_pid_controller autostart true
+```
+
+Khi kết thúc hoặc rung, chuyển lại position trước khi Ctrl-C PID:
+
+```bash
+ros2 control switch_controllers \
+  --strict --activate-asap \
+  --deactivate gim_arm_effort_controller \
+  --activate gim_arm_group_controller
+```
+
+Sau Ctrl-C PID, xem độ bám và `tau_ff/tau_fb` của từng khớp:
+
+```bash
+ros2 run gim_control plot_joint_tracking results/pid_all_5_run01.csv --show
+```
+
+Giữ cùng HOME, góc đích và thời gian khi so các lần thử. Đổi tên CSV cho
+mỗi lần chạy. Kết quả tune riêng từng khớp chưa xác nhận đáp ứng khi ba khớp
+cùng chuyển động và tác động động lực học lên nhau.
+
+## Chạy lại vòng quét ban đầu
+
+Launch `pid_sweep_hardware.launch.py` dùng lại `solve_waypoints` và
+`SmoothSweep` của runner gốc; không dùng bài diagnostic giữ một góc.
+Hình vòng quét lấy trực tiếp từ `gim_control/sweep_trajectory.py` và
+`shapes.shoulder_sweep`, không thay đổi hình hoặc biên độ. Gain lấy từ
+`pid_hardware_soft.yaml` hiện tại. PID và inverse dynamics hoạt động trong
+các pha APPROACH, TRACK, RETURN và HOLD_HOME.
+
+Mặc định HOME → điểm đầu trong 16 s → một vòng 27 s → HOME trong 16 s.
+Thời gian đưa lên và đưa về tăng gấp đôi so với 8 s ban đầu: cùng vị trí,
+vận tốc giảm một nửa và gia tốc giảm còn một phần tư. Tốc độ vòng quét giữ nguyên.
+Điểm đầu trên URDF hiện tại khoảng `[42.97,48.30,43.38]` độ; biên độ khớp
+trên cả vòng khoảng `[65.6,37.8,37.2]` độ. Đây là biên độ lớn hơn bài thử 5 độ.
+Node giải IK và chạy kiểm tra quỹ đạo khi khởi tạo, tắt cache để đọc đúng
+hình đang có trong source, chưa bật autostart.
+
+Nếu phần cứng đang chạy với `torque_joint:=all`, giữ launch đó. Nếu còn ở
+chế độ cô lập một khớp, chuyển về position, dừng PID và kê đỡ tay rồi khởi
+động lại phần cứng theo lệnh `torque_joint:=all` ở mục thử ba khớp.
+Trước khi đổi bài thử, chuyển controller về position và dừng PID cũ.
+Đưa tay về cùng HOME trong position mode:
+
+```bash
+ros2 action send_goal \
+  /gim_arm_group_controller/follow_joint_trajectory \
+  control_msgs/action/FollowJointTrajectory \
+  "{trajectory: {joint_names: [base_joint, shoulder_joint, elbow_joint], points: [{positions: [0.0, 0.0, 0.0], velocities: [0.0, 0.0, 0.0], time_from_start: {sec: 8}}]}}"
+```
+
+Build và source lại workspace để cài launch mới. Terminal PID:
+
+```bash
+ros2 launch gim_control pid_sweep_hardware.launch.py \
+  params_file:=src/gim_arm_controller_pid/config/pid_hardware_soft.yaml \
+  approach_time:=16 return_time:=16 \
+  log_file:=results/pid_sweep_run01.csv
+```
+
+Chờ báo kiểm tra IK/quỹ đạo đạt và `WAIT -> READY_PID` với HOME đúng.
+Terminal lệnh:
+
+```bash
+ros2 control switch_controllers \
+  --strict --activate-asap \
+  --deactivate gim_arm_group_controller \
+  --activate gim_arm_effort_controller
+```
+
+Khi giữ HOME đứng yên, không rung rõ, bắt đầu:
+
+```bash
+ros2 param set /cascade_pid_controller autostart true
+```
+
+Khi về HOME hoặc cần dừng, chuyển về position trước rồi Ctrl-C PID:
+
+```bash
+ros2 control switch_controllers \
+  --strict --activate-asap \
+  --deactivate gim_arm_effort_controller \
+  --activate gim_arm_group_controller
+```
+
+Xem độ bám khớp và feedforward/feedback:
+
+```bash
+ros2 run gim_control plot_joint_tracking results/pid_sweep_run01.csv --show
+```
+
+Kiểm tra offline trên mô hình hiện tại: 90/90 điểm IK hội tụ, cách giới hạn
+khớp ít nhất `0.266 rad`; tốc độ đỉnh vòng quét `[0.239,0.252,0.264] rad/s`.
+Feedforward đỉnh theo khớp khoảng `[0.730,3.374,1.496] Nm`, nằm dưới trần
+hiện tại `[1.75,14,1.75] Nm`. Elbow còn khoảng `0.25 Nm` dư địa feedback ở
+điểm feedforward lớn nhất; theo dõi saturation khi thử thực tế. Các kiểm tra
+mô hình và runner với state giả lập không xác nhận độ bám trên phần cứng.
 
 ## Chỉnh gain
 

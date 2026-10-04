@@ -1,4 +1,4 @@
-"""Verify isolated and paired tuning options without launching controllers."""
+"""Verify isolated and synchronized tuning options without launching controllers."""
 
 import importlib.util
 from pathlib import Path
@@ -25,7 +25,7 @@ def context(tmp_path, **options):
     value = LaunchContext()
     value.launch_configurations.update({
         'joint': 'elbow', 'target_deg': '30.0', 'move_time': '6.0',
-        'shoulder_deg': '15.0', 'elbow_deg': '30.0',
+        'base_deg': '5.0', 'shoulder_deg': '15.0', 'elbow_deg': '30.0',
         'hold_time': '3.0', 'return_time': '6.0', 'params_file': str(params),
         'log_file': str(tmp_path / 'logs' / 'tuning.csv'), **options,
     })
@@ -71,11 +71,39 @@ def test_paired_targets_move_together_and_leave_base_reference_fixed(
     assert not options['autostart']
 
 
+def test_all_joint_targets_have_synchronized_move_and_return(
+        tuning_launch, tmp_path, monkeypatch):
+    monkeypatch.setattr(tuning_launch, 'Node', lambda **kwargs: kwargs)
+    actions = tuning_launch._launch_setup(context(
+        tmp_path, joint='all', base_deg='5', shoulder_deg='10', elbow_deg='15',
+        move_time='8', return_time='8'))
+    options = actions[0]['parameters'][1]
+    target = np.radians([options[f'diagnostic_q{i}_deg'] for i in (1, 2, 3)])
+    np.testing.assert_allclose(target, np.radians([5, 10, 15]))
+    for start, end, duration in (
+            (np.zeros(3), target, options['approach_time']),
+            (target, np.zeros(3), options['return_time'])):
+        reference = Quintic(start, end, duration)
+        for time in np.linspace(0, duration, 17):
+            for vector in reference.at(time):
+                np.testing.assert_allclose(vector[1:], vector[0] * np.array([2, 3]))
+        np.testing.assert_allclose(reference.at(0)[0], start)
+        np.testing.assert_allclose(reference.at(duration)[0], end)
+        for time in (0, duration):
+            np.testing.assert_allclose(reference.at(time)[1:], np.zeros((2, 3)))
+    assert options['cascade_hold'] and options['diagnostic_hold']
+    assert not options['autostart']
+    assert options['start_velocity_limit_rad_s'] == 0.05
+
+
 @pytest.mark.parametrize('options', [
     {'target_deg': 'nan'}, {'move_time': '0'}, {'return_time': '-1'},
     {'hold_time': 'inf'}, {'joint': 'wrong'}, {'params_file': '/missing/tuning.yaml'},
     {'joint': 'shoulder_elbow', 'shoulder_deg': 'nan'},
     {'joint': 'shoulder_elbow', 'elbow_deg': 'inf'},
+    {'joint': 'all', 'base_deg': 'nan'},
+    {'joint': 'all', 'shoulder_deg': 'inf'},
+    {'joint': 'all', 'elbow_deg': '-inf'},
 ])
 def test_invalid_options_fail_before_creating_a_controller(tuning_launch, tmp_path, options):
     with pytest.raises(ValueError):
