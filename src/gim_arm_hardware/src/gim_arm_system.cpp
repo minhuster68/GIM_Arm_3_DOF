@@ -1,4 +1,6 @@
 #include "gim_arm_hardware/gim_arm_system.hpp"
+#include "gim_arm_hardware/encoder_zero_startup.hpp"
+#include "gim_arm_hardware/encoder_position.hpp"
 
 #include <linux/can.h>
 
@@ -528,6 +530,24 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
     };
   velocity_feedforward_ = bool_param("velocity_feedforward", false);
   gravity_feedforward_ = bool_param("gravity_feedforward", false);
+  set_zero_on_startup_ = bool_param("set_zero_on_startup", false);
+  startup_zero_method_ = info_.hardware_parameters.count("zero_method")
+    ? info_.hardware_parameters.at("zero_method") : "can";
+  if (startup_zero_method_ != "can" && startup_zero_method_ != "software") {
+    RCLCPP_ERROR(
+      rclcpp::get_logger("GimArmSystemHardware"), "zero_method must be can or software.");
+    return hardware_interface::CallbackReturn::ERROR;
+  }
+  encoders_zeroed_ = false;
+  if (set_zero_on_startup_ && std::any_of(
+      zero_offsets_rad_.begin(), zero_offsets_rad_.end(),
+      [](double offset) {return !std::isfinite(offset) || offset != 0.0;}))
+  {
+    RCLCPP_ERROR(
+      rclcpp::get_logger("GimArmSystemHardware"),
+      "set_zero_on_startup requires zero_offset_rad=0 on every joint.");
+    return hardware_interface::CallbackReturn::ERROR;
+  }
   // Cùng nguyên tắc: MIT chỉ tồn tại khi khai rõ. Không khai thì claim đồng
   // thời position + effort vẫn bị TỪ CHỐI y như trước.
   mit_enabled_ = bool_param("enable_mit_mode", false);
@@ -748,14 +768,14 @@ void GimArmSystemHardware::send_position_command(
   // position_rad đến từ hw_commands_ (không gian URDF, đã trừ zero_offset_rad_)
   // -- cộng lại offset để ra đúng "rad thô" khớp với quy ước encoder thật,
   // TRƯỚC KHI áp dụng gear_ratio/direction như cũ.
-  const double position_rad_raw = position_rad + zero_offsets_rad_[i];
 
   // Set_Input_Pos dùng đơn vị REV, không phải RAD (manual 4.1.2) -- nhân
   // gear_ratios_[i] (tỉ số truyền TỔNG của riêng khớp này), đã xác nhận đúng
   // bằng test thật (lệnh -3.14 rad -> quay đúng 180 độ trên elbow, gear_ratio=8).
   // gear_ratios_[i] quy đổi rad<->rev; directions_[i] (+1/-1) bù chiều lắp
   // đặt vật lý thật của motor, không liên quan tới <axis> trong URDF.
-  const double pos_rev = (position_rad_raw * directions_[i] / (2.0 * M_PI)) * gear_ratios_[i];
+  const double pos_rev = joint_rad_to_encoder_rev(
+    position_rad, gear_ratios_[i], directions_[i], zero_offsets_rad_[i]);
 
   // Vel_FF: cùng phép quy đổi như vị trí, trừ zero_offset (đạo hàm của hằng
   // số = 0, giống hệt lý do ở read()).
@@ -994,6 +1014,45 @@ hardware_interface::return_type GimArmSystemHardware::perform_command_mode_switc
 //                         ACTIVATE / DEACTIVATE
 // ====================================================================
 
+bool GimArmSystemHardware::set_zero_encoders()
+{
+  RCLCPP_WARN(
+    rclcpp::get_logger("GimArmSystemHardware"),
+    "Setting %s zero for all joints. Support the arm at the intended q=0 pose; "
+    "axes are released during IDLE and zero-torque verification.", startup_zero_method_.c_str());
+  const bool software = startup_zero_method_ == "software";
+  const auto result = set_zero_encoders_on_startup(
+    can_bus_, can_node_ids_, std::chrono::milliseconds(1500),
+    software ? EncoderZeroMethod::Software : EncoderZeroMethod::Can);
+  if (!result.success) {
+    RCLCPP_ERROR(
+      rclcpp::get_logger("GimArmSystemHardware"),
+      "Encoder zero failed: %s. IDLE requested for every axis; "
+      "zero_method=%s.", result.error.c_str(), startup_zero_method_.c_str());
+    return false;
+  }
+  for (size_t i = 0; i < info_.joints.size(); ++i) {
+    const double scale = 2.0 * M_PI * directions_[i] / gear_ratios_[i];
+    if (software) {
+      zero_offsets_rad_[i] = encoder_rev_to_joint_rad(
+        result.zero_reference_rev[i], gear_ratios_[i], directions_[i], 0.0);
+    }
+    hw_states_position_[i] = encoder_rev_to_joint_rad(
+      result.position_rev[i], gear_ratios_[i], directions_[i], zero_offsets_rad_[i]);
+    hw_states_velocity_[i] = result.velocity_rev_s[i] * scale;
+    hw_commands_[i] = hw_states_position_[i];
+    RCLCPP_INFO(
+      rclcpp::get_logger("GimArmSystemHardware"),
+      "%s zero verified: '%s' (node %u), raw=%.6f rev, offset=%.6f rad, q=%.6f rad",
+      software ? "Software" : "Encoder",
+      info_.joints[i].name.c_str(), static_cast<unsigned>(can_node_ids_[i]),
+      result.position_rev[i], zero_offsets_rad_[i],
+      hw_states_position_[i]);
+  }
+  encoders_zeroed_ = true;
+  return true;
+}
+
 hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
@@ -1005,7 +1064,6 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
   //    enter_position_mode() cũng chưa gọi được -- chưa đọc nổi encoder, xem
   //    bước 2/3.
   active_mode_ = ControlMode::Position;
-  apply_driver_mode(mode_spec(ControlMode::Position));
   std::fill(
     last_cmd_seen_.begin(), last_cmd_seen_.end(), std::numeric_limits<double>::quiet_NaN());
   stale_cycles_ = 0;
@@ -1022,6 +1080,13 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
       "CAN interface '%s' không mở được lúc activate.", can_interface_name_.c_str());
     return hardware_interface::CallbackReturn::ERROR;
   }
+
+  if (set_zero_on_startup_ && !encoders_zeroed_) {
+    return set_zero_encoders()
+      ? hardware_interface::CallbackReturn::SUCCESS
+      : hardware_interface::CallbackReturn::ERROR;
+  }
+  apply_driver_mode(mode_spec(ControlMode::Position));
 
   // 2) Vào closed-loop NGAY -- xác nhận bằng candump thật (2026-08-05): driver
   // GIM6010-8 chỉ điền dữ liệu thật vào Get_Encoder_Estimates SAU KHI vào
@@ -1061,8 +1126,8 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
         }
         float pos_rev;
         std::memcpy(&pos_rev, &frame.data[0], 4);
-        const double pos_rad_raw = (pos_rev / gear_ratios_[i]) * 2.0 * M_PI * directions_[i];
-        const double pos_rad = pos_rad_raw - zero_offsets_rad_[i];  // trừ offset "điểm 0"
+        const double pos_rad = encoder_rev_to_joint_rad(
+          pos_rev, gear_ratios_[i], directions_[i], zero_offsets_rad_[i]);
         hw_commands_[i] = pos_rad;
         hw_states_position_[i] = pos_rad;
         send_position_command(i, pos_rad);  // chốt setpoint ngay, chặn trôi tiếp
@@ -1225,8 +1290,8 @@ hardware_interface::return_type GimArmSystemHardware::read(
       // gear_ratios_[i]/directions_[i] riêng của khớp này -- xem giải thích ở on_init().
       // zero_offsets_rad_[i]: chỉ trừ ở VỊ TRÍ, không áp dụng cho vận tốc
       // (offset là 1 hằng số dịch góc, đạo hàm của hằng số = 0).
-      hw_states_position_[i] = (static_cast<double>(pos_rev) / gear_ratios_[i]) * 2.0 * M_PI *
-        directions_[i] - zero_offsets_rad_[i];
+      hw_states_position_[i] = encoder_rev_to_joint_rad(
+        pos_rev, gear_ratios_[i], directions_[i], zero_offsets_rad_[i]);
       hw_states_velocity_[i] = (static_cast<double>(vel_rev_s) / gear_ratios_[i]) * 2.0 * M_PI *
         directions_[i];
       break;

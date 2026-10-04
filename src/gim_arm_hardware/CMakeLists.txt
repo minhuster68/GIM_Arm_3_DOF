@@ -59,6 +59,8 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(PROGRAMS scripts/tune_motor_gains.py DESTINATION lib/${PROJECT_NAME})
+
 # 7. Xuất các thông tin cho các package khác dùng (nếu cần)
 ament_export_include_directories(include)
 ament_export_libraries(gim_arm_system_hardware)
@@ -70,5 +72,12 @@ ament_export_dependencies(
   ament_index_cpp
   pinocchio
 )
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_encoder_zero_startup test/test_encoder_zero_startup.cpp)
+  target_include_directories(test_encoder_zero_startup PRIVATE include)
+  target_compile_features(test_encoder_zero_startup PRIVATE cxx_std_17)
+endif()
 
 ament_package()

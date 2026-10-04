@@ -12,7 +12,7 @@ JOINT_NAMES = ("base_joint", "shoulder_joint", "elbow_joint")
 JOINT_TITLES = ("q1 - Base joint", "q2 - Shoulder joint", "q3 - Elbow joint")
 JOINT_SUFFIXES = ("q1_base", "q2_shoulder", "q3_elbow")
 JOINT_COLORS = ("tab:blue", "tab:orange", "tab:green")
-TRAJECTORY_PHASES = ("APPROACH", "TRACK", "RETURN")
+TRAJECTORY_PHASES = ("GRAVITY", "APPROACH", "TRACK", "RETURN", "HOLD")
 
 
 def load_log(path):
@@ -36,6 +36,9 @@ def load_log(path):
             "qd_ref": [],
             "tau": [],
         }
+        optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i', 'saturated')
+                    if all(f'{prefix}_{name}' in reader.fieldnames for name in JOINT_NAMES)]
+        columns.update({prefix: [] for prefix in optional})
         for row in reader:
             columns["t_wall"].append(float(row["t_wall"]))
             columns["phase"].append(row["phase"])
@@ -49,9 +52,14 @@ def load_log(path):
                 float(row[f"qdref_{name}"]) for name in JOINT_NAMES])
             columns["tau"].append([
                 float(row[f"tau_{name}"]) for name in JOINT_NAMES])
+            for prefix in optional:
+                columns[prefix].append([
+                    float({'True': '1', 'False': '0'}.get(
+                        row[f'{prefix}_{name}'], row[f'{prefix}_{name}']))
+                    for name in JOINT_NAMES])
 
     if not columns["t_wall"]:
-        raise ValueError("CSV không có mẫu APPROACH/TRACK/RETURN")
+        raise ValueError("CSV không có mẫu điều khiển")
     t_wall = np.asarray(columns["t_wall"], dtype=float)
     arrays = {
         key: np.asarray(value, dtype=float)
@@ -60,8 +68,8 @@ def load_log(path):
     }
     arrays["t"] = t_wall - t_wall[0]
     arrays["phase"] = np.asarray(columns["phase"])
-    if not all(np.all(np.isfinite(value)) for key, value in arrays.items()
-               if key != "phase"):
+    if not all(np.all(np.isfinite(arrays[key])) for key in
+               ('q', 'qd', 'q_ref', 'qd_ref', 'tau', 't')):
         raise ValueError("CSV chứa NaN/Inf")
     return arrays
 
@@ -99,6 +107,16 @@ def print_metrics(log):
             f"[{format_vector(max_angle)}]   "
             f"[{format_vector(max_velocity)}]   "
             f"[{format_vector(max_tau)}]")
+    if all(prefix in log for prefix in ('tau_ff', 'tau_fb', 'saturated')):
+        print('\nPID: peak |tau_ff|, |tau_fb| [Nm] and saturation [%]')
+        for index, name in enumerate(JOINT_NAMES):
+            valid = np.isfinite(log['tau_fb'][:, index])
+            if not np.any(valid):
+                continue
+            ff = np.max(np.abs(log['tau_ff'][valid, index]))
+            fb = np.max(np.abs(log['tau_fb'][valid, index]))
+            saturation = 100.0 * np.mean(log['saturated'][valid, index])
+            print(f'{name}: ff={ff:.4f}, fb={fb:.4f}, saturated={saturation:.1f}%')
 
 
 def add_phase_boundaries(axes, t, phases):
@@ -203,6 +221,12 @@ def plot(log, output, show, max_plot_points):
         axes[4].plot(
             t, tau[:, index], color="tab:purple", linewidth=1.0,
             label=f"MAX |tau|={torque_peak:.3f} Nm")
+        if 'tau_fb' in log:
+            for prefix, color in (('tau_ff', 'tab:green'), ('tau_fb', 'tab:orange'),
+                                  ('tau_p', 'tab:red'), ('tau_i', 'tab:brown')):
+                if prefix in log:
+                    axes[4].plot(t, log[prefix][sample, index], color=color,
+                                 linewidth=0.8, linestyle='--', label=prefix)
         axes[4].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
         axes[4].set_ylabel("Mô-men (Nm)")
         axes[4].set_title("Mô-men điều khiển đầu ra")

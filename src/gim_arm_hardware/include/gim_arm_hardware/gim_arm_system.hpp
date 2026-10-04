@@ -84,6 +84,11 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
+  bool set_zero_encoders();
+  bool set_zero_on_startup_{false};
+  bool encoders_zeroed_{false};
+  std::string startup_zero_method_{"can"};
+
   // ==================================================================
   //                      BẢNG CHẾ ĐỘ ĐIỀU KHIỂN
   // ==================================================================

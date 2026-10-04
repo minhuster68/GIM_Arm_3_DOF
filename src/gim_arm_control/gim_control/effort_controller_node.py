@@ -60,6 +60,7 @@ class EffortControllerNode(Node):
         declare("hold_i_torque_limit_nm", [0.5, 1.0, 0.5])
         declare("tau_scale", 0.35)
         declare("max_track_error_rad", 0.05)
+        declare("start_velocity_limit_rad_s", 0.0)
         declare("max_transition_error_rad", 0.10)
         declare("joint_margin_rad", 0.05)
         declare("state_timeout", 0.25)
@@ -69,6 +70,7 @@ class EffortControllerNode(Node):
         declare("return_time", 5.0)
         declare("loops", 1.0)
         declare("diagnostic_hold", False)
+        declare("cascade_hold", False)
         declare("diagnostic_segment", False)
         declare("diagnostic_q1_deg", 0.0)
         declare("diagnostic_q2_deg", 0.0)
@@ -95,6 +97,9 @@ class EffortControllerNode(Node):
 
         self.dt_nom = 1.0 / control_hz
         self.max_track_error = float(get("max_track_error_rad").value)
+        self.start_velocity_limit = float(get("start_velocity_limit_rad_s").value)
+        if not np.isfinite(self.start_velocity_limit) or self.start_velocity_limit < 0:
+            raise ValueError("start_velocity_limit_rad_s phải hữu hạn và >= 0")
         self.max_transition_error = float(
             get("max_transition_error_rad").value)
         self.joint_margin = float(get("joint_margin_rad").value)
@@ -139,6 +144,13 @@ class EffortControllerNode(Node):
                                and bool(get("log_file").value))
         self.diagnostic_mpc = (factory.algorithm_name == "mpc"
                                and bool(get("log_file").value))
+        self.diagnostic_pid = (factory.algorithm_name == "cascade_pid"
+                               and bool(get("log_file").value))
+        self.diagnostic_control = (
+            self.diagnostic_lqr or self.diagnostic_mpc or self.diagnostic_pid)
+        self.cascade_hold = bool(get("cascade_hold").value)
+        if self.cascade_hold and factory.algorithm_name != "cascade_pid":
+            raise ValueError("cascade_hold chỉ dùng với cascade PID")
         self.mpc_solver_rejections = 0
         self.state_seq = 0
         self.last_control_state_seq = -1
@@ -196,12 +208,17 @@ class EffortControllerNode(Node):
         self.get_logger().info(
             "HAND_GUIDING dùng gravity + damping: "
             f"Kd_drag={np.round(self.drag_kd, 3)} Nm/(rad/s)")
-        self.get_logger().info(
-            "HOLD_HOME dùng gravity-hold PID: "
-            f"Kp={np.round(self.hold_kp, 3)} Nm/rad, "
-            f"Kd={np.round(self.hold_kd, 3)} Nm/(rad/s), "
-            f"Ki={np.round(self.hold_ki, 3)} Nm/(rad*s), "
-            f"|tau_i|<={np.round(self.hold_i_torque_limit, 3)} Nm")
+        if self.cascade_hold:
+            self.get_logger().info(
+                "PREP/HOLD_HOME dùng cùng cascade PID như quỹ đạo; "
+                "tau_cmd = inverse_dynamics(ref) + tau_fb")
+        else:
+            self.get_logger().info(
+                "HOLD_HOME dùng gravity-hold PID: "
+                f"Kp={np.round(self.hold_kp, 3)} Nm/rad, "
+                f"Kd={np.round(self.hold_kd, 3)} Nm/(rad/s), "
+                f"Ki={np.round(self.hold_ki, 3)} Nm/(rad*s), "
+                f"|tau_i|<={np.round(self.hold_i_torque_limit, 3)} Nm")
 
         self.diagnostic_hold = bool(get("diagnostic_hold").value)
         if self.diagnostic_hold and self.diagnostic_segment:
@@ -286,10 +303,15 @@ class EffortControllerNode(Node):
             SetBool, str(get("hand_guiding_service").value),
             self._set_hand_guiding)
         self.create_timer(self.dt_nom, self._tick)
-        self.get_logger().info(
-            "Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: "
-            "true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật "
-            "autostart sau khi effort controller đã được activate.")
+        if self.cascade_hold:
+            self.get_logger().info(
+                "Chờ /joint_states để chốt HOME bằng cascade PID. "
+                "Chỉ bật autostart sau khi effort controller đã được activate.")
+        else:
+            self.get_logger().info(
+                "Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: "
+                "true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật "
+                "autostart sau khi effort controller đã được activate.")
 
     @staticmethod
     def _find_urdf():
@@ -413,7 +435,7 @@ class EffortControllerNode(Node):
             tick_wall_ns * 1e-9, self.phase, dt, compute_time,
             *self.q, *self.qd, *q_ref, *qd_ref, *tau,
         ]
-        if self.diagnostic_lqr or self.diagnostic_mpc:
+        if self.diagnostic_control:
             row.extend([
                 event, phase_elapsed, tick_wall_ns,
                 self.last_publish_wall_ns, self.state_seq,
@@ -458,6 +480,16 @@ class EffortControllerNode(Node):
                 *(last.get("tau_raw", missing)),
                 *(last.get("saturated", missing)),
             ])
+        elif self.diagnostic_pid:
+            last = self.controller.last if event == "CONTROL" else {}
+            missing = np.full(self.n, np.nan)
+            for name in (
+                    "tau_ff", "tau_fb", "tau_p", "tau_i", "tau_raw",
+                    "tau", "position_error", "velocity_command",
+                    "velocity_error", "integral", "saturated"):
+                row.extend(float(value) for value in last.get(name, missing))
+            for name in ("kpp", "kvp", "kvi"):
+                row.extend(getattr(self.controller, name))
         self.rows.append(row)
 
     def _set_hand_guiding(self, request, response):
@@ -514,7 +546,7 @@ class EffortControllerNode(Node):
         self.consecutive_stale_time += timer_dt
         if self.last_command is not None:
             self._publish(self.last_command)
-        if ((self.diagnostic_lqr or self.diagnostic_mpc)
+        if (self.diagnostic_control
                 and self.phase in (APPROACH, TRACK, RETURN)):
             q_ref, qd_ref, _ = self._reference_at_phase(
                 self.phase_elapsed)
@@ -564,7 +596,7 @@ class EffortControllerNode(Node):
         q_ref, qd_ref, _ = self._reference_at_phase(self.phase_elapsed)
         tau = self._stale_recovery_torque()
         self._publish(tau)
-        if ((self.diagnostic_lqr or self.diagnostic_mpc)
+        if (self.diagnostic_control
                 and self.phase in (APPROACH, TRACK, RETURN)):
             self._append_tracking_row(
                 tick_wall_ns, self.phase_elapsed, timer_dt,
@@ -638,8 +670,9 @@ class EffortControllerNode(Node):
                     self.previous_tick = None
                     return
             self.phase = GRAVITY
+            ready_phase = "READY_PID" if self.cascade_hold else "GRAVITY"
             self.get_logger().info(
-                f"WAIT -> GRAVITY, đã chụp HOME={np.round(self.home_q, 4)}")
+                f"WAIT -> {ready_phase}, đã chụp HOME={np.round(self.home_q, 4)}")
 
         if self.phase != ABORT and (
                 np.any(self.q < self.dynamics.q_min + self.joint_margin)
@@ -658,12 +691,20 @@ class EffortControllerNode(Node):
                     self.autostart_block_warned = True
                 self._publish(self._drag_torque())
                 return
+            if (self.start_velocity_limit > 0
+                    and np.max(np.abs(self.qd)) > self.start_velocity_limit):
+                self._abort(
+                    "tay chưa đứng yên trước quỹ đạo: "
+                    f"qd={np.round(self.qd, 3)} rad/s, "
+                    f"giới hạn {self.start_velocity_limit:g} rad/s")
+                return
             # Bắt đầu APPROACH từ state thực sau switch để không tạo bước nhảy
             # reference, nhưng RETURN vẫn về HOME đã chụp trước switch.
             start_q = self.q.copy()
             target = self.trajectory.at(0.0)[0]
             self.reference = Quintic(start_q, target, self.approach_time)
-            self.controller.reset()
+            if not self.cascade_hold:
+                self.controller.reset()
             self.hold_integral.fill(0.0)
             self.manual_hold_latched = False
             self.phase = APPROACH
@@ -706,19 +747,17 @@ class EffortControllerNode(Node):
             self.get_logger().info(f"TRACK -> RETURN ({self.return_time:g}s)")
         elif self.phase == RETURN and elapsed >= self.return_time:
             self.reference = Hold(self.home_q)
-            # Cascade PID tích lũy sai số vận tốc trong toàn bộ quỹ đạo. Không
-            # mang trạng thái I đó sang pha giữ; HOLD dùng gravity-hold PID
-            # riêng, mềm hơn và có damping trực tiếp theo vận tốc đo được.
-            self.controller.reset()
+            if not self.cascade_hold:
+                self.controller.reset()
             self.hold_integral.fill(0.0)
             self.phase, self.phase_elapsed, elapsed = HOLD, 0.0, 0.0
             # Không ghi CSV ngay trong callback điều khiển. Với 2 kHz, một
             # vòng tạo hàng chục nghìn dòng; ghi đồng bộ sẽ ngừng phát torque
             # gần một giây và tự kích hoạt state-timeout. File được ghi sạch
             # khi người dùng Ctrl-C node sau khi đã quan sát HOLD_HOME.
+            hold_controller = "cascade PID" if self.cascade_hold else "gravity-hold PID"
             self.get_logger().info(
-                "RETURN -> HOLD_HOME gravity-hold PID "
-                "(Ctrl-C để ghi file log)")
+                f"RETURN -> HOLD_HOME {hold_controller} (Ctrl-C để ghi file log)")
 
         if self.phase == ABORT:
             self._publish(self._gravity_torque())
@@ -738,6 +777,10 @@ class EffortControllerNode(Node):
             # và chốt một q_hold mới; như vậy không windup lúc effort inactive.
             self._publish(self._hold_torque(
                 dt, integrate=self.manual_hold_latched))
+            if self.diagnostic_pid and self.cascade_hold:
+                self._append_tracking_row(
+                    tick_wall_ns, 0.0, timer_dt, float("nan"),
+                    self.home_q, np.zeros(self.n), self.last_command)
             return
 
         q_ref, qd_ref, qdd_ref = self._reference_at_phase(elapsed)
@@ -748,7 +791,7 @@ class EffortControllerNode(Node):
             if self.phase in (APPROACH, RETURN)
             else self.max_track_error)
         if error > error_limit:
-            if ((self.diagnostic_lqr or self.diagnostic_mpc)
+            if (self.diagnostic_control
                     and self.phase in (APPROACH, TRACK, RETURN)):
                 previous_tau = (
                     self.last_command
@@ -764,7 +807,7 @@ class EffortControllerNode(Node):
             self._publish(self._gravity_torque())
             return
 
-        if self.phase == HOLD:
+        if self.phase == HOLD and not self.cascade_hold:
             self._publish(self._hold_torque(dt, integrate=True))
             return
 
@@ -802,7 +845,8 @@ class EffortControllerNode(Node):
         tau = np.clip(tau, -self.tau_limit, self.tau_limit)
         self._publish(tau)
 
-        if self.phase in (APPROACH, TRACK, RETURN):
+        if self.phase in (APPROACH, TRACK, RETURN) or (
+                self.phase == HOLD and self.cascade_hold):
             self._append_tracking_row(
                 tick_wall_ns, elapsed, timer_dt, compute_time,
                 q_ref, qd_ref, tau)
@@ -820,6 +864,18 @@ class EffortControllerNode(Node):
             gravity + damping, -self.tau_limit, self.tau_limit)
 
     def _hold_torque(self, dt, integrate):
+        if self.cascade_hold:
+            if not integrate:
+                self.controller.reset()
+            zero = np.zeros(self.n)
+            tau = self.controller.compute(
+                self.q, self.qd, self.home_q, zero, zero, dt)
+            scale = self._gravity_scale()
+            tau = tau - (1.0 - scale) * self.dynamics.gravity(self.q)
+            if not integrate:
+                self.controller.integral.fill(0.0)
+                self.controller.last['integral'] = self.controller.integral.copy()
+            return np.clip(tau, -self.tau_limit, self.tau_limit)
         gravity = self._gravity_scale() * self.dynamics.gravity(self.q)
         error = self.home_q - self.q
         position = self.hold_kp * error
@@ -894,7 +950,7 @@ class EffortControllerNode(Node):
         header = ["t_wall", "phase", "dt", "compute_time"]
         for prefix in ("q", "qd", "qref", "qdref", "tau"):
             header.extend(f"{prefix}_{name}" for name in self.joint_names)
-        if self.diagnostic_lqr or self.diagnostic_mpc:
+        if self.diagnostic_control:
             header.extend([
                 "event", "phase_elapsed_s", "tick_wall_ns",
                 "publish_wall_ns", "state_seq", "state_header_sim_ns",
@@ -916,6 +972,12 @@ class EffortControllerNode(Node):
                 "primal_residual", "dual_residual", "solver_rho",
             ])
             for prefix in ("tau_ff", "tau_feedback", "tau_raw", "saturated"):
+                header.extend(f"{prefix}_{name}" for name in self.joint_names)
+        elif self.diagnostic_pid:
+            for prefix in (
+                    "tau_ff", "tau_fb", "tau_p", "tau_i", "tau_raw",
+                    "tau_controller", "position_error", "velocity_command",
+                    "velocity_error", "integral", "saturated", "kpp", "kvp", "kvi"):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
         self._write_csv_atomic(path, header, self.rows)
         if self.diagnostic_lqr and self.state_rows:

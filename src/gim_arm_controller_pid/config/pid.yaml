@@ -12,10 +12,10 @@ cascade_pid_controller:
     hold_kd: [1.0, 3.0, 0.8]
     hold_ki: [0.8, 2.0, 0.8]
     hold_i_torque_limit_nm: [0.5, 1.0, 0.5]
-    # Đúng setup_pid.m.
+    # Kpp giữ từ setup_pid.m; Kvp/Kvi đã đổi sang gain mô-men tại khớp
+    # để giữ nguyên đáp ứng của profile cũ khi bỏ khâu dòng điện trung gian.
     kpp: [46.0, 60.0, 36.0]
-    kvp: [8.0, 9.5, 10.0]
-    kvi: [7.6, 7.6, 7.6]
-    torque_constant: 0.47
+    kvp: [3.76, 4.465, 4.7]       # Nm/(rad/s)
+    kvi: [3.572, 3.572, 3.572]    # Nm/rad
     # 0 = không kẹp tích phân, đúng PID block trong urdf.slx.
     velocity_integral_limit: 0.0

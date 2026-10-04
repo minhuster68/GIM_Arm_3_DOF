@@ -1,3 +1,25 @@
+## PID cascade xuất mô-men trực tiếp
+
+Vòng P vị trí tạo vận tốc đặt, vòng PI vận tốc tạo mô-men phản hồi tại khớp:
+
+```text
+e_q = q_ref - q
+qd_cmd = qd_ref + Kpp * e_q
+e_v = qd_cmd - qd
+tau_fb = Kvp * e_v + Kvi * integral(e_v)
+tau_cmd = clip(inverse_dynamics(q_ref, qd_ref, qdd_ref) + tau_fb)
+```
+
+`Kpp` có đơn vị 1/s, `Kvp` là Nm/(rad/s), `Kvi` là Nm/rad.
+PID không có biến lệnh dòng điện hay parameter `torque_constant`.
+Hai profile đi kèm đã quy đổi gain vận tốc để giữ nguyên đáp ứng trước đây.
+Nếu dùng YAML riêng từ phiên bản cũ, nhân `kvp` và `kvi` với giá trị
+`torque_constant` cũ một lần, rồi bỏ parameter đó; `kpp` giữ nguyên.
+Giới hạn mô-men và anti-windup vẫn áp dụng cho mô-men tổng.
+
+Simulator CAN vẫn có telemetry `Get_Iq` cho công cụ chẩn đoán; đây là dòng
+suy ra từ mô-men, không phải vòng dòng trong PID hay mô hình FOC.
+
 <!-- PID -->
 T1:
 cd /home/minh/git_gim_ws/GIM_Arm_3_DOF

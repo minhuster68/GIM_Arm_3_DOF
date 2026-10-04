@@ -216,7 +216,7 @@ APPROACH/TRACK/RETURN. CSV ghi `q` và `qref`, sau đó cả hai được đưa 
 một FK, nên đồ thị đo sai số bám thực tế thay vì chỉ vẽ lại waypoint mong
 muốn.
 
-PID lấy nguyên gain liên tục của Simulink nên cần vòng physics/state/torque 2
+PID giữ luật điều khiển liên tục của Simulink nên cần vòng physics/state/torque 2
 kHz để kiểm tra trên Gazebo. Lần kiểm tra tích hợp ban đầu ở `tau_scale=0.50`
 đã chạy đủ một vòng với sai số TRACK lớn nhất khoảng `0.0098 rad`, nhưng lần
 ghi log tốc độ cao sau đó thấy spike vận tốc và chạm trần mô-men dù không ABORT;
@@ -246,9 +246,15 @@ thể chép thẳng sang controller rời rạc. Giữ các YAML hiện tại l�
 
 ### PID profile riêng để giảm rung trong Gazebo
 
-`pid.yaml` vẫn giữ gain MATLAB `[46,60,36] / [8,9.5,10] / [7.6,7.6,7.6]`
+PID dùng P vị trí → PI vận tốc → mô-men phản hồi tại khớp, cộng inverse
+dynamics. Không có khâu lệnh dòng điện hay `torque_constant` trong PID.
+`Kpp` có đơn vị 1/s, `Kvp` là Nm/(rad/s), `Kvi` là Nm/rad.
+`pid.yaml` dùng `[46,60,36] / [3.76,4.465,4.7] / [3.572,3.572,3.572]`
 (Kpp/Kvp/Kvi). Chọn `pid_profile:=gazebo_smooth` để dùng profile thử nghiệm
-`pid_gazebo_smooth.yaml`: `[18,24,14] / [2,3,2.5] / [1.5,1.5,1.5]`.
+`pid_gazebo_smooth.yaml`: `[18,24,14] / [0.94,1.41,1.175] / [0.705,0.705,0.705]`.
+Hai profile đã quy đổi gain vận tốc từ biểu diễn dòng điện cũ để giữ nguyên
+mô-men và đáp ứng. YAML riêng từ bản cũ cần nhân Kvp/Kvi với
+`torque_constant` cũ một lần rồi bỏ parameter đó; giữ nguyên Kpp.
 Launch tự chọn `control_hz=2000` và `tau_scale=0.50` cho profile này nếu không
 truyền đè; vẫn cần kiểm tra các giá trị được in ra trước khi switch controller.
 
