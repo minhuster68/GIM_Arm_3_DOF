@@ -20,7 +20,7 @@ def load_log(path):
     with open(path, newline="") as stream:
         reader = csv.DictReader(stream)
         required = {"t_wall", "phase"}
-        for prefix in ("q", "qd", "qref", "qdref", "tau"):
+        for prefix in ("q", "qref", "tau"):
             required.update(f"{prefix}_{name}" for name in JOINT_NAMES)
         missing = required.difference(reader.fieldnames or ())
         if missing:
@@ -31,9 +31,7 @@ def load_log(path):
             "t_wall": [],
             "phase": [],
             "q": [],
-            "qd": [],
             "q_ref": [],
-            "qd_ref": [],
             "tau": [],
         }
         for row in reader:
@@ -41,12 +39,8 @@ def load_log(path):
             columns["phase"].append(row["phase"])
             columns["q"].append([
                 float(row[f"q_{name}"]) for name in JOINT_NAMES])
-            columns["qd"].append([
-                float(row[f"qd_{name}"]) for name in JOINT_NAMES])
             columns["q_ref"].append([
                 float(row[f"qref_{name}"]) for name in JOINT_NAMES])
-            columns["qd_ref"].append([
-                float(row[f"qdref_{name}"]) for name in JOINT_NAMES])
             columns["tau"].append([
                 float(row[f"tau_{name}"]) for name in JOINT_NAMES])
 
@@ -81,23 +75,20 @@ def format_vector(value):
 
 
 def print_metrics(log):
-    """Print angle, velocity and torque metrics for controller comparison."""
+    """Print position-error and torque metrics for controller comparison."""
     angle_error = np.degrees(log["q"] - log["q_ref"])
-    velocity_error = log["qd"] - log["qd_ref"]
     print("\nMetrics từng khớp")
     print("phase       samples   RMS e_q [deg]       MAX |e_q| [deg]   "
-          "MAX |e_qdot| [rad/s]   MAX |tau| [Nm]")
-    print("-" * 126)
+          "MAX |tau| [Nm]")
+    print("-" * 100)
     for label, mask in phase_groups(log["phase"]):
         rms_angle = np.sqrt(np.mean(angle_error[mask] ** 2, axis=0))
         max_angle = np.max(np.abs(angle_error[mask]), axis=0)
-        max_velocity = np.max(np.abs(velocity_error[mask]), axis=0)
         max_tau = np.max(np.abs(log["tau"][mask]), axis=0)
         print(
             f"{label:<10} {np.count_nonzero(mask):>8d}   "
             f"[{format_vector(rms_angle)}]   "
             f"[{format_vector(max_angle)}]   "
-            f"[{format_vector(max_velocity)}]   "
             f"[{format_vector(max_tau)}]")
 
 
@@ -128,7 +119,7 @@ def output_paths(output):
 
 
 def plot(log, output, show, max_plot_points):
-    """Create one five-panel tracking figure for each joint."""
+    """Create position, position-error and torque panels for each joint."""
     import matplotlib
     if not show:
         matplotlib.use("Agg")
@@ -142,9 +133,7 @@ def plot(log, output, show, max_plot_points):
     q_deg = np.degrees(log["q"][sample])
     q_ref_deg = np.degrees(log["q_ref"][sample])
     angle_error = q_deg - q_ref_deg
-    qd = log["qd"][sample]
-    qd_ref = log["qd_ref"][sample]
-    velocity_error = qd - qd_ref
+    full_angle_error = np.degrees(log["q"] - log["q_ref"])
     tau = log["tau"][sample]
 
     figures = []
@@ -152,7 +141,7 @@ def plot(log, output, show, max_plot_points):
     for index, (title, color, path) in enumerate(zip(
             JOINT_TITLES, JOINT_COLORS, paths)):
         figure, axes = plt.subplots(
-            5, 1, figsize=(13, 15), sharex=True,
+            3, 1, figsize=(13, 10), sharex=True,
             constrained_layout=True)
 
         axes[0].plot(
@@ -165,8 +154,8 @@ def plot(log, output, show, max_plot_points):
         axes[0].set_title("Góc khớp")
         axes[0].legend(loc="best", ncol=2)
 
-        angle_rms = float(np.sqrt(np.mean(angle_error[:, index] ** 2)))
-        angle_max = float(np.max(np.abs(angle_error[:, index])))
+        angle_rms = float(np.sqrt(np.mean(full_angle_error[:, index] ** 2)))
+        angle_max = float(np.max(np.abs(full_angle_error[:, index])))
         axes[1].plot(
             t, angle_error[:, index], color=color, linewidth=1.0,
             label=f"RMS={angle_rms:.3f}°, MAX={angle_max:.3f}°")
@@ -175,38 +164,14 @@ def plot(log, output, show, max_plot_points):
         axes[1].set_title("e_q = q thực tế - q mong muốn")
         axes[1].legend(loc="best")
 
-        actual_peak = float(np.max(np.abs(qd[:, index])))
-        reference_peak = float(np.max(np.abs(qd_ref[:, index])))
+        torque_peak = float(np.max(np.abs(log["tau"][:, index])))
         axes[2].plot(
-            t, qd[:, index], color=color, linewidth=1.0,
-            label=f"Thực tế (peak={actual_peak:.3f})")
-        axes[2].plot(
-            t, qd_ref[:, index], color="tab:red", linestyle="--",
-            linewidth=1.1, label=f"Mong muốn (peak={reference_peak:.3f})")
-        axes[2].set_ylabel("Vận tốc (rad/s)")
-        axes[2].set_title("Vận tốc khớp")
-        axes[2].legend(loc="best", ncol=2)
-
-        velocity_rms = float(np.sqrt(
-            np.mean(velocity_error[:, index] ** 2)))
-        velocity_max = float(np.max(np.abs(velocity_error[:, index])))
-        axes[3].plot(
-            t, velocity_error[:, index], color=color, linewidth=1.0,
-            label=(f"RMS={velocity_rms:.3f}, "
-                   f"MAX={velocity_max:.3f} rad/s"))
-        axes[3].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
-        axes[3].set_ylabel("Sai số vận tốc (rad/s)")
-        axes[3].set_title("e_qdot = qdot thực tế - qdot mong muốn")
-        axes[3].legend(loc="best")
-
-        torque_peak = float(np.max(np.abs(tau[:, index])))
-        axes[4].plot(
             t, tau[:, index], color="tab:purple", linewidth=1.0,
             label=f"MAX |tau|={torque_peak:.3f} Nm")
-        axes[4].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
-        axes[4].set_ylabel("Mô-men (Nm)")
-        axes[4].set_title("Mô-men điều khiển đầu ra")
-        axes[4].legend(loc="best")
+        axes[2].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
+        axes[2].set_ylabel("Mô-men (Nm)")
+        axes[2].set_title("Mô-men điều khiển đầu ra")
+        axes[2].legend(loc="best")
 
         for axis in axes:
             axis.set_xlabel("Thời gian t (s)")
@@ -228,7 +193,7 @@ def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(
         description=(
-            "Vẽ góc, sai số góc, vận tốc, sai số vận tốc và mô-men của "
+            "Vẽ góc, sai số góc và mô-men của "
             "từng khớp từ CSV effort controller."))
     parser.add_argument("csv", help="file CSV truyền bằng launch log_file:=...")
     parser.add_argument(

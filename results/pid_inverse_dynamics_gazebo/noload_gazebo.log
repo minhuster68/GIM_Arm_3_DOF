@@ -1,0 +1,124 @@
+[INFO] [launch]: All log files can be found below /home/minh/git_gim_ws/GIM_Arm_3_DOF/results/pid_inverse_dynamics_gazebo/ros_logs/2026-10-06-15-40-25-668358-minh-LOQ-15APH8-13278
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [gzserver-1]: process started with pid [13318]
+[INFO] [robot_state_publisher-2]: process started with pid [13320]
+[INFO] [spawn_entity.py-3]: process started with pid [13322]
+[robot_state_publisher-2] 1791276026.319103 [73] robot_stat: selected interface "lo" is not multicast-capable: disabling multicast
+[robot_state_publisher-2] [INFO] [1791276026.360269418] [robot_state_publisher]: got segment base_footprint
+[robot_state_publisher-2] [INFO] [1791276026.360351451] [robot_state_publisher]: got segment base_link
+[robot_state_publisher-2] [INFO] [1791276026.360358357] [robot_state_publisher]: got segment lower_arm_link
+[robot_state_publisher-2] [INFO] [1791276026.360362427] [robot_state_publisher]: got segment shoulder_link
+[robot_state_publisher-2] [INFO] [1791276026.360365815] [robot_state_publisher]: got segment upper_arm_link
+[robot_state_publisher-2] [INFO] [1791276026.360369132] [robot_state_publisher]: got segment world
+[spawn_entity.py-3] 1791276026.567133 [73]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[spawn_entity.py-3] [INFO] [1791276026.607449938] [spawn_entity]: Spawn Entity started
+[spawn_entity.py-3] [INFO] [1791276026.607717546] [spawn_entity]: Loading entity published on topic /robot_description
+[spawn_entity.py-3] [INFO] [1791276026.612548950] [spawn_entity]: Waiting for entity xml on /robot_description
+[spawn_entity.py-3] [INFO] [1791276026.615766328] [spawn_entity]: Waiting for service /spawn_entity, timeout = 30
+[spawn_entity.py-3] [INFO] [1791276026.615971539] [spawn_entity]: Waiting for service /spawn_entity
+[gzserver-1] 1791276026.908042 [73]   gzserver: selected interface "lo" is not multicast-capable: disabling multicast
+[spawn_entity.py-3] [INFO] [1791276027.637314524] [spawn_entity]: Calling service /spawn_entity
+[spawn_entity.py-3] [INFO] [1791276027.729081460] [spawn_entity]: Spawn status: SpawnEntity: Successfully spawned entity [gim_arm]
+[gzserver-1] [INFO] [1791276027.748413347] [gazebo_ros2_control]: Loading gazebo_ros2_control plugin
+[gzserver-1] [INFO] [1791276027.750227082] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in namespace: /
+[gzserver-1] [INFO] [1791276027.750324230] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in ros 2 node: gazebo_ros2_control
+[gzserver-1] [INFO] [1791276027.751353565] [gazebo_ros2_control]: connected to service!! robot_state_publisher
+[gzserver-1] [INFO] [1791276027.753310747] [gazebo_ros2_control]: Received urdf from param server, parsing...
+[gzserver-1] [INFO] [1791276027.753370026] [gazebo_ros2_control]: Loading parameter files /home/minh/git_gim_ws/GIM_Arm_3_DOF/install/gim_control/share/gim_control/config/controllers_gazebo.yaml
+[gzserver-1] [INFO] [1791276027.768443712] [gazebo_ros2_control]: Loading joint: base_joint
+[gzserver-1] [INFO] [1791276027.768469653] [gazebo_ros2_control]: 	State:
+[gzserver-1] [INFO] [1791276027.768476219] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791276027.768482634] [gazebo_ros2_control]: 			 found initial value: 0.000000
+[gzserver-1] [INFO] [1791276027.768490211] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791276027.768494872] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791276027.768498982] [gazebo_ros2_control]: 	Command:
+[gzserver-1] [INFO] [1791276027.768502881] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791276027.768924701] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791276027.768986205] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791276027.768993973] [gazebo_ros2_control]: Loading joint: shoulder_joint
+[gzserver-1] [INFO] [1791276027.768998253] [gazebo_ros2_control]: 	State:
+[gzserver-1] [INFO] [1791276027.769002283] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791276027.769006162] [gazebo_ros2_control]: 			 found initial value: 0.000000
+[gzserver-1] [INFO] [1791276027.769011174] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791276027.769015043] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791276027.769018721] [gazebo_ros2_control]: 	Command:
+[gzserver-1] [INFO] [1791276027.769022280] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791276027.769069591] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791276027.769112040] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791276027.769118475] [gazebo_ros2_control]: Loading joint: elbow_joint
+[gzserver-1] [INFO] [1791276027.769122695] [gazebo_ros2_control]: 	State:
+[gzserver-1] [INFO] [1791276027.769126915] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791276027.769130744] [gazebo_ros2_control]: 			 found initial value: 0.000000
+[gzserver-1] [INFO] [1791276027.769135395] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791276027.769139044] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791276027.769143414] [gazebo_ros2_control]: 	Command:
+[gzserver-1] [INFO] [1791276027.769147183] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791276027.769196108] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791276027.769239028] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791276027.769269079] [resource_manager]: Initialize hardware 'GazeboSystem' 
+[gzserver-1] [INFO] [1791276027.769345558] [resource_manager]: Successful initialization of hardware 'GazeboSystem'
+[gzserver-1] [INFO] [1791276027.769390333] [resource_manager]: 'configure' hardware 'GazeboSystem' 
+[gzserver-1] [INFO] [1791276027.769395706] [resource_manager]: Successful 'configure' of hardware 'GazeboSystem'
+[gzserver-1] [INFO] [1791276027.769399805] [resource_manager]: 'activate' hardware 'GazeboSystem' 
+[gzserver-1] [INFO] [1791276027.769403364] [resource_manager]: Successful 'activate' of hardware 'GazeboSystem'
+[gzserver-1] [INFO] [1791276027.769449853] [gazebo_ros2_control]: Loading controller_manager
+[gzserver-1] [INFO] [1791276027.790065602] [gazebo_ros2_control]: Loaded gazebo_ros2_control.
+[INFO] [spawn_entity.py-3]: process has finished cleanly [pid 13322]
+[INFO] [ros2-4]: process started with pid [13458]
+[ros2-4] 1791276028.246647 [73]       ros2: selected interface "lo" is not multicast-capable: disabling multicast
+[ros2-4] requester: making request: std_srvs.srv.Empty_Request()
+[ros2-4] 
+[ros2-4] response:
+[ros2-4] std_srvs.srv.Empty_Response()
+[ros2-4] 
+[INFO] [ros2-4]: process has finished cleanly [pid 13458]
+[INFO] [spawner-5]: process started with pid [13489]
+[spawner-5] 1791276028.706888 [73]    spawner: selected interface "lo" is not multicast-capable: disabling multicast
+[gzserver-1] [INFO] [1791276028.737251385] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[spawner-5] [INFO] [1791276028.759347604] [spawner_joint_state_broadcaster]: [94mLoaded [1mjoint_state_broadcaster[0m
+[gzserver-1] [INFO] [1791276028.760094276] [controller_manager]: Configuring controller 'joint_state_broadcaster'
+[gzserver-1] [INFO] [1791276028.760419780] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[spawner-5] [INFO] [1791276028.768751640] [spawner_joint_state_broadcaster]: [92mConfigured and activated [1mjoint_state_broadcaster[0m
+[INFO] [spawner-5]: process has finished cleanly [pid 13489]
+[INFO] [spawner-6]: process started with pid [13519]
+[spawner-6] 1791276029.181630 [73]    spawner: selected interface "lo" is not multicast-capable: disabling multicast
+[gzserver-1] [INFO] [1791276029.212545330] [controller_manager]: Loading controller 'forward_position_controller'
+[spawner-6] [INFO] [1791276029.233265134] [spawner_forward_position_controller]: [94mLoaded [1mforward_position_controller[0m
+[gzserver-1] [INFO] [1791276029.233974739] [controller_manager]: Configuring controller 'forward_position_controller'
+[gzserver-1] [INFO] [1791276029.234611463] [forward_position_controller]: configure successful
+[gzserver-1] [INFO] [1791276029.235862680] [forward_position_controller]: activate successful
+[spawner-6] [INFO] [1791276029.236938404] [spawner_forward_position_controller]: [92mConfigured and activated [1mforward_position_controller[0m
+[INFO] [spawner-6]: process has finished cleanly [pid 13519]
+[INFO] [spawner-7]: process started with pid [13558]
+[spawner-7] 1791276029.640136 [73]    spawner: selected interface "lo" is not multicast-capable: disabling multicast
+[gzserver-1] [INFO] [1791276029.671550405] [controller_manager]: Loading controller 'gim_arm_effort_controller'
+[spawner-7] [INFO] [1791276029.687261605] [spawner_gim_arm_effort_controller]: [94mLoaded [1mgim_arm_effort_controller[0m
+[gzserver-1] [INFO] [1791276029.688325050] [controller_manager]: Configuring controller 'gim_arm_effort_controller'
+[gzserver-1] [INFO] [1791276029.688519196] [gim_arm_effort_controller]: configure successful
+[INFO] [spawner-7]: process has finished cleanly [pid 13558]
+[INFO] [spawner-8]: process started with pid [13586]
+[spawner-8] 1791276030.112967 [73]    spawner: selected interface "lo" is not multicast-capable: disabling multicast
+[gzserver-1] [INFO] [1791276030.143148164] [controller_manager]: Loading controller 'gim_arm_group_controller'
+[gzserver-1] [WARN] [1791276030.153960751] [gim_arm_group_controller]: [Deprecated]: "allow_nonzero_velocity_at_trajectory_end" is set to true. The default behavior will change to false.
+[spawner-8] [INFO] [1791276030.168065544] [spawner_gim_arm_group_controller]: [94mLoaded [1mgim_arm_group_controller[0m
+[gzserver-1] [INFO] [1791276030.168644693] [controller_manager]: Configuring controller 'gim_arm_group_controller'
+[gzserver-1] [INFO] [1791276030.168748938] [gim_arm_group_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[gzserver-1] [INFO] [1791276030.168770178] [gim_arm_group_controller]: Command interfaces are [position velocity] and state interfaces are [position velocity].
+[gzserver-1] [INFO] [1791276030.168808508] [gim_arm_group_controller]: Using 'splines' interpolation method.
+[gzserver-1] [INFO] [1791276030.169276466] [gim_arm_group_controller]: Controller state will be published at 50.00 Hz.
+[gzserver-1] [INFO] [1791276030.170588245] [gim_arm_group_controller]: Action status changes will be monitored at 20.00 Hz.
+[INFO] [spawner-8]: process has finished cleanly [pid 13586]
+[INFO] [ros2-9]: process started with pid [13615]
+[ros2-9] 1791276030.632487 [73]       ros2: selected interface "lo" is not multicast-capable: disabling multicast
+[ros2-9] publisher: beginning loop
+[ros2-9] publishing #1: std_msgs.msg.Float64MultiArray(layout=std_msgs.msg.MultiArrayLayout(dim=[], data_offset=0), data=[0.0, 0.0, 0.0])
+[ros2-9] 
+[INFO] [ros2-9]: process has finished cleanly [pid 13615]
+[INFO] [gz-10]: process started with pid [13654]
+[INFO] [gz-10]: process has finished cleanly [pid 13654]
+[gzserver-1] [INFO] [1791276032.264775819] [gim_arm_effort_controller]: activate successful
+[gzserver-1] [INFO] [1791276075.086637487] [forward_position_controller]: activate successful
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[robot_state_publisher-2] [INFO] [1791276079.180937806] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [robot_state_publisher-2]: process has finished cleanly [pid 13320]
+[INFO] [gzserver-1]: process has finished cleanly [pid 13318]

@@ -1,15 +1,20 @@
 cascade_pid_controller:
   ros__parameters:
-    # Profile thử nghiệm riêng trên Gazebo; pid.yaml vẫn giữ nguyên số MATLAB.
-    # Giảm băng thông vòng tốc độ/ vị trí để tránh kích dao động khớp nhẹ.
+    # PID: tau = inverse_dynamics(q_ref, qd_ref, qdd_ref) + Kp*e + Ki*I + Kd*de/dt.
+    # e=q_ref-q, de/dt=qdot_ref-qdot.
+    # Quỹ đạo giữ đủ q_ref/qd_ref/qdd_ref; tiêu chí đánh giá chỉ là vị trí.
     control_hz: 2000.0
     tau_scale: 0.50
     autostart: false
-    kpp: [18.0, 24.0, 14.0]
-    kvp: [2.0, 3.0, 2.5]
-    kvi: [1.5, 1.5, 1.5]
-    torque_constant: 0.47
-    velocity_integral_limit: 0.0
+    pid_mode: position
+    # Điểm khởi đầu từ gain cascade cũ: Kp=Kt*Kvp*Kpp,
+    # Ki=Kt*Kvi*Kpp, Kd=Kt*Kvp; đơn vị trực tiếp theo mô-men khớp.
+    position_kp: [16.92, 33.84, 16.45]
+    position_ki: [12.69, 16.92, 9.87]
+    position_kd: [0.94, 1.41, 1.175]
+    # Kẹp tích phân theo rad*s; đủ bù tải 0.5 kg, có anti-windup.
+    # Với tải 0.5 kg chạy launch tau_scale:=0.75; không tải giữ 0.50.
+    position_integral_limit: [0.3, 0.3, 0.3]
     drag_kd: [0.3, 1.0, 0.3]
     hold_kp: [5.0, 12.0, 4.0]
     hold_kd: [1.0, 3.0, 0.8]

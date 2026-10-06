@@ -95,8 +95,8 @@ def generate_launch_description():
             "pid_profile", default_value="matlab_reference",
             choices=["matlab_reference", "gazebo_smooth"],
             description=(
-                "PID only: original MATLAB gains or a separately tuned "
-                "Gazebo profile")),
+                "PID only: original MATLAB cascade or position-only PID "
+                "for Gazebo")),
         DeclareLaunchArgument(
             "lqr_profile", default_value="matlab_reference",
             choices=["matlab_reference", "safe_100hz"],

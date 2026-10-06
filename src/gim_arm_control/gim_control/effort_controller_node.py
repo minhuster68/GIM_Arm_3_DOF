@@ -706,8 +706,8 @@ class EffortControllerNode(Node):
             self.get_logger().info(f"TRACK -> RETURN ({self.return_time:g}s)")
         elif self.phase == RETURN and elapsed >= self.return_time:
             self.reference = Hold(self.home_q)
-            # Cascade PID tích lũy sai số vận tốc trong toàn bộ quỹ đạo. Không
-            # mang trạng thái I đó sang pha giữ; HOLD dùng gravity-hold PID
+            # Không mang trạng thái I của controller bám sang pha giữ.
+            # HOLD dùng gravity-hold PID
             # riêng, mềm hơn và có damping trực tiếp theo vận tốc đo được.
             self.controller.reset()
             self.hold_integral.fill(0.0)

@@ -1,4 +1,36 @@
 <!-- PID -->
+PID trên Gazebo dùng `pid_profile:=gazebo_smooth`, đánh giá theo sai số vị trí:
+`tau = tau_ff + Kp*e + Ki*integral(e) + Kd*de/dt`, với `e = q_ref-q`,
+`tau_ff = M(q_ref)*qdd_ref + C(q_ref,qd_ref)*qd_ref + G(q_ref)`,
+`de/dt = qdot_ref-qdot`. Quỹ đạo vẫn giữ đủ `q_ref`, `qd_ref`, `qdd_ref`
+để tính feedforward nghịch động lực học; Gazebo nhận lệnh mô-men tổng.
+P, I và D đều lấy từ sai số vị trí; đạo hàm lấy trực tiếp từ các vận tốc
+để tránh xung do sai phân vị trí khi khoảng nhận mẫu không đều.
+Gain chỉnh trong `src/gim_arm_controller_pid/config/pid_gazebo_smooth.yaml`:
+`position_kp`, `position_ki`, `position_kd`, `position_integral_limit` (rad*s).
+Profile `matlab_reference` vẫn dùng cascade PID gốc.
+`plot_joint_tracking` xuất ba đồ thị mỗi khớp: góc, sai số góc và mô-men;
+CSV vẫn giữ các cột vận tốc để phục vụ phân tích khi cần.
+Với tải 0,5 kg dùng `tau_scale:=0.75` như lệnh bên dưới; không tải dùng
+`payload_mass_kg:=0.0` và `tau_scale:=0.50`. Trần khuỷu 2,5 Nm ở mức 0.50
+không đủ cân bằng tải 0,5 kg.
+
+Build trước khi chạy:
+```bash
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install --packages-select gim_control gim_arm_controller_pid
+source install/setup.bash
+```
+
+Kiểm tra tự động trên Gazebo headless cho cả không tải và tải 0,5 kg:
+
+```bash
+python3 tools/validate_pid_gazebo.py
+```
+
+Script dùng ROS domain 73 và cổng Gazebo 11373, xuất CSV/đồ thị/log tại
+`results/pid_inverse_dynamics_gazebo/`, rồi dừng các tiến trình mô phỏng của nó.
+
 T1:
 cd /home/minh/git_gim_ws/GIM_Arm_3_DOF
 source /opt/ros/humble/setup.bash
@@ -18,6 +50,7 @@ mkdir -p results
 ros2 launch gim_control run_effort_algorithm.launch.py \
   algorithm:=pid \
   pid_profile:=gazebo_smooth \
+  tau_scale:=0.75 \
   autostart:=false \
   use_sim_time:=false \
   log_file:=/home/minh/git_gim_ws/GIM_Arm_3_DOF/results/gim_pid_run.csv
