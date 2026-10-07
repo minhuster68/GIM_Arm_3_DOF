@@ -31,6 +31,65 @@ gim_arm_group_controller: active
 gim_arm_effort_controller: inactive
 ```
 
+## Terminal 2 — tune MPC tương tác
+
+```bash
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_mpc_test
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+# Chạy sau Terminal 1; dùng thay cho Terminal 2/3 của bài thử thủ công bên dưới.
+python3 tools/tune_mpc.py
+```
+
+### Lệnh trong terminal tune
+
+```text
+show
+set q_position 0.7 1.7 0.7
+set torque_penalty_scale 10000
+shape circle
+test
+test r
+test a
+save
+quit
+```
+
+### Output mong muốn
+
+```text
+mpc> ...
+WAIT -> READY_MPC
+APPROACH -> TRACK -> RETURN -> HOLD_HOME
+POSITION active; EFFORT inactive
+results/tune_mpc/mpc_{circle,r,a}_<timestamp>_<id>.csv
+results/tune_mpc/mpc_{circle,r,a}_<timestamp>_<id>.yaml
+RMS e_q [deg], MAX |e_q| [deg], MAX |tau| [Nm].
+Đồ thị: vị trí, sai số vị trí, mô-men. Đóng cửa sổ để quay lại mpc>.
+Ctrl+C trong test: chuyển về position, ghi CSV, quay lại terminal tune.
+save: lưu bộ số vào src/gim_arm_controller_mpc/config/mpc_hardware_soft.yaml.
+```
+
+### Tune offline — không cần CAN
+
+```bash
+python3 tools/tune_mpc.py --dry-run
+```
+
+```text
+test circle
+test r
+test a
+quit
+```
+
+### Output mong muốn
+
+```text
+DRY RUN: mpc/{circle,r,a}; q, qd, qdd; 16s + 27s + 16s + 3s HOLD
+Không kết nối ROS/CAN, không switch controller, không tạo CSV.
+```
+
 ## Terminal 2 — MPC và quỹ đạo
 
 ```bash
