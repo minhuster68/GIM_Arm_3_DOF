@@ -1,9 +1,9 @@
-# LQR — chạy phần cứng
+# SMC — chạy phần cứng
 
 ## Chuẩn bị
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_lqr_test
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_smc_test
 git branch --show-current
 source /opt/ros/humble/setup.bash
 colcon build --symlink-install --packages-select gim_arm_description gim_arm_hardware gim_control gim_arm_controller_pid gim_arm_controller_lqr gim_arm_controller_mpc gim_arm_controller_smc
@@ -13,7 +13,7 @@ source install/setup.bash
 ## Terminal 1 — CAN, zero phần mềm, position controller
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_lqr_test
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_smc_test
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ip -details link show can0
@@ -31,38 +31,37 @@ gim_arm_group_controller: active
 gim_arm_effort_controller: inactive
 ```
 
-## Terminal 2 — LQR và quỹ đạo
+## Terminal 2 — SMC và quỹ đạo
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_lqr_test
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_smc_test
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 # trajectory_shape: circle (vòng tròn), r (chữ R), a (chữ A)
-ros2 launch gim_control lqr_sweep_hardware.launch.py \
+ros2 launch gim_control smc_sweep_hardware.launch.py \
   trajectory_shape:=circle approach_time:=16 return_time:=16 \
-  params_file:=src/gim_arm_controller_lqr/config/lqr_hardware_soft.yaml \
-  log_file:=results/lqr_circle_run01.csv
+  params_file:=src/gim_arm_controller_smc/config/smc_hardware_soft.yaml \
+  log_file:=results/smc_circle_run01.csv
 ```
 
 ### Output mong muốn
 
 ```text
-Precompute xong ... gain LQR ...
-WAIT -> READY_LQR
+WAIT -> READY_SMC
 HOME gần [0, 0, 0]; tay đứng yên.
 ```
 
 ## Terminal 3 — bắt đầu
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_lqr_test
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_smc_test
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ros2 control switch_controllers \
   --strict --activate-asap \
   --deactivate gim_arm_group_controller \
   --activate gim_arm_effort_controller
-ros2 param set /lqr_controller autostart true
+ros2 param set /smc_controller autostart true
 ```
 
 ### Output mong muốn — Terminal 2
@@ -71,7 +70,7 @@ ros2 param set /lqr_controller autostart true
 GRAVITY -> APPROACH (16s)
 APPROACH -> TRACK
 TRACK -> RETURN (16s)
-RETURN -> HOLD_HOME lqr
+RETURN -> HOLD_HOME smc
 ```
 
 ## Terminal 3 — kết thúc hoặc dừng bài thử
@@ -99,13 +98,13 @@ Ctrl+C
 ### Output mong muốn
 
 ```text
-Ghi ... dòng -> results/lqr_circle_run01.csv
+Ghi ... dòng -> results/smc_circle_run01.csv
 ```
 
 ## Terminal 3 — kết quả vị trí
 
 ```bash
-ros2 run gim_control plot_joint_tracking results/lqr_circle_run01.csv --show
+ros2 run gim_control plot_joint_tracking results/smc_circle_run01.csv --show
 ```
 
 ### Output mong muốn
@@ -113,9 +112,9 @@ ros2 run gim_control plot_joint_tracking results/lqr_circle_run01.csv --show
 ```text
 RMS e_q [deg], MAX |e_q| [deg], MAX |tau| [Nm].
 3 cửa sổ đồ thị: vị trí, sai số vị trí, mô-men (tau_ff/tau_fb khi CSV có các cột tương ứng).
-results/lqr_circle_run01_joints_q1_base.png
-results/lqr_circle_run01_joints_q2_shoulder.png
-results/lqr_circle_run01_joints_q3_elbow.png
+results/smc_circle_run01_joints_q1_base.png
+results/smc_circle_run01_joints_q2_shoulder.png
+results/smc_circle_run01_joints_q3_elbow.png
 ```
 
 ## Xem trước ba quỹ đạo
@@ -148,7 +147,7 @@ results/hardware_preflight.json
 
 ```bash
 # Gain khởi đầu; chưa xác nhận đáp ứng trên tay thật.
-sed -n '1,100p' src/gim_arm_controller_lqr/config/lqr_hardware_soft.yaml
+sed -n '1,100p' src/gim_arm_controller_smc/config/smc_hardware_soft.yaml
 ```
 
 ### Output mong muốn
@@ -157,6 +156,5 @@ sed -n '1,100p' src/gim_arm_controller_lqr/config/lqr_hardware_soft.yaml
 control_hz: 100.0
 tau_scale: 0.35
 max_track_error_rad: 0.10
-position_tracking_only: true
-max_int_e, max_e, tau_penalty_scale, integral_limit, max_tau_rate_nm_s.
+lambda_gain, ks, kr, phi.
 ```
