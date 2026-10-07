@@ -26,7 +26,7 @@ from gim_control.plot_ee_error import load_log, plot, print_metrics
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run_case(mass, output):
+def run_case(mass, output, trajectory_shape="circle"):
     name = "noload" if mass == 0.0 else "payload_0p5"
     scale = 0.50 if mass == 0.0 else 0.75
     csv_path = output / f"{name}.csv"
@@ -44,7 +44,8 @@ def run_case(mass, output):
             "-p", "use_sim_time:=false", "-p", f"log_file:={csv_path}",
             "-p", "max_track_error_rad:=0.05",
             "-p", "max_transition_error_rad:=0.10",
-            "-p", f"tau_scale:={scale}"])
+            "-p", f"tau_scale:={scale}",
+            "-p", f"trajectory_shape:={trajectory_shape}"])
         executor = SingleThreadedExecutor()
         probe = Node("pid_gazebo_validation")
         executor.add_node(probe)
@@ -121,6 +122,7 @@ def run_case(mass, output):
         passed = pid.phase == "HOLD" and {"APPROACH", "TRACK", "RETURN"} <= phases
         result = {
             "case": name, "payload_mass_kg": mass, "tau_scale": scale,
+            "trajectory_shape": trajectory_shape,
             "final_phase": pid.phase, "phases": sorted(phases),
             "samples": len(pid.rows), "passed": passed,
             "control_hz": 1.0 / pid.dt_nom,
@@ -174,8 +176,11 @@ def run_case(mass, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", type=Path,
-                        default=ROOT / "results/pid_inverse_dynamics_gazebo")
+    parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--trajectory-shape", choices=("circle", "r", "a"),
+                        default="circle")
+    parser.add_argument("--payload-masses", type=float, nargs="+",
+                        choices=(0.0, 0.5), default=(0.0, 0.5))
     parser.add_argument("--ros-domain-id", type=int, default=73)
     parser.add_argument("--gazebo-port", type=int, default=11373)
     args = parser.parse_args()
@@ -187,7 +192,9 @@ def main():
         connection.settimeout(1.0)
         if connection.connect_ex(("127.0.0.1", args.gazebo_port)) == 0:
             parser.error("Gazebo port already in use; choose another port/domain")
-    output = args.output_dir.resolve()
+    default_output = ("pid_inverse_dynamics_gazebo" if args.trajectory_shape == "circle"
+                      else f"pid_letter_{args.trajectory_shape}_gazebo")
+    output = (args.output_dir or ROOT / "results" / default_output).resolve()
     output.mkdir(parents=True, exist_ok=True)
     os.environ.update(
         ROS_DOMAIN_ID=str(args.ros_domain_id), ROS_LOCALHOST_ONLY="1",
@@ -195,7 +202,8 @@ def main():
         GAZEBO_MASTER_URI=f"http://127.0.0.1:{args.gazebo_port}",
         MPLCONFIGDIR=str(output / "matplotlib_cache"),
         RCUTILS_COLORIZED_OUTPUT="0")
-    results = [run_case(mass, output) for mass in (0.0, 0.5)]
+    results = [run_case(mass, output, args.trajectory_shape)
+               for mass in args.payload_masses]
     (output / "validation.json").write_text(json.dumps(results, indent=2) + "\n")
     return 0 if all(result["passed"] for result in results) else 1
 

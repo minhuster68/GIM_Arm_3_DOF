@@ -1,0 +1,38 @@
+{
+  "case": "noload",
+  "payload_mass_kg": 0.0,
+  "tau_scale": 0.5,
+  "trajectory_shape": "r",
+  "final_phase": "HOLD",
+  "phases": [
+    "APPROACH",
+    "GRAVITY",
+    "HOLD",
+    "RETURN",
+    "TRACK"
+  ],
+  "samples": 74003,
+  "passed": true,
+  "control_hz": 2000.0,
+  "kp": [
+    16.92,
+    33.84,
+    16.45
+  ],
+  "ki": [
+    12.69,
+    16.92,
+    9.87
+  ],
+  "kd": [
+    0.94,
+    1.41,
+    1.175
+  ],
+  "integral_limit": [
+    0.3,
+    0.3,
+    0.3
+  ],
+  "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)"
+}

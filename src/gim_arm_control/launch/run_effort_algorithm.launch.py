@@ -37,6 +37,7 @@ def generate_launch_description():
     lqr_gravity_at_measured = LaunchConfiguration(
         "lqr_gravity_at_measured")
     common_overrides = {
+        "trajectory_shape": LaunchConfiguration("trajectory_shape"),
         "autostart": ParameterValue(
             LaunchConfiguration("autostart"), value_type=bool),
         "tau_scale": ParameterValue(
@@ -91,6 +92,9 @@ def generate_launch_description():
     actions = [
         DeclareLaunchArgument(
             "algorithm", default_value="lqr", choices=list(ALGORITHMS)),
+        DeclareLaunchArgument(
+            "trajectory_shape", default_value="circle", choices=["circle", "r", "a"],
+            description="End-effector path; all shapes share circle start/end"),
         DeclareLaunchArgument(
             "pid_profile", default_value="matlab_reference",
             choices=["matlab_reference", "gazebo_smooth"],

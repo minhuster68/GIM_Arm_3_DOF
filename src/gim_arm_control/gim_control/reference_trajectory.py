@@ -6,6 +6,7 @@ import numpy as np
 
 from gim_control import sweep_trajectory
 from gim_control.gim_arm_kinematics import GimArmKinematics
+from gim_control.letter_trajectory import LetterTrajectory
 
 
 class SmoothSweep:
@@ -25,7 +26,7 @@ class SmoothSweep:
         self.period = self.duration
 
     def at(self, t):
-        return self._profile.at(np.clip(float(t), 0.0, self.duration))
+        return self._profile.at(np.clip(np.asarray(t, dtype=float), 0.0, self.duration))
 
 
 class Quintic:
@@ -95,3 +96,33 @@ def solve_waypoints(urdf, cache, logger):
         np.savez(cache, q=q_way, dt=float(sweep_trajectory.DT),
                  mt=modified, n=sweep_trajectory.N_POINTS)
     return q_way, float(sweep_trajectory.DT)
+
+
+def load_trajectory(urdf, cache, logger, shape="circle"):
+    """Select a common reference while retaining the circle's endpoints."""
+    if shape not in ("circle", "r", "a"):
+        raise ValueError("trajectory_shape phải là 'circle', 'r' hoặc 'a'")
+    q_way, dt_way = solve_waypoints(urdf, cache, logger)
+    circle = SmoothSweep(q_way, dt_way)
+    if shape == "circle":
+        return circle
+    kin = GimArmKinematics(urdf, tool_offset_xyz=sweep_trajectory.TOOL_OFFSET)
+    profile = LetterTrajectory(kin, shape, circle.at(0.0)[0], circle.duration)
+    ok, lines = sweep_trajectory.safety_report(
+        kin, profile.positions, profile.results, profile=profile)
+    for line in lines:
+        logger.info(line)
+    # Check the interpolated path too, including the spaces between IK samples.
+    q, _, _ = profile.at(np.linspace(0.0, profile.duration, 6001))
+    margin = min((q - kin.model.lowerPositionLimit).min(),
+                 (kin.model.upperPositionLimit - q).min())
+    positions = np.asarray([kin.fk_position(value) for value in q])
+    clearance = min(sweep_trajectory.body_clearance(positions).values())
+    condition = max(np.linalg.cond(kin.jacobian(value)[:3]) for value in q)
+    if (not ok or margin < sweep_trajectory.MIN_JOINT_MARGIN_RAD
+            or clearance < sweep_trajectory.MIN_BODY_CLEARANCE_M
+            or condition > sweep_trajectory.MAX_COND):
+        raise RuntimeError(f"Quỹ đạo chữ {shape.upper()} không đạt safety_report")
+    logger.info(f"Chữ {shape.upper()}: giữ điểm đầu/cuối vòng tròn, "
+                f"{profile.duration:g}s, qd=qdd=0 tại các điểm nối nét")
+    return profile

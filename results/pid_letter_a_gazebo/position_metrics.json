@@ -1,0 +1,98 @@
+[
+  {
+    "case": "noload",
+    "payload_mass_kg": 0.0,
+    "tau_scale": 0.5,
+    "trajectory_shape": "a",
+    "final_phase": "HOLD",
+    "phases": [
+      "APPROACH",
+      "GRAVITY",
+      "HOLD",
+      "RETURN",
+      "TRACK"
+    ],
+    "samples": 74003,
+    "passed": true,
+    "control_hz": 2000.0,
+    "kp": [
+      16.92,
+      33.84,
+      16.45
+    ],
+    "ki": [
+      12.69,
+      16.92,
+      9.87
+    ],
+    "kd": [
+      0.94,
+      1.41,
+      1.175
+    ],
+    "integral_limit": [
+      0.3,
+      0.3,
+      0.3
+    ],
+    "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)",
+    "track_rms_position_deg": [
+      0.05045894229380383,
+      0.2216260615885667,
+      0.06587649524710437
+    ],
+    "track_max_position_error_deg": [
+      0.22285441163758607,
+      0.6068642252966502,
+      0.20388149870179775
+    ]
+  },
+  {
+    "case": "payload_0p5",
+    "payload_mass_kg": 0.5,
+    "tau_scale": 0.75,
+    "trajectory_shape": "a",
+    "final_phase": "HOLD",
+    "phases": [
+      "APPROACH",
+      "GRAVITY",
+      "HOLD",
+      "RETURN",
+      "TRACK"
+    ],
+    "samples": 74003,
+    "passed": true,
+    "control_hz": 2000.0,
+    "kp": [
+      16.92,
+      33.84,
+      16.45
+    ],
+    "ki": [
+      12.69,
+      16.92,
+      9.87
+    ],
+    "kd": [
+      0.94,
+      1.41,
+      1.175
+    ],
+    "integral_limit": [
+      0.3,
+      0.3,
+      0.3
+    ],
+    "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)",
+    "track_rms_position_deg": [
+      0.1716592734659347,
+      0.20962047540861287,
+      0.2860833755786683
+    ],
+    "track_max_position_error_deg": [
+      0.49472412073462924,
+      0.9262059354614414,
+      1.529301417272385
+    ]
+  }
+]

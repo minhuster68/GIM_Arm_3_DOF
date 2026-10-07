@@ -1,0 +1,90 @@
+1791383566.942931 [73]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791383573.331098507] [cascade_pid_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791383573.331886991] [cascade_pid_controller]: Thuật toán: cascade_pid
+Position PID: e=qref-q, tau=tau_ff+Kp*e+Ki*integral(e)+Kd*de/dt; de/dt=qdot_ref-qdot
+  tau_ff=M(qref)*qddot_ref+C(qref,qdot_ref)*qdot_ref+G(qref)
+  Kp=[16.92 33.84 16.45], Ki=[12.69 16.92  9.87], Kd=[0.94  1.41  1.175]
+  |integral position error| <= [0.3 0.3 0.3] rad*s, tau_limit=[ 2.5 20.   2.5] Nm
+[INFO] [1791383573.332310968] [cascade_pid_controller]: Trần controller: [ 2.5 20.   2.5] Nm (effort URDF [ 5. 40.  5.] × 0.5)
+[INFO] [1791383573.332663462] [cascade_pid_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791383573.333191577] [cascade_pid_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[1.  3.  0.8] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791383573.335500780] [cascade_pid_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791383573.357931004] [cascade_pid_controller]: Kích thước: rộng 28cm (trái-phải) x cao 20cm x sâu 12cm (ra-vào)
+[INFO] [1791383573.358214621] [cascade_pid_controller]:   x[0.092, 0.372] y[-0.103, 0.016] z[0.495, 0.695]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791383573.358427887] [cascade_pid_controller]: IK: 205/205 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1791383573.358630111] [cascade_pid_controller]:   cond(J) lớn nhất 8.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.273 rad (ngưỡng 0.05)
+[INFO] [1791383573.358833557] [cascade_pid_controller]:   biên độ mỗi khớp (độ): [33.8 14.9  9.1] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791383573.359035330] [cascade_pid_controller]:   tốc độ đỉnh profile (rad/s, dt=0.3s): [0.115 0.067 0.042] | trần URDF: [15.708  1.963 15.708] | dùng [0.7 3.4 0.3]% (cho phép 25%)
+[INFO] [1791383573.359238496] [cascade_pid_controller]:   gia tốc đỉnh profile (rad/s^2): [0.089 0.057 0.036]
+[INFO] [1791383573.359439938] [cascade_pid_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 31.9cm | đùi/ghế 19.5cm | cẳng chân 19.6cm
+[INFO] [1791383573.435365389] [cascade_pid_controller]: Chữ A: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1791383573.435687362] [cascade_pid_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK a 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791383573.438776683] [cascade_pid_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791383573.439663925] [cascade_pid_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0. -0. -0.]
+[WARN] [1791383573.440465627] [cascade_pid_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1 lần, timer_dt=0.86 ms)
+[WARN] [1791383573.834037455] [cascade_pid_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (10 lần, timer_dt=0.34 ms)
+[WARN] [1791383576.971021836] [cascade_pid_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (100 lần, timer_dt=0.51 ms)
+[INFO] [1791383578.443532639] [cascade_pid_controller]: GRAVITY -> APPROACH (5s), START=[ 0.0004 -0.0213 -0.0002], HOME=[-0. -0. -0.]
+[INFO] [1791383583.534518398] [cascade_pid_controller]: APPROACH -> TRACK
+[WARN] [1791383595.035465516] [cascade_pid_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1000 lần, timer_dt=0.39 ms)
+[INFO] [1791383611.287031622] [cascade_pid_controller]: TRACK -> RETURN (5s)
+[INFO] [1791383616.332013339] [cascade_pid_controller]: RETURN -> HOLD_HOME gravity-hold PID (Ctrl-C để ghi file log)
+{"case": "noload", "payload_mass_kg": 0.0, "tau_scale": 0.5, "trajectory_shape": "a", "final_phase": "HOLD", "phases": ["APPROACH", "GRAVITY", "HOLD", "RETURN", "TRACK"], "samples": 74003, "passed": true, "control_hz": 2000.0, "kp": [16.92, 33.84, 16.45], "ki": [12.69, 16.92, 9.87], "kd": [0.94, 1.41, 1.175], "integral_limit": [0.3, 0.3, 0.3], "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)"}
+[INFO] [1791383617.244648195] [cascade_pid_controller]: Ghi 74003 dòng -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/results/pid_letter_a_gazebo/noload.csv
+1791383620.566732 [73]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791383626.563475071] [cascade_pid_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791383626.564130985] [cascade_pid_controller]: Thuật toán: cascade_pid
+Position PID: e=qref-q, tau=tau_ff+Kp*e+Ki*integral(e)+Kd*de/dt; de/dt=qdot_ref-qdot
+  tau_ff=M(qref)*qddot_ref+C(qref,qdot_ref)*qdot_ref+G(qref)
+  Kp=[16.92 33.84 16.45], Ki=[12.69 16.92  9.87], Kd=[0.94  1.41  1.175]
+  |integral position error| <= [0.3 0.3 0.3] rad*s, tau_limit=[ 3.75 30.    3.75] Nm
+[INFO] [1791383626.564510776] [cascade_pid_controller]: Trần controller: [ 3.75 30.    3.75] Nm (effort URDF [ 5. 40.  5.] × 0.75)
+[INFO] [1791383626.564805506] [cascade_pid_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791383626.565187311] [cascade_pid_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[1.  3.  0.8] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791383626.565911531] [cascade_pid_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791383626.586636645] [cascade_pid_controller]: Kích thước: rộng 28cm (trái-phải) x cao 20cm x sâu 12cm (ra-vào)
+[INFO] [1791383626.586906576] [cascade_pid_controller]:   x[0.092, 0.372] y[-0.103, 0.016] z[0.495, 0.695]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791383626.587124412] [cascade_pid_controller]: IK: 205/205 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1791383626.587334323] [cascade_pid_controller]:   cond(J) lớn nhất 8.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.273 rad (ngưỡng 0.05)
+[INFO] [1791383626.587534684] [cascade_pid_controller]:   biên độ mỗi khớp (độ): [33.8 14.9  9.1] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791383626.587734144] [cascade_pid_controller]:   tốc độ đỉnh profile (rad/s, dt=0.3s): [0.115 0.067 0.042] | trần URDF: [15.708  1.963 15.708] | dùng [0.7 3.4 0.3]% (cho phép 25%)
+[INFO] [1791383626.587931148] [cascade_pid_controller]:   gia tốc đỉnh profile (rad/s^2): [0.089 0.057 0.036]
+[INFO] [1791383626.588136239] [cascade_pid_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 31.9cm | đùi/ghế 19.5cm | cẳng chân 19.6cm
+[INFO] [1791383626.663518336] [cascade_pid_controller]: Chữ A: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1791383626.664256254] [cascade_pid_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK a 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791383626.665459354] [cascade_pid_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791383626.666760470] [cascade_pid_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0.  0. -0.]
+[WARN] [1791383626.667855373] [cascade_pid_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1 lần, timer_dt=1.16 ms)
+[WARN] [1791383626.985766645] [cascade_pid_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (10 lần, timer_dt=0.36 ms)
+[WARN] [1791383627.434324248] [cascade_pid_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (100 lần, timer_dt=0.45 ms)
+[INFO] [1791383631.671138737] [cascade_pid_controller]: GRAVITY -> APPROACH (5s), START=[-0.0117 -0.0171  0.0003], HOME=[-0.  0. -0.]
+[WARN] [1791383634.062211079] [cascade_pid_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1000 lần, timer_dt=0.36 ms)
+[INFO] [1791383637.198146599] [cascade_pid_controller]: APPROACH -> TRACK
+[WARN] [1791383661.196654968] [cascade_pid_controller]: cascade_pid: compute 3.10 ms > ngân sách cảnh báo 0.40 ms (1 lần)
+[WARN] [1791383662.915715242] [cascade_pid_controller]: cascade_pid: compute 3.04 ms > ngân sách cảnh báo 0.40 ms (10 lần)
+[INFO] [1791383672.586615889] [cascade_pid_controller]: TRACK -> RETURN (5s)
+[INFO] [1791383678.367705100] [cascade_pid_controller]: RETURN -> HOLD_HOME gravity-hold PID (Ctrl-C để ghi file log)
+
+Metrics từng khớp
+phase       samples   RMS e_q [deg]       MAX |e_q| [deg]   MAX |tau| [Nm]
+----------------------------------------------------------------------------------------------------
+ALL           74003   [  0.056   0.205   0.060]   [  0.227   0.607   0.204]   [  0.631   3.826   1.510]
+APPROACH      10001   [  0.059   0.191   0.056]   [  0.208   0.399   0.200]   [  0.631   3.388   1.446]
+TRACK         54001   [  0.050   0.222   0.066]   [  0.223   0.607   0.204]   [  0.442   3.826   1.510]
+RETURN        10001   [  0.080   0.091   0.021]   [  0.227   0.197   0.119]   [  0.564   3.077   1.389]
+Đã lưu: /home/minh/git_gim_ws/GIM_Arm_3_DOF/results/pid_letter_a_gazebo/noload_joints_q1_base.png
+Đã lưu: /home/minh/git_gim_ws/GIM_Arm_3_DOF/results/pid_letter_a_gazebo/noload_joints_q2_shoulder.png
+Đã lưu: /home/minh/git_gim_ws/GIM_Arm_3_DOF/results/pid_letter_a_gazebo/noload_joints_q3_elbow.png
+{"case": "payload_0p5", "payload_mass_kg": 0.5, "tau_scale": 0.75, "trajectory_shape": "a", "final_phase": "HOLD", "phases": ["APPROACH", "GRAVITY", "HOLD", "RETURN", "TRACK"], "samples": 74003, "passed": true, "control_hz": 2000.0, "kp": [16.92, 33.84, 16.45], "ki": [12.69, 16.92, 9.87], "kd": [0.94, 1.41, 1.175], "integral_limit": [0.3, 0.3, 0.3], "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)"}
+[INFO] [1791383679.286559418] [cascade_pid_controller]: Ghi 74003 dòng -> /home/minh/git_gim_ws/GIM_Arm_3_DOF/results/pid_letter_a_gazebo/payload_0p5.csv
+
+Metrics từng khớp
+phase       samples   RMS e_q [deg]       MAX |e_q| [deg]   MAX |tau| [Nm]
+----------------------------------------------------------------------------------------------------
+ALL           74003   [  0.291   0.719   0.983]   [  1.024   2.307   3.175]   [  0.756   6.261   3.468]
+APPROACH      10001   [  0.466   1.487   2.013]   [  0.919   2.307   3.175]   [  0.756   5.812   3.313]
+TRACK         54001   [  0.172   0.210   0.286]   [  0.495   0.926   1.529]   [  0.573   6.261   3.468]
+RETURN        10001   [  0.500   1.171   1.631]   [  1.024   2.000   2.814]   [  0.674   5.472   3.263]
+Đã lưu: /home/minh/git_gim_ws/GIM_Arm_3_DOF/results/pid_letter_a_gazebo/payload_0p5_joints_q1_base.png
+Đã lưu: /home/minh/git_gim_ws/GIM_Arm_3_DOF/results/pid_letter_a_gazebo/payload_0p5_joints_q2_shoulder.png
+Đã lưu: /home/minh/git_gim_ws/GIM_Arm_3_DOF/results/pid_letter_a_gazebo/payload_0p5_joints_q3_elbow.png

@@ -26,9 +26,8 @@ from gim_control.arm_dynamics import ArmDynamics
 from gim_control.reference_trajectory import (
     Hold,
     Quintic,
-    SmoothSweep,
     TimedHold,
-    solve_waypoints,
+    load_trajectory,
 )
 
 
@@ -69,6 +68,7 @@ class EffortControllerNode(Node):
         declare("approach_time", 5.0)
         declare("return_time", 5.0)
         declare("loops", 1.0)
+        declare("trajectory_shape", "circle")
         declare("diagnostic_hold", False)
         declare("diagnostic_segment", False)
         declare("diagnostic_q1_deg", 0.0)
@@ -271,11 +271,11 @@ class EffortControllerNode(Node):
                     f"q_end={np.round(np.degrees(q_end), 3)} deg")
                 track_description = f"TRACK_SEGMENT {duration:g}s"
         else:
-            q_way, dt_way = solve_waypoints(
-                urdf, str(get("cache_file").value), self.get_logger())
-            self.trajectory = SmoothSweep(q_way, dt_way)
+            self.trajectory = load_trajectory(
+                urdf, str(get("cache_file").value), self.get_logger(),
+                str(get("trajectory_shape").value))
             track_description = (
-                f"TRACK {self.loops} vòng "
+                f"TRACK {get('trajectory_shape').value} {self.loops} vòng "
                 f"({self.trajectory.duration:g}s/vòng)")
         self.get_logger().info(
             f"Kịch bản: HOME -> APPROACH {self.approach_time:g}s -> "

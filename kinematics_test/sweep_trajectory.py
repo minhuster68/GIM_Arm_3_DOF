@@ -162,7 +162,7 @@ def body_clearance(positions):
     return out
 
 
-def safety_report(kin, positions, results, dt: float = DT):
+def safety_report(kin, positions, results, dt: float = DT, profile=None):
     """Kiểm tra quỹ đạo trước khi cho chạy. Trả về (ok, các_dòng_báo_cáo).
 
     Kiểm cả 4 thứ chứ không chỉ 'IK hội tụ': hội tụ mà nằm sát giới hạn khớp
@@ -175,9 +175,10 @@ def safety_report(kin, positions, results, dt: float = DT):
     err_mm = max(r.position_error_m for r in results) * 1000
     conds = np.array([np.linalg.cond(kin.jacobian(q)[:3, :]) for q in qs])
     margin = float(min((qs - lo).min(), (hi - qs).min()))
-    # Kiểm đúng profile sẽ gửi: spline tuần hoàn + time-scaling minimum-jerk.
+    # Kiểm đúng profile sẽ gửi; mặc định là vòng quét minimum-jerk.
     # Lấy mẫu dày 100 lần mỗi khoảng waypoint để không bỏ sót đỉnh qdot.
-    profile = SmoothJointProfile(qs, dt)
+    if profile is None:
+        profile = SmoothJointProfile(qs, dt)
     check_t = np.linspace(0.0, profile.duration, len(qs) * 100 + 1)
     _, qd_check, qdd_check = profile.at(check_t)
     speeds = np.abs(qd_check).max(axis=0)
@@ -200,7 +201,7 @@ def safety_report(kin, positions, results, dt: float = DT):
         f"cách giới hạn khớp gần nhất {margin:.3f} rad (ngưỡng {MIN_JOINT_MARGIN_RAD})",
         f"  biên độ mỗi khớp (độ): {np.degrees(qs.max(axis=0)-qs.min(axis=0)).round(1)} "
         f"-> {kin.joint_names}",
-        f"  tốc độ đỉnh profile (rad/s, dt={dt}s): {speeds.round(3)} | "
+        f"  tốc độ đỉnh profile (rad/s, duration={profile.duration:g}s): {speeds.round(3)} | "
         f"trần URDF: {vel_limit.round(3)} | "
         f"dùng {(used_frac*100).round(1)}% (cho phép "
         f"{MAX_JOINT_SPEED_FRACTION*100:.0f}%)",
