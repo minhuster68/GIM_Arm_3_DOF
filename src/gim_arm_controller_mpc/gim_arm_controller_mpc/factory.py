@@ -1,3 +1,5 @@
+import math
+
 from gim_control.controller_api import ControllerFactory, vector_parameter
 
 from .controller import MpcController
@@ -26,6 +28,10 @@ class MpcFactory(ControllerFactory):
         node.declare_parameter("admm_rho", 10.0)
         node.declare_parameter("admm_iterations", 100)
         node.declare_parameter("admm_tolerance", 0.0001)
+        node.declare_parameter("weight_convention", "legacy_linear")
+        node.declare_parameter("feedback_bounds_mode", "instantaneous")
+        node.declare_parameter("precompute_prediction", False)
+        node.declare_parameter("torque_penalty_scale", 1.0)
 
     def build(self, node, dynamics, tau_limit, control_hz):
         n = dynamics.nq
@@ -37,20 +43,28 @@ class MpcFactory(ControllerFactory):
             node, "output_scale_position", n, positive=True)
         velocity_scale = vector_parameter(
             node, "output_scale_velocity", n, positive=True)
-        qi = vector_parameter(
-            node, "q_integral", n, positive=True) / integral_scale**2
-        qp = vector_parameter(
-            node, "q_position", n, positive=True) / position_scale**2
-        qv = vector_parameter(
-            node, "q_velocity", n, positive=True) / velocity_scale**2
+        convention = str(node.get_parameter("weight_convention").value)
+        if convention not in ("legacy_linear", "matlab_squared"):
+            raise ValueError("weight_convention phải là legacy_linear hoặc matlab_squared")
+
+        def cost(name, scale, *, positive=False):
+            weight = vector_parameter(
+                node, name, n, positive=positive, nonnegative=True)
+            return ((weight / scale)**2 if convention == "matlab_squared"
+                    else weight / scale**2)
+
+        qi = cost("q_integral", integral_scale)
+        qp = cost("q_position", position_scale)
+        qv = cost("q_velocity", velocity_scale)
         # MATLAB dùng MV.ScaleFactor = tauMax = [5, 40, 5], không dùng trần
         # bring-up sau khi nhân tau_scale. tau_limit vẫn là constraint an toàn.
         input_scale = vector_parameter(
             node, "input_scale", n, positive=True)
-        ri = vector_parameter(
-            node, "r_input", n, positive=True) / input_scale**2
-        rr = vector_parameter(
-            node, "r_rate", n, positive=True) / input_scale**2
+        penalty = float(node.get_parameter("torque_penalty_scale").value)
+        if not math.isfinite(penalty) or penalty <= 0.0:
+            raise ValueError("torque_penalty_scale phải hữu hạn và dương")
+        ri = penalty * cost("r_input", input_scale, positive=True)
+        rr = penalty * cost("r_rate", input_scale)
         return MpcController(
             dynamics,
             control_hz=control_hz,
@@ -75,4 +89,8 @@ class MpcFactory(ControllerFactory):
                 node.get_parameter("admm_iterations").value),
             admm_tolerance=float(
                 node.get_parameter("admm_tolerance").value),
+            feedback_bounds_mode=str(
+                node.get_parameter("feedback_bounds_mode").value),
+            precompute_prediction=bool(
+                node.get_parameter("precompute_prediction").value),
         )

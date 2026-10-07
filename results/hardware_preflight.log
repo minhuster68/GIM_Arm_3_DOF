@@ -1,0 +1,292 @@
+1791386345.489282 [82]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791386345.540550425] [lqr_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791386345.578779307] [lqr_controller]: Thuật toán: lqr
+Bộ điều khiển: LQR/LQI gain-scheduling (9 trạng thái), DARE rời rạc theo ZOH
+  trọng số Bryson: max_int_e=[0.2 0.2 0.2] rad·s  max_e=[0.1 0.1 0.1] rad
+  mục tiêu vận tốc: Q_vel=[0, 0, 0] (chỉ tối ưu bám vị trí; không dùng max_de)
+  max_tau=[ 5. 40.  5.] Nm  x tau_penalty_scale=512
+  feedforward: inverse_dynamics(q_ref) (G lấy ở q_ref, đúng kiểu matlab)
+  K precompute dọc quỹ đạo @ 10 Hz; nội suy tuyến tính theo thời gian quỹ đạo ROS
+  trần mô-men: [ 1.75 14.    1.75] Nm   |∫e| <= 0.05 rad·s
+  slew-rate mô-men: [ 5. 20.  5.] Nm/s
+
+  KIỂM TRA ZOH (100 Hz): |z|max = 0.996439541  -> ỔN ĐỊNH
+  cực liên tục: nhanh nhất 37.6 rad/s (Nyquist vòng 314 rad/s), chậm nhất 0.356 rad/s -> t_xác_lập ≈ 11.23 s
+  mô-men riêng khâu tích phân khi ∫e chạm kẹp: [0.066 0.584 0.083] Nm
+  K tại q = [0.155 0.553 0.771] (Nm trên mỗi đơn vị trạng thái):
+    base_joint      ∫e:[ 1.009e+00  3.085e-01 -1.022e-04]  e:[2.95 1.   0.12]  ė:[0.65 0.3  0.06]
+    shoulder_joint  ∫e:[-1.556  5.5   -4.615]  e:[-2.95  9.04 -9.51]  ė:[-0.03  1.31 -0.06]
+    elbow_joint     ∫e:[-0.199  0.691  0.765]  e:[-0.32  1.34  1.42]  ė:[0.   0.4  0.28]
+    (K đổi theo tư thế -- đây chỉ là một điểm làm việc)
+[INFO] [1791386345.579202204] [lqr_controller]: Trần controller: [ 1.75 14.    1.75] Nm (effort URDF [ 5. 40.  5.] × 0.35)
+[INFO] [1791386345.579487856] [lqr_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791386345.579695887] [lqr_controller]: PREP/HOLD_HOME dùng cùng lqr như quỹ đạo; tau_cmd = inverse_dynamics(ref) + tau_fb
+[INFO] [1791386345.596338435] [lqr_controller]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1791386345.596612474] [lqr_controller]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386345.596816869] [lqr_controller]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1791386345.597024891] [lqr_controller]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1791386345.597229185] [lqr_controller]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386345.597425434] [lqr_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1791386345.597617545] [lqr_controller]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1791386345.597812972] [lqr_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1791386345.598403894] [lqr_controller]: Kịch bản: HOME -> APPROACH 16s -> TRACK 1 vòng (27s/vòng) -> RETURN 16s -> HOLD_HOME
+[INFO] [1791386345.602873124] [lqr_controller]: Chờ /joint_states để chốt HOME bằng lqr. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791386345.612333332] [lqr_controller]: Bắt đầu precompute 591 gain LQR @ 10 Hz. Giữ position controller active...
+[INFO] [1791386345.948186517] [lqr_controller]: Precompute xong 591 gain LQR trong 0.34s. Đang chờ mẫu /joint_states mới...
+{"algorithm": "lqr", "trajectory_shape": "circle", "passed": true, "check": "offline model/schedule/solver; hardware not connected", "samples": 303, "control_hz": 100.0, "tau_limit_nm": [1.75, 14.0, 1.75], "peak_tau_nm": [0.7252280386349153, 3.413112475394408, 1.496896076436256], "peak_feedforward_nm": [0.7288198371280149, 3.3735634362256604, 1.4963751513362331], "track_duration_s": 27.0, "mpc_accepted_samples": null}
+1791386345.983331 [82]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791386345.989068323] [lqr_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791386346.024538347] [lqr_controller]: Thuật toán: lqr
+Bộ điều khiển: LQR/LQI gain-scheduling (9 trạng thái), DARE rời rạc theo ZOH
+  trọng số Bryson: max_int_e=[0.2 0.2 0.2] rad·s  max_e=[0.1 0.1 0.1] rad
+  mục tiêu vận tốc: Q_vel=[0, 0, 0] (chỉ tối ưu bám vị trí; không dùng max_de)
+  max_tau=[ 5. 40.  5.] Nm  x tau_penalty_scale=512
+  feedforward: inverse_dynamics(q_ref) (G lấy ở q_ref, đúng kiểu matlab)
+  K precompute dọc quỹ đạo @ 10 Hz; nội suy tuyến tính theo thời gian quỹ đạo ROS
+  trần mô-men: [ 1.75 14.    1.75] Nm   |∫e| <= 0.05 rad·s
+  slew-rate mô-men: [ 5. 20.  5.] Nm/s
+
+  KIỂM TRA ZOH (100 Hz): |z|max = 0.996439541  -> ỔN ĐỊNH
+  cực liên tục: nhanh nhất 37.6 rad/s (Nyquist vòng 314 rad/s), chậm nhất 0.356 rad/s -> t_xác_lập ≈ 11.23 s
+  mô-men riêng khâu tích phân khi ∫e chạm kẹp: [0.066 0.584 0.083] Nm
+  K tại q = [0.155 0.553 0.771] (Nm trên mỗi đơn vị trạng thái):
+    base_joint      ∫e:[ 1.009e+00  3.085e-01 -1.022e-04]  e:[2.95 1.   0.12]  ė:[0.65 0.3  0.06]
+    shoulder_joint  ∫e:[-1.556  5.5   -4.615]  e:[-2.95  9.04 -9.51]  ė:[-0.03  1.31 -0.06]
+    elbow_joint     ∫e:[-0.199  0.691  0.765]  e:[-0.32  1.34  1.42]  ė:[0.   0.4  0.28]
+    (K đổi theo tư thế -- đây chỉ là một điểm làm việc)
+[INFO] [1791386346.024895456] [lqr_controller]: Trần controller: [ 1.75 14.    1.75] Nm (effort URDF [ 5. 40.  5.] × 0.35)
+[INFO] [1791386346.025174415] [lqr_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791386346.025383739] [lqr_controller]: PREP/HOLD_HOME dùng cùng lqr như quỹ đạo; tau_cmd = inverse_dynamics(ref) + tau_fb
+[INFO] [1791386346.040079607] [lqr_controller]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1791386346.040332966] [lqr_controller]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386346.040547380] [lqr_controller]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1791386346.040746635] [lqr_controller]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1791386346.040941742] [lqr_controller]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386346.041145505] [lqr_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1791386346.041346463] [lqr_controller]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1791386346.041547351] [lqr_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1791386346.073986642] [lqr_controller]: Kích thước: rộng 28cm (trái-phải) x cao 20cm x sâu 17cm (ra-vào)
+[INFO] [1791386346.074316278] [lqr_controller]:   x[0.092, 0.372] y[-0.144, 0.024] z[0.395, 0.595]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386346.074530432] [lqr_controller]: IK: 328/328 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1791386346.074731229] [lqr_controller]:   cond(J) lớn nhất 9.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.147 rad (ngưỡng 0.05)
+[INFO] [1791386346.074929142] [lqr_controller]:   biên độ mỗi khớp (độ): [43.4 14.8  9.3] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386346.075135149] [lqr_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.328 0.191 0.121] | trần URDF: [15.708  1.963 15.708] | dùng [2.1 9.7 0.8]% (cho phép 25%)
+[INFO] [1791386346.075361927] [lqr_controller]:   gia tốc đỉnh profile (rad/s^2): [0.288 0.479 0.302]
+[INFO] [1791386346.075568977] [lqr_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 27.8cm | đùi/ghế 8.8cm | cẳng chân 9.5cm
+[INFO] [1791386346.150543924] [lqr_controller]: Chữ R: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1791386346.150846348] [lqr_controller]: Kịch bản: HOME -> APPROACH 16s -> TRACK 1 vòng (27s/vòng) -> RETURN 16s -> HOLD_HOME
+[INFO] [1791386346.151572961] [lqr_controller]: Chờ /joint_states để chốt HOME bằng lqr. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791386346.167176512] [lqr_controller]: Bắt đầu precompute 591 gain LQR @ 10 Hz. Giữ position controller active...
+[INFO] [1791386346.492135771] [lqr_controller]: Precompute xong 591 gain LQR trong 0.32s. Đang chờ mẫu /joint_states mới...
+{"algorithm": "lqr", "trajectory_shape": "r", "passed": true, "check": "offline model/schedule/solver; hardware not connected", "samples": 303, "control_hz": 100.0, "tau_limit_nm": [1.75, 14.0, 1.75], "peak_tau_nm": [0.5771940539094246, 3.563700412435491, 1.4813509277936951], "peak_feedforward_nm": [0.578062210592686, 3.5295001720917107, 1.4808492851681545], "track_duration_s": 27.0, "mpc_accepted_samples": null}
+1791386346.520519 [82]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791386346.526331002] [lqr_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791386346.562070735] [lqr_controller]: Thuật toán: lqr
+Bộ điều khiển: LQR/LQI gain-scheduling (9 trạng thái), DARE rời rạc theo ZOH
+  trọng số Bryson: max_int_e=[0.2 0.2 0.2] rad·s  max_e=[0.1 0.1 0.1] rad
+  mục tiêu vận tốc: Q_vel=[0, 0, 0] (chỉ tối ưu bám vị trí; không dùng max_de)
+  max_tau=[ 5. 40.  5.] Nm  x tau_penalty_scale=512
+  feedforward: inverse_dynamics(q_ref) (G lấy ở q_ref, đúng kiểu matlab)
+  K precompute dọc quỹ đạo @ 10 Hz; nội suy tuyến tính theo thời gian quỹ đạo ROS
+  trần mô-men: [ 1.75 14.    1.75] Nm   |∫e| <= 0.05 rad·s
+  slew-rate mô-men: [ 5. 20.  5.] Nm/s
+
+  KIỂM TRA ZOH (100 Hz): |z|max = 0.996439541  -> ỔN ĐỊNH
+  cực liên tục: nhanh nhất 37.6 rad/s (Nyquist vòng 314 rad/s), chậm nhất 0.356 rad/s -> t_xác_lập ≈ 11.23 s
+  mô-men riêng khâu tích phân khi ∫e chạm kẹp: [0.066 0.584 0.083] Nm
+  K tại q = [0.155 0.553 0.771] (Nm trên mỗi đơn vị trạng thái):
+    base_joint      ∫e:[ 1.009e+00  3.085e-01 -1.022e-04]  e:[2.95 1.   0.12]  ė:[0.65 0.3  0.06]
+    shoulder_joint  ∫e:[-1.556  5.5   -4.615]  e:[-2.95  9.04 -9.51]  ė:[-0.03  1.31 -0.06]
+    elbow_joint     ∫e:[-0.199  0.691  0.765]  e:[-0.32  1.34  1.42]  ė:[0.   0.4  0.28]
+    (K đổi theo tư thế -- đây chỉ là một điểm làm việc)
+[INFO] [1791386346.562466880] [lqr_controller]: Trần controller: [ 1.75 14.    1.75] Nm (effort URDF [ 5. 40.  5.] × 0.35)
+[INFO] [1791386346.562742903] [lqr_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791386346.562949072] [lqr_controller]: PREP/HOLD_HOME dùng cùng lqr như quỹ đạo; tau_cmd = inverse_dynamics(ref) + tau_fb
+[INFO] [1791386346.577561438] [lqr_controller]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1791386346.577823715] [lqr_controller]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386346.578023741] [lqr_controller]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1791386346.578234568] [lqr_controller]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1791386346.578431658] [lqr_controller]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386346.578639590] [lqr_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1791386346.578834306] [lqr_controller]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1791386346.579033881] [lqr_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1791386346.598190743] [lqr_controller]: Kích thước: rộng 28cm (trái-phải) x cao 20cm x sâu 12cm (ra-vào)
+[INFO] [1791386346.598433732] [lqr_controller]:   x[0.092, 0.372] y[-0.103, 0.016] z[0.495, 0.695]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386346.598637025] [lqr_controller]: IK: 205/205 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1791386346.598836450] [lqr_controller]:   cond(J) lớn nhất 8.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.273 rad (ngưỡng 0.05)
+[INFO] [1791386346.599033972] [lqr_controller]:   biên độ mỗi khớp (độ): [33.8 14.9  9.1] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386346.599236523] [lqr_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.115 0.067 0.042] | trần URDF: [15.708  1.963 15.708] | dùng [0.7 3.4 0.3]% (cho phép 25%)
+[INFO] [1791386346.599458020] [lqr_controller]:   gia tốc đỉnh profile (rad/s^2): [0.089 0.057 0.036]
+[INFO] [1791386346.599697242] [lqr_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 31.9cm | đùi/ghế 19.5cm | cẳng chân 19.6cm
+[INFO] [1791386346.673817970] [lqr_controller]: Chữ A: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1791386346.674242189] [lqr_controller]: Kịch bản: HOME -> APPROACH 16s -> TRACK 1 vòng (27s/vòng) -> RETURN 16s -> HOLD_HOME
+[INFO] [1791386346.675007166] [lqr_controller]: Chờ /joint_states để chốt HOME bằng lqr. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791386346.690493370] [lqr_controller]: Bắt đầu precompute 591 gain LQR @ 10 Hz. Giữ position controller active...
+[INFO] [1791386347.018225422] [lqr_controller]: Precompute xong 591 gain LQR trong 0.33s. Đang chờ mẫu /joint_states mới...
+{"algorithm": "lqr", "trajectory_shape": "a", "passed": true, "check": "offline model/schedule/solver; hardware not connected", "samples": 303, "control_hz": 100.0, "tau_limit_nm": [1.75, 14.0, 1.75], "peak_tau_nm": [0.5771940539094246, 3.6229212755844413, 1.4718811841683428], "peak_feedforward_nm": [0.578062210592686, 3.5873271855210827, 1.4712811382974236], "track_duration_s": 27.0, "mpc_accepted_samples": null}
+1791386347.046817 [82]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791386347.053554351] [mpc_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791386347.054461212] [mpc_controller]: Thuật toán: mpc
+MPC tuyến tính hoá cục bộ, có giới hạn total torque và slew-rate; QP giải bằng ACTIVE_SET
+  solver=active_set, Np=40, Nc=10, dt=0.01s, slew=[ 5. 20.  5.] Nm/s
+  tau_limit=[ 1.75 14.    1.75] Nm, bounds=trajectory_global, prediction_precompute=True
+[INFO] [1791386347.054842508] [mpc_controller]: Trần controller: [ 1.75 14.    1.75] Nm (effort URDF [ 5. 40.  5.] × 0.35)
+[INFO] [1791386347.055127298] [mpc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791386347.055352893] [mpc_controller]: PREP/HOLD_HOME dùng cùng mpc như quỹ đạo; tau_cmd = inverse_dynamics(ref) + tau_fb
+[INFO] [1791386347.070225482] [mpc_controller]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1791386347.070503669] [mpc_controller]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386347.070724946] [mpc_controller]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1791386347.070930333] [mpc_controller]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1791386347.071133485] [mpc_controller]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386347.071349132] [mpc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1791386347.071549839] [mpc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1791386347.071749575] [mpc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1791386347.072355966] [mpc_controller]: Kịch bản: HOME -> APPROACH 16s -> TRACK 1 vòng (27s/vòng) -> RETURN 16s -> HOLD_HOME
+[INFO] [1791386347.073066578] [mpc_controller]: Chờ /joint_states để chốt HOME bằng mpc. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791386347.161761263] [mpc_controller]: Bắt đầu precompute 5901 mẫu tham chiếu MPC @ 100 Hz. Giữ position controller active...
+[INFO] [1791386350.624710033] [mpc_controller]: Precompute xong 5901 mẫu tham chiếu MPC trong 3.46s. Đang chờ mẫu /joint_states mới...
+{"algorithm": "mpc", "trajectory_shape": "circle", "passed": true, "check": "offline model/schedule/solver; hardware not connected", "samples": 303, "control_hz": 100.0, "tau_limit_nm": [1.75, 14.0, 1.75], "peak_tau_nm": [0.6997473594005431, 3.5724638998244216, 1.501339293839112], "peak_feedforward_nm": [0.7288198371280149, 3.3735634362256604, 1.4963751513362331], "track_duration_s": 27.0, "mpc_accepted_samples": 303}
+1791386350.753910 [82]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791386350.760518719] [mpc_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791386350.761175817] [mpc_controller]: Thuật toán: mpc
+MPC tuyến tính hoá cục bộ, có giới hạn total torque và slew-rate; QP giải bằng ACTIVE_SET
+  solver=active_set, Np=40, Nc=10, dt=0.01s, slew=[ 5. 20.  5.] Nm/s
+  tau_limit=[ 1.75 14.    1.75] Nm, bounds=trajectory_global, prediction_precompute=True
+[INFO] [1791386350.761516535] [mpc_controller]: Trần controller: [ 1.75 14.    1.75] Nm (effort URDF [ 5. 40.  5.] × 0.35)
+[INFO] [1791386350.761789362] [mpc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791386350.762000600] [mpc_controller]: PREP/HOLD_HOME dùng cùng mpc như quỹ đạo; tau_cmd = inverse_dynamics(ref) + tau_fb
+[INFO] [1791386350.775834249] [mpc_controller]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1791386350.776091927] [mpc_controller]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386350.776300439] [mpc_controller]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1791386350.776502760] [mpc_controller]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1791386350.776700863] [mpc_controller]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386350.776895969] [mpc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1791386350.777097979] [mpc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1791386350.777300080] [mpc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1791386350.807382522] [mpc_controller]: Kích thước: rộng 28cm (trái-phải) x cao 20cm x sâu 17cm (ra-vào)
+[INFO] [1791386350.807662492] [mpc_controller]:   x[0.092, 0.372] y[-0.144, 0.024] z[0.395, 0.595]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386350.807869682] [mpc_controller]: IK: 328/328 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1791386350.808081391] [mpc_controller]:   cond(J) lớn nhất 9.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.147 rad (ngưỡng 0.05)
+[INFO] [1791386350.808282900] [mpc_controller]:   biên độ mỗi khớp (độ): [43.4 14.8  9.3] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386350.808478478] [mpc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.328 0.191 0.121] | trần URDF: [15.708  1.963 15.708] | dùng [2.1 9.7 0.8]% (cho phép 25%)
+[INFO] [1791386350.808673404] [mpc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.288 0.479 0.302]
+[INFO] [1791386350.808868531] [mpc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 27.8cm | đùi/ghế 8.8cm | cẳng chân 9.5cm
+[INFO] [1791386350.883571385] [mpc_controller]: Chữ R: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1791386350.883876143] [mpc_controller]: Kịch bản: HOME -> APPROACH 16s -> TRACK 1 vòng (27s/vòng) -> RETURN 16s -> HOLD_HOME
+[INFO] [1791386350.884595172] [mpc_controller]: Chờ /joint_states để chốt HOME bằng mpc. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791386351.034237073] [mpc_controller]: Bắt đầu precompute 5901 mẫu tham chiếu MPC @ 100 Hz. Giữ position controller active...
+[INFO] [1791386354.513827668] [mpc_controller]: Precompute xong 5901 mẫu tham chiếu MPC trong 3.48s. Đang chờ mẫu /joint_states mới...
+{"algorithm": "mpc", "trajectory_shape": "r", "passed": true, "check": "offline model/schedule/solver; hardware not connected", "samples": 303, "control_hz": 100.0, "tau_limit_nm": [1.75, 14.0, 1.75], "peak_tau_nm": [0.571655117173432, 3.7300996989838127, 1.4874779898147652], "peak_feedforward_nm": [0.578062210592686, 3.5295001720917107, 1.4808492851681545], "track_duration_s": 27.0, "mpc_accepted_samples": 303}
+1791386354.643748 [82]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791386354.650067003] [mpc_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791386354.650670628] [mpc_controller]: Thuật toán: mpc
+MPC tuyến tính hoá cục bộ, có giới hạn total torque và slew-rate; QP giải bằng ACTIVE_SET
+  solver=active_set, Np=40, Nc=10, dt=0.01s, slew=[ 5. 20.  5.] Nm/s
+  tau_limit=[ 1.75 14.    1.75] Nm, bounds=trajectory_global, prediction_precompute=True
+[INFO] [1791386354.650995375] [mpc_controller]: Trần controller: [ 1.75 14.    1.75] Nm (effort URDF [ 5. 40.  5.] × 0.35)
+[INFO] [1791386354.651270446] [mpc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791386354.651481263] [mpc_controller]: PREP/HOLD_HOME dùng cùng mpc như quỹ đạo; tau_cmd = inverse_dynamics(ref) + tau_fb
+[INFO] [1791386354.664901451] [mpc_controller]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1791386354.665150231] [mpc_controller]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386354.665352932] [mpc_controller]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1791386354.665553730] [mpc_controller]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1791386354.665750510] [mpc_controller]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386354.665945366] [mpc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1791386354.666153658] [mpc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1791386354.666349757] [mpc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1791386354.685065388] [mpc_controller]: Kích thước: rộng 28cm (trái-phải) x cao 20cm x sâu 12cm (ra-vào)
+[INFO] [1791386354.685337594] [mpc_controller]:   x[0.092, 0.372] y[-0.103, 0.016] z[0.495, 0.695]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386354.685543251] [mpc_controller]: IK: 205/205 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1791386354.685745301] [mpc_controller]:   cond(J) lớn nhất 8.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.273 rad (ngưỡng 0.05)
+[INFO] [1791386354.685946830] [mpc_controller]:   biên độ mỗi khớp (độ): [33.8 14.9  9.1] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386354.686160622] [mpc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.115 0.067 0.042] | trần URDF: [15.708  1.963 15.708] | dùng [0.7 3.4 0.3]% (cho phép 25%)
+[INFO] [1791386354.686359957] [mpc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.089 0.057 0.036]
+[INFO] [1791386354.686557879] [mpc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 31.9cm | đùi/ghế 19.5cm | cẳng chân 19.6cm
+[INFO] [1791386354.764299121] [mpc_controller]: Chữ A: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1791386354.764616404] [mpc_controller]: Kịch bản: HOME -> APPROACH 16s -> TRACK 1 vòng (27s/vòng) -> RETURN 16s -> HOLD_HOME
+[INFO] [1791386354.765317608] [mpc_controller]: Chờ /joint_states để chốt HOME bằng mpc. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791386354.921373940] [mpc_controller]: Bắt đầu precompute 5901 mẫu tham chiếu MPC @ 100 Hz. Giữ position controller active...
+[INFO] [1791386358.435733654] [mpc_controller]: Precompute xong 5901 mẫu tham chiếu MPC trong 3.51s. Đang chờ mẫu /joint_states mới...
+{"algorithm": "mpc", "trajectory_shape": "a", "passed": true, "check": "offline model/schedule/solver; hardware not connected", "samples": 303, "control_hz": 100.0, "tau_limit_nm": [1.75, 14.0, 1.75], "peak_tau_nm": [0.571655117173432, 3.7932047995936573, 1.4766041723717234], "peak_feedforward_nm": [0.578062210592686, 3.5873271855210827, 1.4712811382974236], "track_duration_s": 27.0, "mpc_accepted_samples": 303}
+1791386358.568941 [82]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791386358.574320178] [smc_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791386358.575066208] [smc_controller]: Thuật toán: smc
+SMC: s=error_rate+lambda*error; reaching law dùng saturation để giảm chattering
+  lambda=[3. 4. 4.], ks=[3. 3. 3.], kr=[0.5 0.8 0.6], phi=[0.2 0.2 0.2]
+  alpha_boundary=ks+kr/phi=[5.5 7.  6. ], rho_ZOH_ideal=[0.9709 0.9617 0.9621]
+  tau=inverse_dynamics(q_do, qdot_do, virtual_acceleration), tau_limit=[ 1.75 14.    1.75] Nm
+[INFO] [1791386358.575422496] [smc_controller]: Trần controller: [ 1.75 14.    1.75] Nm (effort URDF [ 5. 40.  5.] × 0.35)
+[INFO] [1791386358.575706895] [smc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791386358.575924004] [smc_controller]: PREP/HOLD_HOME dùng cùng smc như quỹ đạo; tau_cmd = inverse_dynamics(ref) + tau_fb
+[INFO] [1791386358.589663255] [smc_controller]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1791386358.589914199] [smc_controller]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386358.590126358] [smc_controller]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1791386358.590350291] [smc_controller]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1791386358.590564845] [smc_controller]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386358.590764110] [smc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1791386358.590959717] [smc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1791386358.591166306] [smc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1791386358.591679827] [smc_controller]: Kịch bản: HOME -> APPROACH 16s -> TRACK 1 vòng (27s/vòng) -> RETURN 16s -> HOLD_HOME
+[INFO] [1791386358.592307649] [smc_controller]: Chờ /joint_states để chốt HOME bằng smc. Chỉ bật autostart sau khi effort controller đã được activate.
+{"algorithm": "smc", "trajectory_shape": "circle", "passed": true, "check": "offline model/schedule/solver; hardware not connected", "samples": 303, "control_hz": 100.0, "tau_limit_nm": [1.75, 14.0, 1.75], "peak_tau_nm": [0.7273148840703539, 3.373576500229431, 1.4969253403991005], "peak_feedforward_nm": [0.7288198371280149, 3.3735634362256604, 1.4963751513362331], "track_duration_s": 27.0, "mpc_accepted_samples": null}
+1791386358.610374 [82]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791386358.615802101] [smc_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791386358.616585453] [smc_controller]: Thuật toán: smc
+SMC: s=error_rate+lambda*error; reaching law dùng saturation để giảm chattering
+  lambda=[3. 4. 4.], ks=[3. 3. 3.], kr=[0.5 0.8 0.6], phi=[0.2 0.2 0.2]
+  alpha_boundary=ks+kr/phi=[5.5 7.  6. ], rho_ZOH_ideal=[0.9709 0.9617 0.9621]
+  tau=inverse_dynamics(q_do, qdot_do, virtual_acceleration), tau_limit=[ 1.75 14.    1.75] Nm
+[INFO] [1791386358.616934226] [smc_controller]: Trần controller: [ 1.75 14.    1.75] Nm (effort URDF [ 5. 40.  5.] × 0.35)
+[INFO] [1791386358.617213104] [smc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791386358.617424783] [smc_controller]: PREP/HOLD_HOME dùng cùng smc như quỹ đạo; tau_cmd = inverse_dynamics(ref) + tau_fb
+[INFO] [1791386358.631775434] [smc_controller]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1791386358.632060374] [smc_controller]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386358.632286451] [smc_controller]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1791386358.632498310] [smc_controller]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1791386358.632699097] [smc_controller]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386358.632895546] [smc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1791386358.633103868] [smc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1791386358.633305267] [smc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1791386358.665142262] [smc_controller]: Kích thước: rộng 28cm (trái-phải) x cao 20cm x sâu 17cm (ra-vào)
+[INFO] [1791386358.665438564] [smc_controller]:   x[0.092, 0.372] y[-0.144, 0.024] z[0.395, 0.595]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386358.665655653] [smc_controller]: IK: 328/328 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1791386358.665886268] [smc_controller]:   cond(J) lớn nhất 9.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.147 rad (ngưỡng 0.05)
+[INFO] [1791386358.666108748] [smc_controller]:   biên độ mỗi khớp (độ): [43.4 14.8  9.3] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386358.666397826] [smc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.328 0.191 0.121] | trần URDF: [15.708  1.963 15.708] | dùng [2.1 9.7 0.8]% (cho phép 25%)
+[INFO] [1791386358.666678147] [smc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.288 0.479 0.302]
+[INFO] [1791386358.666897641] [smc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 27.8cm | đùi/ghế 8.8cm | cẳng chân 9.5cm
+[INFO] [1791386358.741620328] [smc_controller]: Chữ R: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1791386358.741943752] [smc_controller]: Kịch bản: HOME -> APPROACH 16s -> TRACK 1 vòng (27s/vòng) -> RETURN 16s -> HOLD_HOME
+[INFO] [1791386358.742686726] [smc_controller]: Chờ /joint_states để chốt HOME bằng smc. Chỉ bật autostart sau khi effort controller đã được activate.
+{"algorithm": "smc", "trajectory_shape": "r", "passed": true, "check": "offline model/schedule/solver; hardware not connected", "samples": 303, "control_hz": 100.0, "tau_limit_nm": [1.75, 14.0, 1.75], "peak_tau_nm": [0.5786623903858463, 3.5294368626086285, 1.4813691030037381], "peak_feedforward_nm": [0.578062210592686, 3.5295001720917107, 1.4808492851681545], "track_duration_s": 27.0, "mpc_accepted_samples": null}
+1791386358.762039 [82]    python3: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1791386358.767481247] [smc_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791386358.768242517] [smc_controller]: Thuật toán: smc
+SMC: s=error_rate+lambda*error; reaching law dùng saturation để giảm chattering
+  lambda=[3. 4. 4.], ks=[3. 3. 3.], kr=[0.5 0.8 0.6], phi=[0.2 0.2 0.2]
+  alpha_boundary=ks+kr/phi=[5.5 7.  6. ], rho_ZOH_ideal=[0.9709 0.9617 0.9621]
+  tau=inverse_dynamics(q_do, qdot_do, virtual_acceleration), tau_limit=[ 1.75 14.    1.75] Nm
+[INFO] [1791386358.768574187] [smc_controller]: Trần controller: [ 1.75 14.    1.75] Nm (effort URDF [ 5. 40.  5.] × 0.35)
+[INFO] [1791386358.768844048] [smc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791386358.769047771] [smc_controller]: PREP/HOLD_HOME dùng cùng smc như quỹ đạo; tau_cmd = inverse_dynamics(ref) + tau_fb
+[INFO] [1791386358.782591214] [smc_controller]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1791386358.782837590] [smc_controller]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386358.783040652] [smc_controller]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1791386358.783244766] [smc_controller]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1791386358.783443069] [smc_controller]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386358.783639207] [smc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1791386358.783834695] [smc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1791386358.784030723] [smc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1791386358.803694099] [smc_controller]: Kích thước: rộng 28cm (trái-phải) x cao 20cm x sâu 12cm (ra-vào)
+[INFO] [1791386358.803961335] [smc_controller]:   x[0.092, 0.372] y[-0.103, 0.016] z[0.495, 0.695]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1791386358.804183003] [smc_controller]: IK: 205/205 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1791386358.804385844] [smc_controller]:   cond(J) lớn nhất 8.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.273 rad (ngưỡng 0.05)
+[INFO] [1791386358.804679040] [smc_controller]:   biên độ mỗi khớp (độ): [33.8 14.9  9.1] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1791386358.804924364] [smc_controller]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.115 0.067 0.042] | trần URDF: [15.708  1.963 15.708] | dùng [0.7 3.4 0.3]% (cho phép 25%)
+[INFO] [1791386358.805139519] [smc_controller]:   gia tốc đỉnh profile (rad/s^2): [0.089 0.057 0.036]
+[INFO] [1791386358.805341058] [smc_controller]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 31.9cm | đùi/ghế 19.5cm | cẳng chân 19.6cm
+[INFO] [1791386358.879502573] [smc_controller]: Chữ A: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1791386358.879815607] [smc_controller]: Kịch bản: HOME -> APPROACH 16s -> TRACK 1 vòng (27s/vòng) -> RETURN 16s -> HOLD_HOME
+[INFO] [1791386358.880564121] [smc_controller]: Chờ /joint_states để chốt HOME bằng smc. Chỉ bật autostart sau khi effort controller đã được activate.
+{"algorithm": "smc", "trajectory_shape": "a", "passed": true, "check": "offline model/schedule/solver; hardware not connected", "samples": 303, "control_hz": 100.0, "tau_limit_nm": [1.75, 14.0, 1.75], "peak_tau_nm": [0.5786623903858463, 3.5874737517964674, 1.4717939042770565], "peak_feedforward_nm": [0.578062210592686, 3.5873271855210827, 1.4712811382974236], "track_duration_s": 27.0, "mpc_accepted_samples": null}
+PASS: 9 offline checks. CAN/hardware validation remains to be run.

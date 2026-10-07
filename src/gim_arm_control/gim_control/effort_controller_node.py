@@ -71,6 +71,8 @@ class EffortControllerNode(Node):
         declare("trajectory_shape", "circle")
         declare("diagnostic_hold", False)
         declare("cascade_hold", False)
+        declare("algorithm_hold", False)
+        declare("joint_state_qos_depth", 1)
         declare("diagnostic_segment", False)
         declare("diagnostic_q1_deg", 0.0)
         declare("diagnostic_q2_deg", 0.0)
@@ -151,6 +153,10 @@ class EffortControllerNode(Node):
         self.cascade_hold = bool(get("cascade_hold").value)
         if self.cascade_hold and factory.algorithm_name != "cascade_pid":
             raise ValueError("cascade_hold chỉ dùng với cascade PID")
+        self.controller_hold = self.cascade_hold or bool(get("algorithm_hold").value)
+        state_qos_depth = int(get("joint_state_qos_depth").value)
+        if state_qos_depth < 1:
+            raise ValueError("joint_state_qos_depth phải >= 1")
         self.mpc_solver_rejections = 0
         self.state_seq = 0
         self.last_control_state_seq = -1
@@ -208,9 +214,9 @@ class EffortControllerNode(Node):
         self.get_logger().info(
             "HAND_GUIDING dùng gravity + damping: "
             f"Kd_drag={np.round(self.drag_kd, 3)} Nm/(rad/s)")
-        if self.cascade_hold:
+        if self.controller_hold:
             self.get_logger().info(
-                "PREP/HOLD_HOME dùng cùng cascade PID như quỹ đạo; "
+                f"PREP/HOLD_HOME dùng cùng {factory.algorithm_name} như quỹ đạo; "
                 "tau_cmd = inverse_dynamics(ref) + tau_fb")
         else:
             self.get_logger().info(
@@ -293,7 +299,7 @@ class EffortControllerNode(Node):
         self.publisher = self.create_publisher(
             Float64MultiArray, str(get("command_topic").value), 10)
         self.create_subscription(
-            JointState, "/joint_states", self._on_state, 10)
+            JointState, "/joint_states", self._on_state, state_qos_depth)
         if self.diagnostic_lqr:
             self.create_subscription(
                 Clock, "/clock", self._on_clock,
@@ -303,9 +309,9 @@ class EffortControllerNode(Node):
             SetBool, str(get("hand_guiding_service").value),
             self._set_hand_guiding)
         self.create_timer(self.dt_nom, self._tick)
-        if self.cascade_hold:
+        if self.controller_hold:
             self.get_logger().info(
-                "Chờ /joint_states để chốt HOME bằng cascade PID. "
+                f"Chờ /joint_states để chốt HOME bằng {factory.algorithm_name}. "
                 "Chỉ bật autostart sau khi effort controller đã được activate.")
         else:
             self.get_logger().info(
@@ -341,14 +347,19 @@ class EffortControllerNode(Node):
         return value
 
     def _prepare_controller_schedule(self, home_q):
-        """Precompute an optional gain schedule before effort mode starts.
+        """Prepare reference-dependent bounds or gains before effort starts.
 
         Return ``True`` when the callback was deliberately blocked for
         precomputation, so the caller can discard the now-stale joint sample.
         """
-        prepare = getattr(self.controller, "precompute_gain_schedule", None)
+        prepare_reference = getattr(self.controller, "prepare_reference", None)
+        preparing_reference = (callable(prepare_reference) and float(getattr(
+            self.controller, "reference_precompute_hz", 0.0)) > 0.0)
+        prepare = (prepare_reference if preparing_reference else
+                   getattr(self.controller, "precompute_gain_schedule", None))
         schedule_hz = float(getattr(
-            self.controller, "gain_schedule_hz", 0.0))
+            self.controller, "reference_precompute_hz" if preparing_reference
+            else "gain_schedule_hz", 0.0))
         if not callable(prepare) or schedule_hz <= 0.0:
             self.controller_schedule_ready = True
             return False
@@ -360,6 +371,8 @@ class EffortControllerNode(Node):
             return (
                 np.asarray([value[0] for value in values], dtype=float),
                 np.asarray([value[1] for value in values], dtype=float),
+                np.asarray([value[2] for value in values], dtype=float),
+                times,
             )
 
         target_q = self.trajectory.at(0.0)[0]
@@ -371,19 +384,35 @@ class EffortControllerNode(Node):
             (Quintic(sweep_end_q, home_q, self.return_time),
              self.return_time),
         )
-        q_parts, qd_parts = [], []
+        q_parts, qd_parts, qdd_parts, time_parts = [], [], [], []
+        time_offset = 0.0
+        timed_schedule = preparing_reference or (
+            getattr(self.controller, "gain_schedule_mode", "") == "trajectory_time")
         for reference, duration in references:
-            q_ref, qd_ref = sample(reference, duration)
-            q_parts.append(q_ref)
-            qd_parts.append(qd_ref)
+            q_ref, qd_ref, qdd_ref, times = sample(reference, duration)
+            # A time schedule needs unique endpoints. Preserve legacy table
+            # indices for reference-state/fixed-index diagnostic schedules.
+            first = 1 if timed_schedule and q_parts else 0
+            q_parts.append(q_ref[first:])
+            qd_parts.append(qd_ref[first:])
+            qdd_parts.append(qdd_ref[first:])
+            time_parts.append(times[first:] + time_offset)
+            time_offset += duration
 
         q_schedule = np.vstack(q_parts)
         qd_schedule = np.vstack(qd_parts)
         started = time.perf_counter()
+        kind = "mẫu tham chiếu MPC" if preparing_reference else "gain LQR"
         self.get_logger().info(
-            f"Bắt đầu precompute {len(q_schedule)} gain LQR "
+            f"Bắt đầu precompute {len(q_schedule)} {kind} "
             f"@ {schedule_hz:g} Hz. Giữ position controller active...")
-        count = prepare(q_schedule, qd_schedule)
+        if preparing_reference:
+            count = prepare(q_schedule, qd_schedule, np.vstack(qdd_parts),
+                            np.concatenate(time_parts))
+        elif timed_schedule:
+            count = prepare(q_schedule, qd_schedule, np.concatenate(time_parts))
+        else:
+            count = prepare(q_schedule, qd_schedule)
         if self.fixed_track_gain_index >= count:
             raise ValueError(
                 f"fixed_track_gain_index={self.fixed_track_gain_index} "
@@ -391,8 +420,7 @@ class EffortControllerNode(Node):
         elapsed = time.perf_counter() - started
         self.controller_schedule_ready = True
         self.get_logger().info(
-            f"Precompute xong {count} gain trong {elapsed:.2f}s; "
-            "runtime sẽ chỉ tra bảng, không giải Riccati. Đang chờ "
+            f"Precompute xong {count} {kind} trong {elapsed:.2f}s. Đang chờ "
             "mẫu /joint_states mới...")
         return True
 
@@ -540,6 +568,16 @@ class EffortControllerNode(Node):
             return self.trajectory.at(loop_time)
         return self.reference.at(elapsed)
 
+    def _gain_schedule_time(self, elapsed):
+        """Map phase time onto APPROACH + one TRACK loop + RETURN."""
+        if self.phase == TRACK:
+            return self.approach_time + elapsed % self.trajectory.duration
+        if self.phase == RETURN:
+            return self.approach_time + self.trajectory.duration + elapsed
+        if self.phase == HOLD:
+            return self.approach_time + self.trajectory.duration + self.return_time
+        return elapsed
+
     def _hold_command_for_stale_state(self, tick_wall_ns, timer_dt):
         """Keep the previous torque when the timer outruns joint states."""
         self.stale_state_skips += 1
@@ -656,7 +694,7 @@ class EffortControllerNode(Node):
                     state_became_stale = self._prepare_controller_schedule(
                         self.home_q)
                 except Exception as error:
-                    self._abort(f"precompute gain LQR thất bại: {error}")
+                    self._abort(f"precompute tham chiếu/gain thất bại: {error}")
                     self._publish(self._gravity_torque())
                     return
                 if state_became_stale:
@@ -670,7 +708,10 @@ class EffortControllerNode(Node):
                     self.previous_tick = None
                     return
             self.phase = GRAVITY
-            ready_phase = "READY_PID" if self.cascade_hold else "GRAVITY"
+            ready_phase = "GRAVITY"
+            if self.controller_hold:
+                ready_phase = ("READY_PID" if self.cascade_hold else
+                               f"READY_{self.factory.algorithm_name.upper()}")
             self.get_logger().info(
                 f"WAIT -> {ready_phase}, đã chụp HOME={np.round(self.home_q, 4)}")
 
@@ -703,7 +744,7 @@ class EffortControllerNode(Node):
             start_q = self.q.copy()
             target = self.trajectory.at(0.0)[0]
             self.reference = Quintic(start_q, target, self.approach_time)
-            if not self.cascade_hold:
+            if not self.controller_hold:
                 self.controller.reset()
             self.hold_integral.fill(0.0)
             self.manual_hold_latched = False
@@ -747,7 +788,7 @@ class EffortControllerNode(Node):
             self.get_logger().info(f"TRACK -> RETURN ({self.return_time:g}s)")
         elif self.phase == RETURN and elapsed >= self.return_time:
             self.reference = Hold(self.home_q)
-            if not self.cascade_hold:
+            if not self.controller_hold:
                 self.controller.reset()
             self.hold_integral.fill(0.0)
             self.phase, self.phase_elapsed, elapsed = HOLD, 0.0, 0.0
@@ -755,7 +796,7 @@ class EffortControllerNode(Node):
             # vòng tạo hàng chục nghìn dòng; ghi đồng bộ sẽ ngừng phát torque
             # gần một giây và tự kích hoạt state-timeout. File được ghi sạch
             # khi người dùng Ctrl-C node sau khi đã quan sát HOLD_HOME.
-            hold_controller = "cascade PID" if self.cascade_hold else "gravity-hold PID"
+            hold_controller = self.factory.algorithm_name if self.controller_hold else "gravity-hold PID"
             self.get_logger().info(
                 f"RETURN -> HOLD_HOME {hold_controller} (Ctrl-C để ghi file log)")
 
@@ -777,7 +818,7 @@ class EffortControllerNode(Node):
             # và chốt một q_hold mới; như vậy không windup lúc effort inactive.
             self._publish(self._hold_torque(
                 dt, integrate=self.manual_hold_latched))
-            if self.diagnostic_pid and self.cascade_hold:
+            if self.controller_hold and bool(self.get_parameter("log_file").value):
                 self._append_tracking_row(
                     tick_wall_ns, 0.0, timer_dt, float("nan"),
                     self.home_q, np.zeros(self.n), self.last_command)
@@ -807,11 +848,14 @@ class EffortControllerNode(Node):
             self._publish(self._gravity_torque())
             return
 
-        if self.phase == HOLD and not self.cascade_hold:
+        if self.phase == HOLD and not self.controller_hold:
             self._publish(self._hold_torque(dt, integrate=True))
             return
 
         started = time.perf_counter()
+        set_reference_time = getattr(self.controller, "set_reference_time", None)
+        if callable(set_reference_time):
+            set_reference_time(self._gain_schedule_time(elapsed))
         tau = np.asarray(self.controller.compute(
             self.q, self.qd, q_ref, qd_ref, qdd_ref, dt), dtype=float)
         compute_time = time.perf_counter() - started
@@ -846,7 +890,7 @@ class EffortControllerNode(Node):
         self._publish(tau)
 
         if self.phase in (APPROACH, TRACK, RETURN) or (
-                self.phase == HOLD and self.cascade_hold):
+                self.phase == HOLD and self.controller_hold):
             self._append_tracking_row(
                 tick_wall_ns, elapsed, timer_dt, compute_time,
                 q_ref, qd_ref, tau)
@@ -864,17 +908,21 @@ class EffortControllerNode(Node):
             gravity + damping, -self.tau_limit, self.tau_limit)
 
     def _hold_torque(self, dt, integrate):
-        if self.cascade_hold:
+        if self.controller_hold:
             if not integrate:
                 self.controller.reset()
             zero = np.zeros(self.n)
+            set_reference_time = getattr(self.controller, "set_reference_time", None)
+            if callable(set_reference_time):
+                set_reference_time(self._gain_schedule_time(0.0))
             tau = self.controller.compute(
                 self.q, self.qd, self.home_q, zero, zero, dt)
             scale = self._gravity_scale()
             tau = tau - (1.0 - scale) * self.dynamics.gravity(self.q)
-            if not integrate:
-                self.controller.integral.fill(0.0)
-                self.controller.last['integral'] = self.controller.integral.copy()
+            integral = getattr(self.controller, "integral", None)
+            if not integrate and integral is not None:
+                integral.fill(0.0)
+                self.controller.last['integral'] = integral.copy()
             return np.clip(tau, -self.tau_limit, self.tau_limit)
         gravity = self._gravity_scale() * self.dynamics.gravity(self.q)
         error = self.home_q - self.q

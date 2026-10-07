@@ -1,0 +1,227 @@
+[
+  {
+    "algorithm": "lqr",
+    "trajectory_shape": "circle",
+    "passed": true,
+    "check": "offline model/schedule/solver; hardware not connected",
+    "samples": 303,
+    "control_hz": 100.0,
+    "tau_limit_nm": [
+      1.75,
+      14.0,
+      1.75
+    ],
+    "peak_tau_nm": [
+      0.7252280386349153,
+      3.413112475394408,
+      1.496896076436256
+    ],
+    "peak_feedforward_nm": [
+      0.7288198371280149,
+      3.3735634362256604,
+      1.4963751513362331
+    ],
+    "track_duration_s": 27.0,
+    "mpc_accepted_samples": null
+  },
+  {
+    "algorithm": "lqr",
+    "trajectory_shape": "r",
+    "passed": true,
+    "check": "offline model/schedule/solver; hardware not connected",
+    "samples": 303,
+    "control_hz": 100.0,
+    "tau_limit_nm": [
+      1.75,
+      14.0,
+      1.75
+    ],
+    "peak_tau_nm": [
+      0.5771940539094246,
+      3.563700412435491,
+      1.4813509277936951
+    ],
+    "peak_feedforward_nm": [
+      0.578062210592686,
+      3.5295001720917107,
+      1.4808492851681545
+    ],
+    "track_duration_s": 27.0,
+    "mpc_accepted_samples": null
+  },
+  {
+    "algorithm": "lqr",
+    "trajectory_shape": "a",
+    "passed": true,
+    "check": "offline model/schedule/solver; hardware not connected",
+    "samples": 303,
+    "control_hz": 100.0,
+    "tau_limit_nm": [
+      1.75,
+      14.0,
+      1.75
+    ],
+    "peak_tau_nm": [
+      0.5771940539094246,
+      3.6229212755844413,
+      1.4718811841683428
+    ],
+    "peak_feedforward_nm": [
+      0.578062210592686,
+      3.5873271855210827,
+      1.4712811382974236
+    ],
+    "track_duration_s": 27.0,
+    "mpc_accepted_samples": null
+  },
+  {
+    "algorithm": "mpc",
+    "trajectory_shape": "circle",
+    "passed": true,
+    "check": "offline model/schedule/solver; hardware not connected",
+    "samples": 303,
+    "control_hz": 100.0,
+    "tau_limit_nm": [
+      1.75,
+      14.0,
+      1.75
+    ],
+    "peak_tau_nm": [
+      0.6997473594005431,
+      3.5724638998244216,
+      1.501339293839112
+    ],
+    "peak_feedforward_nm": [
+      0.7288198371280149,
+      3.3735634362256604,
+      1.4963751513362331
+    ],
+    "track_duration_s": 27.0,
+    "mpc_accepted_samples": 303
+  },
+  {
+    "algorithm": "mpc",
+    "trajectory_shape": "r",
+    "passed": true,
+    "check": "offline model/schedule/solver; hardware not connected",
+    "samples": 303,
+    "control_hz": 100.0,
+    "tau_limit_nm": [
+      1.75,
+      14.0,
+      1.75
+    ],
+    "peak_tau_nm": [
+      0.571655117173432,
+      3.7300996989838127,
+      1.4874779898147652
+    ],
+    "peak_feedforward_nm": [
+      0.578062210592686,
+      3.5295001720917107,
+      1.4808492851681545
+    ],
+    "track_duration_s": 27.0,
+    "mpc_accepted_samples": 303
+  },
+  {
+    "algorithm": "mpc",
+    "trajectory_shape": "a",
+    "passed": true,
+    "check": "offline model/schedule/solver; hardware not connected",
+    "samples": 303,
+    "control_hz": 100.0,
+    "tau_limit_nm": [
+      1.75,
+      14.0,
+      1.75
+    ],
+    "peak_tau_nm": [
+      0.571655117173432,
+      3.7932047995936573,
+      1.4766041723717234
+    ],
+    "peak_feedforward_nm": [
+      0.578062210592686,
+      3.5873271855210827,
+      1.4712811382974236
+    ],
+    "track_duration_s": 27.0,
+    "mpc_accepted_samples": 303
+  },
+  {
+    "algorithm": "smc",
+    "trajectory_shape": "circle",
+    "passed": true,
+    "check": "offline model/schedule/solver; hardware not connected",
+    "samples": 303,
+    "control_hz": 100.0,
+    "tau_limit_nm": [
+      1.75,
+      14.0,
+      1.75
+    ],
+    "peak_tau_nm": [
+      0.7273148840703539,
+      3.373576500229431,
+      1.4969253403991005
+    ],
+    "peak_feedforward_nm": [
+      0.7288198371280149,
+      3.3735634362256604,
+      1.4963751513362331
+    ],
+    "track_duration_s": 27.0,
+    "mpc_accepted_samples": null
+  },
+  {
+    "algorithm": "smc",
+    "trajectory_shape": "r",
+    "passed": true,
+    "check": "offline model/schedule/solver; hardware not connected",
+    "samples": 303,
+    "control_hz": 100.0,
+    "tau_limit_nm": [
+      1.75,
+      14.0,
+      1.75
+    ],
+    "peak_tau_nm": [
+      0.5786623903858463,
+      3.5294368626086285,
+      1.4813691030037381
+    ],
+    "peak_feedforward_nm": [
+      0.578062210592686,
+      3.5295001720917107,
+      1.4808492851681545
+    ],
+    "track_duration_s": 27.0,
+    "mpc_accepted_samples": null
+  },
+  {
+    "algorithm": "smc",
+    "trajectory_shape": "a",
+    "passed": true,
+    "check": "offline model/schedule/solver; hardware not connected",
+    "samples": 303,
+    "control_hz": 100.0,
+    "tau_limit_nm": [
+      1.75,
+      14.0,
+      1.75
+    ],
+    "peak_tau_nm": [
+      0.5786623903858463,
+      3.5874737517964674,
+      1.4717939042770565
+    ],
+    "peak_feedforward_nm": [
+      0.578062210592686,
+      3.5873271855210827,
+      1.4712811382974236
+    ],
+    "track_duration_s": 27.0,
+    "mpc_accepted_samples": null
+  }
+]

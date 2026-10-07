@@ -1,19 +1,22 @@
-"""MPC rời rạc có giới hạn torque và slew-rate cho runner dùng chung."""
+"""Adaptive error MPC with inverse-dynamics feedforward and torque constraints.
+
+Reference: matlab-sim/urdf_MPC on position-tracking @ addec462.
+The position profile sets the velocity output cost to zero, keeps the nine
+states [integral(e), e, ed], uses ZOH mechanics + Euler integral, and reserves
+feedback torque headroom using the full reference feedforward envelope.
+Gazebo uses measured states directly rather than MATLAB's built-in observer.
+"""
 
 import time
 
 import numpy as np
-from scipy.linalg import cho_factor, cho_solve, expm
+from scipy.linalg import cho_factor, cho_solve, expm, solve
 from scipy.optimize import Bounds, LinearConstraint, minimize
 
 
 class MpcController:
     """
-    Linearize tại reference hiện tại rồi giải QP hữu hạn bằng SLSQP hoặc ADMM.
-
-    Đây là implementation độc lập để nối và benchmark pipeline ROS/MuJoCo.
-    Nó chưa được coi là real-time cho đến khi log chứng minh thời gian giải
-    luôn nằm trong chu kỳ 10 ms trên máy đích.
+    Linearize at the reference and solve a finite-horizon constrained QP.
     """
 
     def __init__(
@@ -22,6 +25,8 @@ class MpcController:
         torque_slew_rate, integral_limit=0.05, tau_limit=None,
         fd_step=1e-5, max_iterations=30, qp_solver="slsqp",
         admm_rho=10.0, admm_iterations=100, admm_tolerance=1.0e-4,
+        feedback_bounds_mode="instantaneous",
+        precompute_prediction=False,
     ):
         self.dyn = dynamics
         self.n = dynamics.nq
@@ -43,11 +48,21 @@ class MpcController:
             np.inf if requested_limit <= 0.0 else requested_limit)
         self.tau_limit = np.asarray(
             dynamics.tau_max if tau_limit is None else tau_limit, dtype=float)
+        self.feedback_bounds_mode = str(feedback_bounds_mode)
+        if self.feedback_bounds_mode not in ("instantaneous", "trajectory_global"):
+            raise ValueError("feedback_bounds_mode phải là instantaneous hoặc trajectory_global")
+        self.reference_precompute_hz = (
+            float(control_hz) if self.feedback_bounds_mode == "trajectory_global" else 0.0)
+        self.feedback_min = self.feedback_max = None
+        self.feedforward_min = self.feedforward_max = None
+        self.precompute_prediction = bool(precompute_prediction)
+        self.prediction_schedule = None
+        self.reference_time = 0.0
         self.fd_step = float(fd_step)
         self.max_iterations = int(max_iterations)
         self.qp_solver = str(qp_solver).lower()
-        if self.qp_solver not in ("slsqp", "admm"):
-            raise ValueError("qp_solver phải là 'slsqp' hoặc 'admm'")
+        if self.qp_solver not in ("slsqp", "admm", "active_set"):
+            raise ValueError("qp_solver phải là slsqp, admm hoặc active_set")
         self.admm_rho = float(admm_rho)
         self.admm_iterations = int(admm_iterations)
         self.admm_tolerance = float(admm_tolerance)
@@ -61,6 +76,8 @@ class MpcController:
             np.eye(size), self._difference])
         self._constraint_gram = (
             self._constraint_matrix.T @ self._constraint_matrix)
+        self._previous_gradient = -2.0 * (
+            self._difference.T @ self._rate_weight[:, :self.n])
         self.reset()
 
     def reset(self):
@@ -68,6 +85,43 @@ class MpcController:
         self.previous_feedback = np.zeros(self.n)
         self.warm = np.zeros((self.nc, self.n))
         self.last = {}
+
+    def prepare_reference(self, q_ref, qd_ref, qdd_ref, reference_times):
+        """Reserve total-torque headroom across APPROACH/TRACK/RETURN."""
+        q_ref, qd_ref, qdd_ref = (
+            np.asarray(values, dtype=float) for values in (q_ref, qd_ref, qdd_ref))
+        times = np.asarray(reference_times, dtype=float)
+        if (q_ref.ndim != 2 or q_ref.shape[1] != self.n or len(q_ref) < 2
+                or qd_ref.shape != q_ref.shape or qdd_ref.shape != q_ref.shape
+                or times.shape != (len(q_ref),)
+                or not all(np.all(np.isfinite(a)) for a in (q_ref, qd_ref, qdd_ref, times))
+                or np.any(np.diff(times) <= 0.0)):
+            raise ValueError("Tham chiếu MPC phải hữu hạn, N x n; thời gian tăng nghiêm ngặt")
+        torques = np.asarray([
+            self.dyn.inverse_dynamics(q, qd, qdd)
+            for q, qd, qdd in zip(q_ref, qd_ref, qdd_ref)])
+        if not np.all(np.isfinite(torques)):
+            raise ValueError("Feedforward MPC chứa NaN/Inf")
+        ff_min, ff_max = torques.min(axis=0), torques.max(axis=0)
+        lower = -self.tau_limit - ff_min
+        upper = self.tau_limit - ff_max
+        if np.any(lower >= 0.0) or np.any(upper <= 0.0):
+            raise ValueError("Feedforward vượt trần mô-men; không còn miền phản hồi chứa 0")
+        self.feedforward_min, self.feedforward_max = ff_min, ff_max
+        self.feedback_min, self.feedback_max = lower, upper
+        if self.precompute_prediction:
+            schedule = []
+            for q, qd, qdd in zip(q_ref, qd_ref, qdd_ref):
+                ad, bd = self._linearize(q, qd, qdd)
+                h, f = self._prediction_terms(ad, bd)
+                schedule.append((h, f))
+            self.prediction_schedule = (times.copy(), schedule)
+        return len(q_ref)
+
+    def set_reference_time(self, elapsed):
+        self.reference_time = float(elapsed)
+        if not np.isfinite(self.reference_time):
+            raise ValueError("reference_time phải hữu hạn")
 
     def _linearize(self, q_ref, qd_ref, qdd_ref):
         """Match ``urdf_MPC/+mpctune/error_model.m``.
@@ -131,11 +185,16 @@ class MpcController:
 
     def _qp_terms(self, x0, ad, bd):
         """Condense prediction into 0.5*u.T*H*u + f.T*u."""
+        hessian, state_gradient = self._prediction_terms(ad, bd)
+        return hessian, state_gradient @ x0 + self._previous_gradient @ self.previous_feedback
+
+    def _prediction_terms(self, ad, bd):
+        """State-independent prediction matrices, reusable along the reference."""
         decision_size = self.nc * self.n
-        state_offset = x0.copy()
-        state_map = np.zeros((x0.size, decision_size))
+        state_offset = np.eye(ad.shape[0])
+        state_map = np.zeros((ad.shape[0], decision_size))
         hessian = np.zeros((decision_size, decision_size))
-        gradient = np.zeros(decision_size)
+        gradient = np.zeros((decision_size, ad.shape[0]))
 
         for step in range(self.np):
             move = min(step, self.nc - 1)
@@ -148,11 +207,8 @@ class MpcController:
             hessian[columns, columns] += 2.0 * self.R
 
         # du = D*u - [u_previous, 0, ..., 0].
-        previous = np.zeros(decision_size)
-        previous[:self.n] = self.previous_feedback
         weighted_difference = self._rate_weight @ self._difference
         hessian += 2.0 * self._difference.T @ weighted_difference
-        gradient -= 2.0 * weighted_difference.T @ previous
         return 0.5 * (hessian + hessian.T), gradient
 
     @staticmethod
@@ -248,6 +304,64 @@ class MpcController:
             np.max(np.maximum(rate - rate_upper, 0.0)),
         ))
 
+    def _solve_active_set(self, hessian, gradient, warm_start, lower, upper):
+        """Primal feasible active-set QP, solving a small dense KKT system.
+
+        Torque/rate constraints are linear. A feasible shifted sequence is
+        available, so the search follows the equality-constrained Newton
+        direction until a new bound is hit, and drops negative multipliers
+        at stationary points. This avoids ADMM's slow convergence along the
+        low-curvature directions of the position-only cost.
+        """
+        base = self._constraint_matrix
+        matrix = np.vstack([base, -base])
+        bounds = np.concatenate([upper, -lower])
+        x = warm_start.copy()
+        active = []
+
+        def add(index):
+            if index in active:
+                return
+            rows = matrix[active + [index]]
+            if np.linalg.matrix_rank(rows) == len(active) + 1:
+                active.append(index)
+
+        for index in np.flatnonzero(bounds - matrix @ x <= 1e-10):
+            add(int(index))
+        factor = cho_factor(hessian, lower=True, check_finite=False)
+        for iteration in range(1, self.max_iterations + 1):
+            current_gradient = hessian @ x + gradient
+            if active:
+                rows = matrix[active]
+                kkt = np.block([
+                    [hessian, rows.T],
+                    [rows, np.zeros((len(active), len(active)))],
+                ])
+                solution = solve(
+                    kkt, np.concatenate([-current_gradient, np.zeros(len(active))]),
+                    assume_a="sym", check_finite=False)
+                direction, multipliers = solution[:len(x)], solution[len(x):]
+            else:
+                direction = cho_solve(factor, -current_gradient, check_finite=False)
+                multipliers = np.empty(0)
+            if np.max(np.abs(direction)) <= 1e-8:
+                if not active or np.min(multipliers) >= -1e-10:
+                    return x, iteration, True
+                del active[int(np.argmin(multipliers))]
+                continue
+            change = matrix @ direction
+            eligible = change > 1e-10
+            eligible[active] = False
+            ratios = np.full(len(bounds), np.inf)
+            ratios[eligible] = np.maximum(
+                bounds[eligible] - (matrix @ x)[eligible], 0.0) / change[eligible]
+            blocker = int(np.argmin(ratios))
+            step = min(1.0, ratios[blocker])
+            x += step * direction
+            if step < 1.0:
+                add(blocker)
+        return x, self.max_iterations, False
+
     def compute(self, q, qd, q_ref, qd_ref, qdd_ref, dt):
         q = np.asarray(q, dtype=float)
         qd = np.asarray(qd, dtype=float)
@@ -257,10 +371,17 @@ class MpcController:
         error_rate = qd - qd_ref
         state = np.concatenate([self.integral, error, error_rate])
         feedforward = self.dyn.inverse_dynamics(q_ref, qd_ref, qdd_ref)
-        ad, bd = self._linearize(q_ref, qd_ref, qdd_ref)
 
-        lower = np.tile(-self.tau_limit - feedforward, self.nc)
-        upper = np.tile(self.tau_limit - feedforward, self.nc)
+        lower_fb, upper_fb = -self.tau_limit - feedforward, self.tau_limit - feedforward
+        if self.feedback_bounds_mode == "trajectory_global":
+            if self.feedback_min is None:
+                raise RuntimeError("Chưa chuẩn bị giới hạn phản hồi cho toàn quỹ đạo MPC")
+            # Intersect the prepared envelope with the current hard limits:
+            # APPROACH can start away from the home used to prepare it.
+            lower_fb = np.maximum(lower_fb, self.feedback_min)
+            upper_fb = np.minimum(upper_fb, self.feedback_max)
+        lower = np.tile(lower_fb, self.nc)
+        upper = np.tile(upper_fb, self.nc)
         delta = np.tile(self.slew * self.dt, self.nc)
         rate_lower = -delta
         rate_upper = delta
@@ -268,12 +389,30 @@ class MpcController:
         rate_upper[:self.n] += self.previous_feedback
         rate_constraint = LinearConstraint(
             self._difference, rate_lower, rate_upper)
-        hessian, gradient = self._qp_terms(state, ad, bd)
+        if self.prediction_schedule is not None:
+            times, matrices = self.prediction_schedule
+            index = int(np.clip(np.searchsorted(times, self.reference_time), 0, len(times)-1))
+            if index > 0 and abs(times[index-1]-self.reference_time) < abs(times[index]-self.reference_time):
+                index -= 1
+            hessian, state_gradient = matrices[index]
+            gradient = state_gradient @ state + self._previous_gradient @ self.previous_feedback
+        else:
+            ad, bd = self._linearize(q_ref, qd_ref, qdd_ref)
+            hessian, gradient = self._qp_terms(state, ad, bd)
         warm_start = self._project_feasible(
             self.warm, lower, upper, delta)
 
         started = time.perf_counter()
-        if self.qp_solver == "admm":
+        if self.qp_solver == "active_set":
+            raw_candidate, iterations, solver_success = self._solve_active_set(
+                hessian, gradient, warm_start,
+                np.concatenate([lower, rate_lower]),
+                np.concatenate([upper, rate_upper]))
+            candidate = self._project_feasible(raw_candidate, lower, upper, delta)
+            solver_status = 0 if solver_success else 1
+            solver_message = "Active-set optimal" if solver_success else "Active-set iteration limit"
+            primal_residual = dual_residual = final_rho = float("nan")
+        elif self.qp_solver == "admm":
             constraint_lower = np.concatenate([lower, rate_lower])
             constraint_upper = np.concatenate([upper, rate_upper])
             (raw_candidate, iterations, primal_residual, dual_residual,
@@ -375,6 +514,5 @@ class MpcController:
             f"  solver={self.qp_solver}, Np={self.np}, Nc={self.nc}, "
             f"dt={self.dt:g}s, "
             f"slew={self.slew} Nm/s\n"
-            f"  tau_limit={self.tau_limit} Nm. BẮT BUỘC benchmark deadline "
-            "trên "
-            "MuJoCo trước khi cân nhắc chạy phần cứng.")
+            f"  tau_limit={self.tau_limit} Nm, bounds={self.feedback_bounds_mode}, "
+            f"prediction_precompute={self.precompute_prediction}")
