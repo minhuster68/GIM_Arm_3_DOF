@@ -64,10 +64,21 @@ def test_slower_transitions_keep_positions_and_halve_velocity(sweep_launch, tmp_
             np.testing.assert_allclose(qdd_new, 0.25 * qdd_old)
 
 
+@pytest.mark.parametrize('shape', ['circle', 'r', 'a'])
+def test_shape_selection_keeps_existing_pid_gains(sweep_launch, tmp_path, monkeypatch, shape):
+    monkeypatch.setattr(sweep_launch, 'Node', lambda **kwargs: kwargs)
+    overrides = sweep_launch._launch_setup(
+        context(tmp_path, trajectory_shape=shape))[0]['parameters'][1]
+    assert overrides['trajectory_shape'] == shape
+    assert overrides['cascade_hold']
+    assert not {'kpp', 'kvp', 'kvi', 'tau_scale', 'control_hz'}.intersection(overrides)
+
+
 @pytest.mark.parametrize('options', [
     {'approach_time': '0'}, {'approach_time': 'nan'},
     {'return_time': '-1'}, {'return_time': 'inf'},
     {'params_file': '/missing/gains.yaml'},
+    {'trajectory_shape': 'unknown'},
 ])
 def test_invalid_options_fail_before_node_creation(sweep_launch, tmp_path, options):
     with pytest.raises(ValueError):

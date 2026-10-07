@@ -1,4 +1,4 @@
-"""Run the original closed sweep once using the tuned hardware PID profile."""
+"""Run circle/R/A once using the existing hardware PID profile."""
 
 import math
 import os
@@ -22,7 +22,11 @@ def _launch_setup(context):
         raise ValueError(f'Không tìm thấy params_file: {params_file}')
     log_file = os.path.abspath(os.path.expanduser(get('log_file')))
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    shape = context.launch_configurations.get('trajectory_shape', 'circle')
+    if shape not in ('circle', 'r', 'a'):
+        raise ValueError('trajectory_shape phải là circle, r hoặc a')
     overrides = {
+        'trajectory_shape': shape,
         'autostart': False,
         'use_sim_time': False,
         'diagnostic_hold': False,
@@ -45,6 +49,7 @@ def generate_launch_description():
         FindPackageShare('gim_arm_controller_pid'), 'config', 'pid_hardware_soft.yaml'])
     return LaunchDescription([
         DeclareLaunchArgument('params_file', default_value=default_params),
+        DeclareLaunchArgument('trajectory_shape', default_value='circle', choices=['circle', 'r', 'a']),
         DeclareLaunchArgument('approach_time', default_value='16.0'),
         DeclareLaunchArgument('return_time', default_value='16.0'),
         DeclareLaunchArgument('log_file', default_value='results/pid_sweep_run01.csv'),

@@ -213,10 +213,13 @@ class TestCascadePidController(unittest.TestCase):
             ([0.0, -0.0116692356, -0.0349677212], [0.0, -0.9594870065, 6.0849905702]),
         )
         for q, qd in snapshots:
+            integral_before = controller.integral.copy()
             controller.compute(q, qd, qref, np.zeros(3), np.zeros(3), 0.01)
             self.assertLess(abs(controller.last['tau_fb'][1]), 3.0)
             self.assertFalse(controller.last['saturated'][1])
-            np.testing.assert_array_equal(controller.last['tau_i'][1:], np.zeros(2))
+            np.testing.assert_allclose(
+                controller.last['tau_i'], controller.kvi * integral_before)
+            self.assertTrue(np.all(np.abs(controller.integral) <= controller.integral_limit))
             np.testing.assert_allclose(
                 controller.last['tau_ff'], _Dynamics().inverse_dynamics(
                     qref, np.zeros(3), np.zeros(3)))

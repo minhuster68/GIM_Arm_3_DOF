@@ -459,3 +459,14 @@ Việc đổi `torque_joint` cần khởi động lại phần cứng và thiế
 ở đúng tư thế; chỉ sửa gain cùng một khớp thì không cần khởi động lại phần cứng.
 Góc đích là góc tuyệt đối trong hệ zero ROS; node kiểm giới hạn URDF và margin
 hiện có. Dấu và hệ số quy đổi CAN dùng nguyên cấu hình phần cứng hiện tại.
+
+## Chọn vòng tròn / R / A
+
+```bash
+ros2 launch gim_control pid_sweep_hardware.launch.py \
+  trajectory_shape:=r approach_time:=16 return_time:=16 \
+  log_file:=results/pid_r_run01.csv
+```
+
+`trajectory_shape:=circle|r|a`. Giữ nguyên gain và cascade PID đã chạy trên tay thật.
+Tham chiếu giữ đủ q/qd/qdd; báo cáo và đồ thị chỉ đánh giá vị trí.
