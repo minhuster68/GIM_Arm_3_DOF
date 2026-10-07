@@ -1,0 +1,88 @@
+{
+  "case": "payload_0p5",
+  "payload_mass_kg": 0.5,
+  "tau_scale": 1.0,
+  "final_phase": "ABORT",
+  "phases": [
+    "ABORT",
+    "APPROACH",
+    "GRAVITY"
+  ],
+  "samples": 73,
+  "passed": false,
+  "control_hz": 100.0,
+  "profile": "gazebo_position",
+  "config_file": "/home/mirabo/GIM_Arm_3_DOF/src/gim_arm_controller_mpc/config/mpc_gazebo_position.yaml",
+  "matlab_branch": "position-tracking",
+  "matlab_commit": "addec462971d946519cafa6cda5ebbcd18539da2",
+  "prediction_horizon": 40,
+  "control_horizon": 10,
+  "q_velocity": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "Q_diagonal": [
+    64.0,
+    64.0,
+    64.0,
+    157.301764,
+    983.073316,
+    157.301764,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "R_diagonal": [
+    3.7636000000000003e-06,
+    5.8806250000000004e-08,
+    3.7636000000000003e-06
+  ],
+  "Rd_diagonal": [
+    3.6e-05,
+    5.625e-07,
+    3.6e-05
+  ],
+  "feedback_bounds_mode": "trajectory_global",
+  "feedback_min": [
+    -4.865452497011239,
+    -39.90069683560747,
+    -5.096425243077497
+  ],
+  "feedback_max": [
+    4.270518276178412,
+    36.62588288746533,
+    3.5036224464079995
+  ],
+  "torque_slew_rate": [
+    100.0,
+    200.0,
+    100.0
+  ],
+  "qp_solver": "admm",
+  "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)",
+  "rms_error_deg": [
+    0.9403460148296294,
+    1.0259449286798366,
+    1.4090541498128208
+  ],
+  "max_error_deg": [
+    6.690287307126318,
+    7.2399805913284485,
+    9.93276099138
+  ],
+  "max_torque_nm": [
+    1.0884140698644655,
+    1.7796455089930303,
+    0.994852619478557
+  ],
+  "solver_success_fraction": 0.9154929577464789,
+  "solver_accepted_fraction": 0.9859154929577465,
+  "compute_ms_p50_p95_p99_max": [
+    2.6289659999747528,
+    9.753722500136064,
+    15.155647899882748,
+    16.160058999957982
+  ],
+  "max_qp_constraint_violation": 0.0
+}

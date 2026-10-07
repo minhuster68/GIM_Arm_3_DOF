@@ -1,169 +1,34 @@
-"""LQR biến thiên theo quỹ đạo (TVLQR + tích phân) cho GIM Arm 3-DOF.
+"""Trajectory-scheduled LQR with integral error and inverse-dynamics feedforward.
 
-Đây là implementation chính thức do package ``gim_arm_controller_lqr`` sở hữu.
-Luật điều khiển được chuyển từ ``setup_lqr.m`` sang ROS 2 và dùng trực tiếp bởi
-runner chung của bốn thuật toán.
+Reference: minhuster68/matlab-sim, branch position-tracking,
+urdf_LQR/setup_lqr.m and urdf.slx, commit addec462971d946519cafa6cda5ebbcd18539da2.
 
-===========================================================================
-SO VỚI BỘ LQI LEGACY (ĐÃ LOẠI KHỎI RUNTIME)
-===========================================================================
-Hai bộ KHÔNG phải cùng một luật viết ở hai nơi, mà là HAI KIẾN TRÚC khác nhau:
+The MATLAB law uses e = q - q_ref, x = [integral(e), e, qd - qd_ref],
+Q weights integral/position error only (Q_vel = 0), R uses Bryson torque
+scales, and a central-difference local model has input torque. The law is
+tau = inverse_dynamics(q_ref, qd_ref, qdd_ref) - K x. K solves CARE at each
+local reference point and Simulink linearly interpolates ts_K. Its integrator
+is limited to +/-0.5 rad*s and compensatePayload=false leaves the physical
+load outside the inverse-dynamics model.
 
-  LQI legacy -- tuyến tính hoá phản hồi + gain hằng số
-      τ = M(q)·(q̈_ref - K·x) + C(q,q̇)q̇ + G(q),  K giải Riccati 3x3 MỘT LẦN
-    Khử sạch phi tuyến trước, rồi điều khiển 3 khâu tích phân kép rời nhau.
-    K không đổi theo tư thế; độ cứng hiệu dụng tự đổi vì nhân lại M(q).
+The gazebo_matlab profile retains the Bryson limits and this feedback law,
+with R multiplied by 16 to reduce bandwidth under ROS feedback delays. It
+precomputes gains for the ROS APPROACH/TRACK/RETURN references, and linearly
+interpolates using the runner's logical trajectory time. That time freezes
+on stale feedback and wraps only the TRACK section on subsequent loops.
+Gain design is offline; the torque callback never solves Riccati.
 
-  LqrController (BỘ NÀY) -- tuyến tính hoá cục bộ + LQR dọc quỹ đạo
-      τ = τ_ff(q_ref,q̇_ref,q̈_ref) - K(q_ref,q̇_ref)·x,  K giải Riccati 9x9
-                                                          LẠI Ở TỪNG ĐIỂM
-    Không khử phi tuyến. Thay vào đó tuyến tính hoá phương trình SAI SỐ quanh
-    điểm làm việc rồi giải LQR đúng cho hệ 9 trạng thái CÓ XEN KÊNH giữa 3 khớp
-    (M⁻¹ đầy, không chéo hoá), cộng feedforward nghịch động lực học. Gain được
-    precompute trước khi chạy; callback thời gian thực chỉ tra bảng.
+Gazebo implements sampled torque held by ros2_control. Therefore this CARE
+profile runs at 2000 Hz and checks local ZOH stability; copying its gains to
+100 Hz is unstable. The legacy safe_100hz profile retains its separate DARE
+weights and reference-state KD-tree lookup. This module also clips torque
+and conditionally integrates to limit windup under torque saturation.
 
-===========================================================================
-TOÁN -- giống setup_lqr.m từng dòng
-===========================================================================
-Trạng thái sai số (9 chiều), e = q - q_ref:
-
-    x = [∫e dt ; e ; ė]
-
-Tuyến tính hoá M q̈ + C(q,q̇)q̇ + G(q) = τ quanh (q_ref, q̇_ref) bằng SAI PHÂN
-TRUNG TÂM (bước fd_step, mặc định 1e-5 -- đúng `delta` của setup_lqr.m):
-
-    Astiff = ∂G/∂q            (matlab: gravityTorque   -> arm_dynamics.gravity)
-    Adamp  = ∂(C(q,q̇)q̇)/∂q̇   (matlab: velocityProduct -> arm_dynamics.coriolis)
-
-    A = [ 0        I        0      ]        B = [ 0    ]
-        [ 0        0        I      ]            [ 0    ]
-        [ 0   -M⁻¹Astiff  -M⁻¹Adamp]            [ M⁻¹  ]
-
-    K = R⁻¹BᵀP,  P nghiệm Riccati liên tục (CARE) của (A, B, Q, R)
-    τ = τ_ff - K x
-
-Q, R theo luật Bryson (matlab):
-    Q = diag(1/max_int_e², 1/max_e², 1/max_de²)
-    R = diag(1/max_tau²) * tau_penalty_scale
-
-LƯU Ý ĐƠN VỊ: ở bộ CŨ đầu vào u là GIA TỐC (τ = M·u), nên K có đơn vị gia tốc.
-Ở bộ NÀY B = [0;0;M⁻¹] nên đầu vào u CHÍNH LÀ MÔ-MEN và K có đơn vị Nm. Đừng so
-trực tiếp hai bảng số K với nhau, và đừng dùng lại công thức kiểm i_limit của bộ
-cũ (K[:,0]*i_limit*M_ii) -- ở đây dùng integral_kick().
-
-===========================================================================
-BA CHỖ CỐ Ý LÀM KHÁC setup_lqr.m -- đều có lý do đo được
-===========================================================================
-1) KHÔNG bê K_array tĩnh từ matlab.mat và không tra bảng chỉ theo thời gian.
-   Thay vào đó precompute K từ (q_ref, q̇_ref) của quỹ đạo ROS rồi tra bảng
-   theo chính cặp (q_ref, q̇_ref) trong callback.
-   . setup_lqr.m lập bảng theo t_full rồi để Simulink nội suy theo THỜI GIAN.
-     Cách đó buộc quỹ đạo lúc chạy phải trùng khít quỹ đạo lúc lập bảng; lệch
-     pha thì K đúng số nhưng sai thời điểm -- tệ hơn dùng K sai hẳn, và im lặng.
-     Runner ROS còn có pha APPROACH (đa thức bậc 5) và HOLD, vốn KHÔNG
-     có trong bảng, nên bảng theo thời gian không phủ hết.
-   . Lập theo (q_ref, q̇_ref) là ánh xạ 1-1 với điểm làm việc, không cần đồng bộ
-     thời gian, và tự phủ mọi pha của máy trạng thái.
-   . Dùng q_ref chứ KHÔNG dùng q đo được: q_ref sạch nhiễu, nên K trơn theo thời
-     gian. Lập theo q đo được thì nhiễu encoder đi thẳng vào hệ số điều khiển.
-   . Giải DARE online có thể mất nhiều hơn chu kỳ 5 ms của vòng 200 Hz. Vì vậy
-     bảng được tính khi position controller vẫn đang giữ robot. Runtime chỉ
-     truy vấn KD-tree; gain_schedule_hz=0 mới quay về chế độ tính online cũ.
-
-2) PROFILE ROS AN TOÀN KHÁC matlab. Bộ số hiện tại của setup_lqr.m
-       max_int_e = [10,20,10], max_e = [0.05,0.02,0.01],
-       max_de = [10,10,10], max_tau = [5,40,5]
-   KHÔNG dùng được cho vòng 100 Hz của ROS. Đã kiểm bằng số trên chính URDF này,
-   40 tư thế ngẫu nhiên, rời rạc hoá ZOH ở dt = 0.01 s:
-       bán kính phổ rời rạc |z|max ≈ 24.9   -> PHÂN KỲ (cần < 1)
-       cực liên tục nhanh nhất |s|max ≈ 598 rad/s, lớn hơn Nyquist của vòng
-       100 Hz (314 rad/s).
-   MATLAB giải bài toán CARE liên tục; vòng ros2_control giữ mô-men theo ZOH
-   10 ms, nên cùng một gain không đồng nghĩa cùng ổn định số.
-   ---- ĐO LẠI 27/08/2026 sau khi <inertial> của upper_arm/lower_arm chuyển sang
-        bộ matlab (Astiff = ∂G/∂q đổi theo, nên toàn bộ bảng dưới đây phải đo lại
-        nếu sau này đổi <inertial> lần nữa).
-
-   ---- tau_penalty_scale (max_int_e = 0.002), plant = mô hình + ma sát, sai mô
-        hình trọng lực 10%, controller 100 Hz ZOH, bám đúng quỹ đạo của
-        sweep_trajectory.py, sai số ĐẦU TAY RMS:
-            R x    |z|max   |s|max (rad/s)   cực chậm   sai số đầu tay
-             128    0.944       134             5.45        0.089 mm
-             256    0.950        94             4.85        0.123 mm
-             512    0.956        65             4.33        0.170 mm   <= MẶC ĐỊNH
-            1024    0.961        47             3.86        0.236 mm
-            2048    0.965        36             3.46        0.327 mm
-        Với bộ <inertial> này, R x128 vẫn ổn định (trước đó, với <inertial> của
-        ROS, R x128 cho |z|max = 1.193 tức PHÂN KỲ). Vẫn để mặc định 512: 0.17 mm
-        là đủ so với nhu cầu, và |s|max = 65 rad/s chỉ bằng 1/4.8 Nyquist của
-        vòng nên còn dư địa cho trễ CAN + sai mô hình mà bảng này không mô phỏng
-        hết. Muốn bám sát hơn thì hạ dần 512 -> 256, đừng nhảy thẳng xuống 128.
-
-   ---- max_int_e: chỗ này KHÔNG chỉnh được trên mô phỏng "mô hình hoàn hảo". Với
-        plant = đúng mô hình thì khâu tích phân chỉ thêm trễ, quét kiểu đó sẽ kết
-        luận sai là "bỏ tích phân đi". Phải đưa vào SAI MÔ HÌNH THẬT ĐÃ ĐO:
-        gravity_scale trên tay thật là 1.1 ở shoulder và 0.8 ở elbow, tức mô hình
-        trọng lực lệch 10-25%. Quét ở R x512, sai số đầu tay RMS (mm):
-          max_int_e  |z|max  |s|max   G10%    G25%   +trễ1ck  +nhiễu q̇   int_kick (Nm)
-              0.001   0.945    69     0.089   0.102   0.131    0.438    [1.07, 11.04, 1.38]
-              0.002   0.956    65     0.170   0.198   0.189    0.504    [0.54,  5.53, 0.69]  <=
-              0.005   0.966    63     0.398   5.540   0.406    0.630    [0.22,  2.21, 0.28]
-              0.020   0.974    63    11.770  42.142  11.782   11.706    [0.06,  0.55, 0.07]
-        Chọn 0.002 chứ KHÔNG phải 0.001 dù 0.001 bám tốt hơn 2 lần: ở 0.001 thì
-        RIÊNG khâu tích phân đã ra lệnh được 1.07 / 11.04 / 1.38 Nm khi ∫e chạm
-        kẹp i_limit = 0.004, tức 61-79% toàn bộ trần mô-men (1.75/14/1.75 Nm ở
-        tau_scale 0.35) -> vượt ngưỡng an toàn 50% trần mô-men. Ở
-        0.002 là 0.54 / 5.53 / 0.69 Nm, vừa dưới ngưỡng. Xem integral_kick().
-        max_int_e = 0.020 (và bộ MATLAB 10/20/10) làm khâu tích phân yếu
-        tới mức không khử nổi sai mô hình 10% -> 11.8 mm.
-
-   ---- ĐỐI CHIẾU với LqiController cũ, cùng phép thử, CÙNG i_limit 0.004
-        (sai số đầu tay RMS, mm):
-                              G10%   G25%   +trễ1ck  +nhiễu q̇
-          TVLQR (mặc định)     0.170  0.198   0.189    0.504
-          LqiController cũ     5.633  6.682   5.667    5.603
-
-        ĐỌC CON SỐ NÀY CHO ĐÚNG: chênh 33 lần KHÔNG phải do kiến trúc TVLQR hơn.
-        Đã truy nguyên: với plant = ĐÚNG mô hình (không sai trọng lực gì cả) thì
-        LqiController vẫn ra sai số gần y hệt (đỉnh 9.1 mrad ở shoulder, 21.1 mrad
-        ở elbow, so với 9.4 / 24.8 mrad khi sai 10%). Tức thủ phạm KHÔNG phải sai
-        mô hình. Đo tiếp: trạng thái tích phân của LqiController nằm ĐÚNG TRÊN KẸP
-        i_limit = 0.004 suốt 69% thời gian ở shoulder và 86% ở elbow. Nới
-        i_limit lên 0.05 thì hết chạm kẹp và sai số elbow tụt 21.1 -> 15.5 mrad.
-        Nguyên nhân thật: trọng số mặc định của LqiController (q_int = 6e6, ra
-        k_i = 2449) được chọn ĐỘC LẬP với chốt an toàn i_limit = 0.004 của
-        runner cũ, nên khâu tích phân của nó biến thành bang-bang chạm kẹp.
-        Kiểm tra giới hạn đã chỉ ra: riêng khâu
-        tích phân của bộ cũ ra lệnh được 1.83 / 1.89 / 0.44 Nm, vượt ngưỡng 50%
-        trần ở base.
-        Còn TVLQR thì max_int_e = 0.002 rad·s được chọn KHỚP với i_limit = 0.004
-        ngay từ đầu, nên ∫e không bao giờ chạm kẹp.
-        Kết luận trung thực: bảng trên so "bộ trọng số đã khớp chốt an toàn" với
-        "bộ trọng số chưa khớp", không phải so hai kiến trúc. Muốn so kiến trúc
-        cho công bằng thì phải chỉnh lại q_int của LqiController cho ∫e nằm trong
-        0.004, hoặc nới i_limit cho cả hai.
-   Muốn chạy đúng số matlab để đối chiếu thì đặt
-       max_int_e=[10,20,10], max_e=[0.05,0.02,0.01], max_de=[10,10,10],
-       max_tau=[5,40,5], tau_penalty_scale=1.0,
-       gravity_at_measured=False, require_discrete_stable=False
-   và CHỈ chạy trong mô phỏng.
-
-3) G(q) lấy ở TƯ THẾ ĐO ĐƯỢC, không phải ở q_ref (gravity_at_measured=True).
-   setup_lqr.m/Simulink cộng feedforward hoàn toàn theo q_ref. Nhưng runner ROS
-   hiệu chỉnh mô hình trọng lực bằng cách TRỪ LẠI (1-α)·G(q) với q ĐO ĐƯỢC. Nếu
-   feedforward chỉ chứa G(q_ref) thì phép trừ đó không còn khử đúng, còn dư
-   G(q_ref) - G(q); với sai số bám cho phép 0.05 rad thì phần dư tới ~0.25 Nm ở
-   shoulder, cỡ 7% của |G| đỉnh -- cùng cỡ với chính lượng mà α đang sửa (9-25%).
-   Đặt gravity_at_measured=False để chạy đúng kiểu matlab.
-
-===========================================================================
-CHỐNG BÃO HOÀ TÍCH PHÂN
-===========================================================================
-Giống bộ cũ: mô-men đã chạm trần mà sai số vẫn cùng chiều đẩy -> NGỪNG tích luỹ.
-Thêm kẹp cứng |∫e| <= i_limit. Trần mặc định lấy <limit effort> của URDF; trên
-tay thật runner truyền vào trần đã nhân tau_scale.
-
-Chạy tự kiểm tra:  python3 controller.py
+The plant/trajectory stay native to the ROS workspace. MATLAB's sign flips
+on imported trajectory columns are not applied to ROS joint coordinates.
+Gazebo payload_mass_kg adds a physical mass (including inertia); MATLAB
+applies an external gravitational force. They share the unknown-load idea,
+but these are different dynamic plants, so their traces need not coincide.
 """
 
 from dataclasses import dataclass
@@ -178,13 +43,13 @@ _I3 = np.eye(3)
 # Bước sai phân trung tâm để lấy Astiff/Adamp. Bằng `delta` của setup_lqr.m.
 FD_STEP = 1e-5
 
-# Bộ trọng số mặc định -- KHÔNG phải số của matlab, xem mục 2 của docstring.
+# Bộ trọng số của profile safe_100hz; profile gazebo_matlab khai riêng trong YAML.
 DEFAULT_MAX_INT_E = (0.002, 0.002, 0.002)   # rad·s   -- sai số tích luỹ chịu được
-DEFAULT_MAX_E = (0.1, 0.1, 0.1)             # rad     -- như matlab
-DEFAULT_MAX_DE = (2.0, 2.0, 2.0)            # rad/s   -- như matlab
+DEFAULT_MAX_E = (0.1, 0.1, 0.1)             # rad
+DEFAULT_MAX_DE = (2.0, 2.0, 2.0)            # rad/s
 DEFAULT_TAU_PENALTY_SCALE = 512.0           # nhân vào R; matlab tương đương 1.0
 
-# Bộ số ĐÚNG NHƯ matlab, để đối chiếu trong mô phỏng.
+# Bryson limits from MATLAB; MATLAB_MAX_DE is for the legacy main profile.
 MATLAB_MAX_INT_E = (10.0, 20.0, 10.0)
 MATLAB_MAX_E = (0.05, 0.02, 0.01)
 MATLAB_MAX_DE = (10.0, 10.0, 10.0)
@@ -195,13 +60,15 @@ MATLAB_TAU_PENALTY_SCALE = 1.0
 class LqrWeights:
     """Trọng số Bryson. Mỗi trường là mảng 3 phần tử (riêng từng khớp) hoặc số
     vô hướng (dùng chung). max_tau=None -> lấy <limit effort> của URDF, đúng như
-    setup_lqr.m dùng [5, 40, 5]."""
+    setup_lqr.m dùng [5, 40, 5]. position_tracking_only=True -> Q_vel=0,
+    không đọc max_de; ba trạng thái vận tốc vẫn thuộc mô hình và feedback."""
 
     max_int_e: tuple = DEFAULT_MAX_INT_E
     max_e: tuple = DEFAULT_MAX_E
     max_de: tuple = DEFAULT_MAX_DE
     max_tau: tuple = None
     tau_penalty_scale: float = DEFAULT_TAU_PENALTY_SCALE
+    position_tracking_only: bool = False
 
     def _v(self, x, n):
         a = np.asarray(x, dtype=float)
@@ -211,11 +78,18 @@ class LqrWeights:
         """Q (3n x 3n) và R (n x n). Thứ tự trạng thái [∫e, e, ė] -- như matlab."""
         mie = self._v(self.max_int_e, n)
         me = self._v(self.max_e, n)
-        mde = self._v(self.max_de, n)
         mt = self._v(tau_max if self.max_tau is None else self.max_tau, n)
-        if np.any(mie <= 0) or np.any(me <= 0) or np.any(mde <= 0) or np.any(mt <= 0):
+        if np.any(mie <= 0) or np.any(me <= 0) or np.any(mt <= 0):
             raise ValueError("mọi max_* phải > 0 (luật Bryson lấy 1/max²)")
-        Q = np.diag(np.concatenate([1.0 / mie**2, 1.0 / me**2, 1.0 / mde**2]))
+        if self.position_tracking_only:
+            # position-tracking branch: max_de is absent and Q is PSD.
+            q_vel = np.zeros(n)
+        else:
+            mde = self._v(self.max_de, n)
+            if np.any(mde <= 0):
+                raise ValueError("max_de phải > 0 cho profile phạt sai số vận tốc")
+            q_vel = 1.0 / mde**2
+        Q = np.diag(np.concatenate([1.0 / mie**2, 1.0 / me**2, q_vel]))
         R = np.diag(float(self.tau_penalty_scale) / mt**2)
         return Q, R
 
@@ -239,6 +113,7 @@ class LqrController:
         tau_rate_limit=None,
         use_discrete_lqr: bool = False,
         gain_schedule_hz: float = 0.0,
+        gain_schedule_mode: str = "reference_state",
     ):
         self.dyn = dynamics
         self.n = int(dynamics.nq)
@@ -253,12 +128,17 @@ class LqrController:
         self.fd_step = float(fd_step)
         self.use_discrete_lqr = bool(use_discrete_lqr)
         self.gain_schedule_hz = float(gain_schedule_hz)
+        self.gain_schedule_mode = str(gain_schedule_mode)
+        if self.gain_schedule_mode not in ("reference_state", "trajectory_time"):
+            raise ValueError(
+                "gain_schedule_mode phải là reference_state hoặc trajectory_time")
         if not np.isfinite(self.gain_schedule_hz) or self.gain_schedule_hz < 0.0:
             raise ValueError("gain_schedule_hz phải là số hữu hạn không âm")
         self._gain_schedule_tree = None
         self._gain_schedule_scale = None
         self._gain_schedule_gains = None
         self._gain_schedule_index = None
+        self._gain_schedule_times = None
         self._fixed_gain_index = None
         self.tau_rate_limit = np.zeros(self.n) if tau_rate_limit is None else (
             np.asarray(tau_rate_limit, dtype=float))
@@ -292,14 +172,15 @@ class LqrController:
         self.last = {}
         self._cycle = 0
         self.last_tau = None
+        self.reference_time = 0.0
 
-    def precompute_gain_schedule(self, q_ref, qd_ref):
+    def precompute_gain_schedule(self, q_ref, qd_ref, reference_times=None):
         """Solve Riccati before motion and build a fast reference lookup.
 
-        The schedule is indexed by ``[q_ref, qd_ref]`` rather than wall time,
-        so timer jitter cannot select a gain from the wrong trajectory phase.
-        During ``compute()`` only a KD-tree query is performed; no CARE/DARE
-        solve occurs in the real-time callback.
+        reference_state selects gains by a KD-tree over [q_ref, qd_ref].
+        trajectory_time requires strictly increasing reference_times and
+        interpolates linearly on the runner's logical reference clock.
+        Neither mode solves CARE/DARE in the real-time callback.
         """
         q_ref = np.asarray(q_ref, dtype=float)
         qd_ref = np.asarray(qd_ref, dtype=float)
@@ -312,6 +193,16 @@ class LqrController:
             raise ValueError(
                 "q_ref và qd_ref của gain schedule phải là các mảng "
                 f"N x {self.n} hữu hạn, N > 0")
+
+        times = None
+        if self.gain_schedule_mode == "trajectory_time":
+            times = np.asarray(reference_times, dtype=float)
+            if (times.shape != (len(q_ref),) or len(times) < 2
+                    or not np.all(np.isfinite(times))
+                    or np.any(np.diff(times) <= 0.0)):
+                raise ValueError(
+                    "reference_times phải tăng nghiêm ngặt, hữu hạn "
+                    "và khớp số mẫu gain")
 
         gains = np.asarray([
             self.gain(q, qd) for q, qd in zip(q_ref, qd_ref)],
@@ -326,11 +217,29 @@ class LqrController:
         scale = np.maximum(np.ptp(features, axis=0), floors)
         self._gain_schedule_scale = scale
         self._gain_schedule_gains = gains
+        self._gain_schedule_times = times
         self._gain_schedule_tree = cKDTree(features / scale)
         self._gain_schedule_index = None
         self._fixed_gain_index = None
         self.K = gains[0].copy()
         return len(gains)
+
+    def set_reference_time(self, elapsed):
+        """Set the logical reference time, never the wall/Gazebo clock."""
+        elapsed = float(elapsed)
+        if not np.isfinite(elapsed):
+            raise ValueError("reference_time phải hữu hạn")
+        self.reference_time = elapsed
+
+    def _interpolated_gain(self):
+        times = self._gain_schedule_times
+        t = float(np.clip(self.reference_time, times[0], times[-1]))
+        index = min(max(int(np.searchsorted(times, t, side="right")) - 1, 0),
+                    len(times) - 2)
+        weight = (t - times[index]) / (times[index + 1] - times[index])
+        self._gain_schedule_index = index
+        return ((1.0 - weight) * self._gain_schedule_gains[index]
+                + weight * self._gain_schedule_gains[index + 1])
 
     def set_fixed_gain_index(self, index):
         """Use one precomputed K until cleared; used only for diagnostics."""
@@ -415,6 +324,8 @@ class LqrController:
         if self._fixed_gain_index is not None:
             self._gain_schedule_index = self._fixed_gain_index
             self.K = self._gain_schedule_gains[self._fixed_gain_index]
+        elif self._gain_schedule_times is not None:
+            self.K = self._interpolated_gain()
         elif self._gain_schedule_tree is not None:
             feature = np.concatenate((q_ref, qd_ref))
             _, schedule_index = self._gain_schedule_tree.query(
@@ -433,7 +344,7 @@ class LqrController:
         # feedforward nghịch động lực học TRÊN QUỸ ĐẠO THAM CHIẾU
         tau_ff = self.dyn.inverse_dynamics(q_ref, qd_ref, qdd_ref)
         if self.gravity_at_measured:
-            # đổi G(q_ref) -> G(q); xem mục 3 docstring
+            # đổi G(q_ref) -> G(q) cho profile gravity_at_measured
             tau_ff = tau_ff - self.dyn.gravity(q_ref) + self.dyn.gravity(q)
 
         tau = tau_ff - self.K @ x
@@ -526,6 +437,10 @@ class LqrController:
         w = self.weights
         rep = self.stability_report()
         max_tau = w.max_tau if w.max_tau is not None else self.dyn.tau_max
+        velocity_cost_text = (
+            "Q_vel=[0, 0, 0] (chỉ tối ưu bám vị trí; không dùng max_de)"
+            if w.position_tracking_only else
+            f"max_de={np.round(w._v(w.max_de, self.n), 3)} rad/s")
         gravity_text = (
             "+ G(q_đo) - G(q_ref)" if self.gravity_at_measured
             else "(G lấy ở q_ref, đúng kiểu matlab)")
@@ -535,18 +450,20 @@ class LqrController:
         if self.gain_schedule_hz > 0.0:
             gain_update_text = (
                 f"K precompute dọc quỹ đạo @ {self.gain_schedule_hz:g} Hz; "
-                "runtime chỉ tra bảng theo (q_ref, q̇_ref)")
+                + ("nội suy tuyến tính theo thời gian quỹ đạo ROS"
+                   if self.gain_schedule_mode == "trajectory_time"
+                   else "runtime chỉ tra bảng theo (q_ref, q̇_ref)"))
         else:
             gain_update_text = (
                 f"K tính online mỗi {self.recompute_every} chu kỳ, "
                 "lập theo (q_ref, q̇_ref)")
         lines = [
-            "Bộ điều khiển: TVLQR (LQR biến thiên 9 trạng thái + tích phân), "
+            "Bộ điều khiển: LQR/LQI gain-scheduling (9 trạng thái), "
             + ("DARE rời rạc theo ZOH" if self.use_discrete_lqr
                else "CARE liên tục theo setup_lqr.m"),
             f"  trọng số Bryson: max_int_e={np.round(w._v(w.max_int_e, self.n), 4)} rad·s  "
-            f"max_e={np.round(w._v(w.max_e, self.n), 4)} rad  "
-            f"max_de={np.round(w._v(w.max_de, self.n), 3)} rad/s",
+            f"max_e={np.round(w._v(w.max_e, self.n), 4)} rad",
+            f"  mục tiêu vận tốc: {velocity_cost_text}",
             f"  max_tau={np.round(w._v(max_tau, self.n), 3)} Nm"
             f"  x tau_penalty_scale={w.tau_penalty_scale:g}",
             f"  feedforward: inverse_dynamics(q_ref) "
@@ -556,7 +473,7 @@ class LqrController:
             f"|∫e| <= {self.i_limit:g} rad·s",
             f"  slew-rate mô-men: {slew_text}",
             "",
-            f"  KIỂM TRA ZOH ({self.control_hz:g} Hz): |z|max = {rep['spectral_radius']:.4f}"
+            f"  KIỂM TRA ZOH ({self.control_hz:g} Hz): |z|max = {rep['spectral_radius']:.9f}"
             f"  -> {'ỔN ĐỊNH' if rep['stable_discrete'] else 'PHÂN KỲ'}",
             f"  cực liên tục: nhanh nhất {rep['fastest_pole']:.1f} rad/s "
             f"(Nyquist vòng {rep['nyquist']:.0f} rad/s), "
@@ -656,7 +573,7 @@ if __name__ == "__main__":
     print("=" * 78)
     wm = LqrWeights(max_int_e=MATLAB_MAX_INT_E,
                     max_e=MATLAB_MAX_E,
-                    max_de=MATLAB_MAX_DE,
+                    max_de=None, position_tracking_only=True,
                     tau_penalty_scale=MATLAB_TAU_PENALTY_SCALE)
     try:
         LqrController(dyn, weights=wm)
@@ -686,9 +603,10 @@ if __name__ == "__main__":
         ("mặc định (int 0.002, R x512)", LqrWeights()),
         ("int 0.001 (bám hơn, quá kick)", LqrWeights(max_int_e=(0.001,)*3)),
         ("R x2048 (mềm hơn, ~băng thông bộ cũ)", LqrWeights(tau_penalty_scale=2048.0)),
-        ("bộ trọng số matlab",
+        ("MATLAB position-tracking (Q_vel=0)",
          LqrWeights(max_int_e=MATLAB_MAX_INT_E,
-                    max_e=MATLAB_MAX_E, max_de=MATLAB_MAX_DE,
+                    max_e=MATLAB_MAX_E, max_de=None,
+                    position_tracking_only=True,
                     tau_penalty_scale=MATLAB_TAU_PENALTY_SCALE)),
     ]
     print(f"  {'bộ trọng số':<38} {'|z|max':>7} {'e_RMS(mrad)':>12} "

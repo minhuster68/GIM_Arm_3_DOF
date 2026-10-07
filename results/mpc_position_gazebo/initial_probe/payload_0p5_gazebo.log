@@ -1,0 +1,120 @@
+[INFO] [launch]: All log files can be found below /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/ros_logs/2026-10-06-23-39-27-314642-mirabo-NUC-15054
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [gzserver-1]: process started with pid [15065]
+[INFO] [robot_state_publisher-2]: process started with pid [15067]
+[INFO] [spawn_entity.py-3]: process started with pid [15069]
+[robot_state_publisher-2] [INFO] [1791304767.626149353] [robot_state_publisher]: got segment base_footprint
+[robot_state_publisher-2] [INFO] [1791304767.626271845] [robot_state_publisher]: got segment base_link
+[robot_state_publisher-2] [INFO] [1791304767.626285310] [robot_state_publisher]: got segment lower_arm_link
+[robot_state_publisher-2] [INFO] [1791304767.626294750] [robot_state_publisher]: got segment shoulder_link
+[robot_state_publisher-2] [INFO] [1791304767.626303144] [robot_state_publisher]: got segment tool_payload_link
+[robot_state_publisher-2] [INFO] [1791304767.626311117] [robot_state_publisher]: got segment upper_arm_link
+[robot_state_publisher-2] [INFO] [1791304767.626319062] [robot_state_publisher]: got segment world
+[spawn_entity.py-3] [INFO] [1791304767.874262063] [spawn_entity]: Spawn Entity started
+[spawn_entity.py-3] [INFO] [1791304767.874505994] [spawn_entity]: Loading entity published on topic /robot_description
+[spawn_entity.py-3] [INFO] [1791304767.875751022] [spawn_entity]: Waiting for entity xml on /robot_description
+[spawn_entity.py-3] [INFO] [1791304767.995757995] [spawn_entity]: Waiting for service /spawn_entity, timeout = 30
+[spawn_entity.py-3] [INFO] [1791304767.996320301] [spawn_entity]: Waiting for service /spawn_entity
+[spawn_entity.py-3] [INFO] [1791304768.501461956] [spawn_entity]: Calling service /spawn_entity
+[spawn_entity.py-3] [INFO] [1791304768.729959569] [spawn_entity]: Spawn status: SpawnEntity: Successfully spawned entity [gim_arm]
+[gzserver-1] [INFO] [1791304768.742191426] [gazebo_ros2_control]: Loading gazebo_ros2_control plugin
+[gzserver-1] [INFO] [1791304768.744602164] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in namespace: /
+[gzserver-1] [INFO] [1791304768.744938166] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in ros 2 node: gazebo_ros2_control
+[gzserver-1] [INFO] [1791304768.748132941] [gazebo_ros2_control]: connected to service!! robot_state_publisher
+[gzserver-1] [INFO] [1791304768.748581410] [gazebo_ros2_control]: Received urdf from param server, parsing...
+[gzserver-1] [INFO] [1791304768.748643902] [gazebo_ros2_control]: Loading parameter files /home/mirabo/GIM_Arm_3_DOF/install/gim_control/share/gim_control/config/controllers_gazebo.yaml
+[gzserver-1] [INFO] [1791304768.762246268] [gazebo_ros2_control]: Loading joint: base_joint
+[gzserver-1] [INFO] [1791304768.762341654] [gazebo_ros2_control]: 	State:
+[gzserver-1] [INFO] [1791304768.762359304] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791304768.762379285] [gazebo_ros2_control]: 			 found initial value: 0.000000
+[gzserver-1] [INFO] [1791304768.762402511] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791304768.762415371] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791304768.762426427] [gazebo_ros2_control]: 	Command:
+[gzserver-1] [INFO] [1791304768.762438414] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791304768.762747954] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791304768.762985984] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791304768.763018176] [gazebo_ros2_control]: Loading joint: shoulder_joint
+[gzserver-1] [INFO] [1791304768.763023837] [gazebo_ros2_control]: 	State:
+[gzserver-1] [INFO] [1791304768.763028820] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791304768.763034614] [gazebo_ros2_control]: 			 found initial value: 0.000000
+[gzserver-1] [INFO] [1791304768.763044559] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791304768.763048927] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791304768.763052619] [gazebo_ros2_control]: 	Command:
+[gzserver-1] [INFO] [1791304768.763056624] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791304768.763115226] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791304768.763157726] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791304768.763165322] [gazebo_ros2_control]: Loading joint: elbow_joint
+[gzserver-1] [INFO] [1791304768.763169772] [gazebo_ros2_control]: 	State:
+[gzserver-1] [INFO] [1791304768.763173949] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791304768.763177550] [gazebo_ros2_control]: 			 found initial value: 0.000000
+[gzserver-1] [INFO] [1791304768.763181771] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791304768.763185743] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791304768.763198700] [gazebo_ros2_control]: 	Command:
+[gzserver-1] [INFO] [1791304768.763202409] [gazebo_ros2_control]: 		 position
+[gzserver-1] [INFO] [1791304768.763247883] [gazebo_ros2_control]: 		 velocity
+[gzserver-1] [INFO] [1791304768.763291737] [gazebo_ros2_control]: 		 effort
+[gzserver-1] [INFO] [1791304768.763362674] [resource_manager]: Initialize hardware 'GazeboSystem' 
+[gzserver-1] [INFO] [1791304768.763491114] [resource_manager]: Successful initialization of hardware 'GazeboSystem'
+[gzserver-1] [INFO] [1791304768.763574261] [resource_manager]: 'configure' hardware 'GazeboSystem' 
+[gzserver-1] [INFO] [1791304768.763582701] [resource_manager]: Successful 'configure' of hardware 'GazeboSystem'
+[gzserver-1] [INFO] [1791304768.763589823] [resource_manager]: 'activate' hardware 'GazeboSystem' 
+[gzserver-1] [INFO] [1791304768.763594220] [resource_manager]: Successful 'activate' of hardware 'GazeboSystem'
+[gzserver-1] [INFO] [1791304768.763676469] [gazebo_ros2_control]: Loading controller_manager
+[gzserver-1] [INFO] [1791304768.775504852] [gazebo_ros2_control]: Loaded gazebo_ros2_control.
+[INFO] [spawn_entity.py-3]: process has finished cleanly [pid 15069]
+[INFO] [ros2-4]: process started with pid [15190]
+[ros2-4] requester: making request: std_srvs.srv.Empty_Request()
+[ros2-4] 
+[ros2-4] response:
+[ros2-4] std_srvs.srv.Empty_Response()
+[ros2-4] 
+[INFO] [ros2-4]: process has finished cleanly [pid 15190]
+[INFO] [spawner-5]: process started with pid [15202]
+[gzserver-1] [INFO] [1791304769.468073076] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[spawner-5] [INFO] [1791304769.484095435] [spawner_joint_state_broadcaster]: [94mLoaded [1mjoint_state_broadcaster[0m
+[gzserver-1] [INFO] [1791304769.485183126] [controller_manager]: Configuring controller 'joint_state_broadcaster'
+[gzserver-1] [INFO] [1791304769.485540612] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[spawner-5] [INFO] [1791304769.496963764] [spawner_joint_state_broadcaster]: [92mConfigured and activated [1mjoint_state_broadcaster[0m
+[INFO] [spawner-5]: process has finished cleanly [pid 15202]
+[INFO] [spawner-6]: process started with pid [15217]
+[gzserver-1] [INFO] [1791304769.887002644] [controller_manager]: Loading controller 'forward_position_controller'
+[spawner-6] [INFO] [1791304769.902937963] [spawner_forward_position_controller]: [94mLoaded [1mforward_position_controller[0m
+[gzserver-1] [INFO] [1791304769.903657551] [controller_manager]: Configuring controller 'forward_position_controller'
+[gzserver-1] [INFO] [1791304769.904477146] [forward_position_controller]: configure successful
+[gzserver-1] [INFO] [1791304769.907127555] [forward_position_controller]: activate successful
+[spawner-6] [INFO] [1791304769.908246061] [spawner_forward_position_controller]: [92mConfigured and activated [1mforward_position_controller[0m
+[INFO] [spawner-6]: process has finished cleanly [pid 15217]
+[INFO] [spawner-7]: process started with pid [15231]
+[gzserver-1] [INFO] [1791304770.304082521] [controller_manager]: Loading controller 'gim_arm_effort_controller'
+[spawner-7] [INFO] [1791304770.317829993] [spawner_gim_arm_effort_controller]: [94mLoaded [1mgim_arm_effort_controller[0m
+[gzserver-1] [INFO] [1791304770.318466770] [controller_manager]: Configuring controller 'gim_arm_effort_controller'
+[gzserver-1] [INFO] [1791304770.318702948] [gim_arm_effort_controller]: configure successful
+[INFO] [spawner-7]: process has finished cleanly [pid 15231]
+[INFO] [spawner-8]: process started with pid [15245]
+[spawner-8] [INFO] [1791304770.695811769] [spawner_gim_arm_group_controller]: waiting for service /controller_manager/list_controllers to become available...
+[gzserver-1] [INFO] [1791304770.948135937] [controller_manager]: Loading controller 'gim_arm_group_controller'
+[gzserver-1] [WARN] [1791304770.959613099] [gim_arm_group_controller]: [Deprecated]: "allow_nonzero_velocity_at_trajectory_end" is set to true. The default behavior will change to false.
+[spawner-8] [INFO] [1791304770.960890789] [spawner_gim_arm_group_controller]: [94mLoaded [1mgim_arm_group_controller[0m
+[gzserver-1] [INFO] [1791304770.961863667] [controller_manager]: Configuring controller 'gim_arm_group_controller'
+[gzserver-1] [INFO] [1791304770.962037144] [gim_arm_group_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[gzserver-1] [INFO] [1791304770.962079076] [gim_arm_group_controller]: Command interfaces are [position velocity] and state interfaces are [position velocity].
+[gzserver-1] [INFO] [1791304770.962121969] [gim_arm_group_controller]: Using 'splines' interpolation method.
+[gzserver-1] [INFO] [1791304770.963687996] [gim_arm_group_controller]: Controller state will be published at 50.00 Hz.
+[gzserver-1] [INFO] [1791304770.966022589] [gim_arm_group_controller]: Action status changes will be monitored at 20.00 Hz.
+[INFO] [spawner-8]: process has finished cleanly [pid 15245]
+[INFO] [ros2-9]: process started with pid [15261]
+[ros2-9] publisher: beginning loop
+[ros2-9] publishing #1: std_msgs.msg.Float64MultiArray(layout=std_msgs.msg.MultiArrayLayout(dim=[], data_offset=0), data=[0.0, 0.0, 0.0])
+[ros2-9] 
+[INFO] [ros2-9]: process has finished cleanly [pid 15261]
+[INFO] [gz-10]: process started with pid [15274]
+[INFO] [gz-10]: process has finished cleanly [pid 15274]
+[gzserver-1] [INFO] [1791304773.142056474] [gim_arm_effort_controller]: activate successful
+[gzserver-1] [INFO] [1791304779.293603014] [forward_position_controller]: activate successful
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [robot_state_publisher-2]: sending signal 'SIGINT' to process[robot_state_publisher-2]
+[INFO] [gzserver-1]: sending signal 'SIGINT' to process[gzserver-1]
+[robot_state_publisher-2] [INFO] [1791304780.363640832] [rclcpp]: signal_handler(signum=2)
+[robot_state_publisher-2] [INFO] [1791304780.365798935] [rclcpp]: signal_handler(signum=2)
+[INFO] [robot_state_publisher-2]: process has finished cleanly [pid 15067]
+[INFO] [gzserver-1]: process has finished cleanly [pid 15065]

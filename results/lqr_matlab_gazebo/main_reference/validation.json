@@ -1,0 +1,118 @@
+[
+  {
+    "case": "noload",
+    "payload_mass_kg": 0.0,
+    "tau_scale": 0.5,
+    "final_phase": "HOLD",
+    "phases": [
+      "APPROACH",
+      "GRAVITY",
+      "HOLD",
+      "RETURN",
+      "TRACK"
+    ],
+    "samples": 10508,
+    "passed": true,
+    "control_hz": 2000.0,
+    "profile": "gazebo_matlab",
+    "gain_schedule_mode": "trajectory_time",
+    "gain_samples": 741,
+    "max_int_e": [
+      10.0,
+      20.0,
+      10.0
+    ],
+    "max_e": [
+      0.05,
+      0.02,
+      0.01
+    ],
+    "max_de": [
+      10.0,
+      10.0,
+      10.0
+    ],
+    "integral_limit": 0.5,
+    "use_discrete_lqr": false,
+    "tau_penalty_scale": 16.0,
+    "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)",
+    "rms_error_deg": [
+      0.1773549837323831,
+      0.09209032233638444,
+      0.02647034593810734
+    ],
+    "max_error_deg": [
+      0.9200779091104688,
+      0.7789291406424083,
+      0.4042988932137118
+    ],
+    "track_rms_error_deg": [
+      0.1471429648093926,
+      0.04039164421935289,
+      0.01600889577966707
+    ],
+    "max_torque_nm": [
+      1.061454101240853,
+      20.0,
+      1.8185021558792769
+    ]
+  },
+  {
+    "case": "payload_0p5",
+    "payload_mass_kg": 0.5,
+    "tau_scale": 0.75,
+    "final_phase": "HOLD",
+    "phases": [
+      "APPROACH",
+      "GRAVITY",
+      "HOLD",
+      "RETURN",
+      "TRACK"
+    ],
+    "samples": 10107,
+    "passed": true,
+    "control_hz": 2000.0,
+    "profile": "gazebo_matlab",
+    "gain_schedule_mode": "trajectory_time",
+    "gain_samples": 741,
+    "max_int_e": [
+      10.0,
+      20.0,
+      10.0
+    ],
+    "max_e": [
+      0.05,
+      0.02,
+      0.01
+    ],
+    "max_de": [
+      10.0,
+      10.0,
+      10.0
+    ],
+    "integral_limit": 0.5,
+    "use_discrete_lqr": false,
+    "tau_penalty_scale": 16.0,
+    "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)",
+    "rms_error_deg": [
+      0.7595413465762342,
+      1.4493003495029575,
+      0.3599826021585511
+    ],
+    "max_error_deg": [
+      1.2813439874138766,
+      1.9104225508515857,
+      0.48094391925017
+    ],
+    "track_rms_error_deg": [
+      0.7982705571865972,
+      1.539353955392598,
+      0.38911078240275926
+    ],
+    "max_torque_nm": [
+      1.1354037489596174,
+      6.542765827424877,
+      3.559907794852864
+    ]
+  }
+]

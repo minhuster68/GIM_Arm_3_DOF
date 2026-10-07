@@ -1,0 +1,64 @@
+[INFO] [1791301384.075383038] [gazebo_ros2_control]: Loading gazebo_ros2_control plugin
+[INFO] [1791301384.080692837] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in namespace: /
+[INFO] [1791301384.080881710] [gazebo_ros2_control]: Starting gazebo_ros2_control plugin in ros 2 node: gazebo_ros2_control
+[INFO] [1791301384.082722212] [gazebo_ros2_control]: connected to service!! robot_state_publisher
+[INFO] [1791301384.084115008] [gazebo_ros2_control]: Received urdf from param server, parsing...
+[INFO] [1791301384.084316749] [gazebo_ros2_control]: Loading parameter files /home/mirabo/GIM_Arm_3_DOF/install/gim_control/share/gim_control/config/controllers_gazebo.yaml
+[INFO] [1791301384.095696688] [gazebo_ros2_control]: Loading joint: base_joint
+[INFO] [1791301384.095758130] [gazebo_ros2_control]: 	State:
+[INFO] [1791301384.095764678] [gazebo_ros2_control]: 		 position
+[INFO] [1791301384.095772919] [gazebo_ros2_control]: 			 found initial value: 0.000000
+[INFO] [1791301384.095784843] [gazebo_ros2_control]: 		 velocity
+[INFO] [1791301384.095788500] [gazebo_ros2_control]: 		 effort
+[INFO] [1791301384.095791709] [gazebo_ros2_control]: 	Command:
+[INFO] [1791301384.095794836] [gazebo_ros2_control]: 		 position
+[INFO] [1791301384.096065699] [gazebo_ros2_control]: 		 velocity
+[INFO] [1791301384.096112803] [gazebo_ros2_control]: 		 effort
+[INFO] [1791301384.096119066] [gazebo_ros2_control]: Loading joint: shoulder_joint
+[INFO] [1791301384.096122683] [gazebo_ros2_control]: 	State:
+[INFO] [1791301384.096126169] [gazebo_ros2_control]: 		 position
+[INFO] [1791301384.096130553] [gazebo_ros2_control]: 			 found initial value: 0.000000
+[INFO] [1791301384.096135695] [gazebo_ros2_control]: 		 velocity
+[INFO] [1791301384.096139135] [gazebo_ros2_control]: 		 effort
+[INFO] [1791301384.096144812] [gazebo_ros2_control]: 	Command:
+[INFO] [1791301384.096149748] [gazebo_ros2_control]: 		 position
+[INFO] [1791301384.096177976] [gazebo_ros2_control]: 		 velocity
+[INFO] [1791301384.096202191] [gazebo_ros2_control]: 		 effort
+[INFO] [1791301384.096206005] [gazebo_ros2_control]: Loading joint: elbow_joint
+[INFO] [1791301384.096209723] [gazebo_ros2_control]: 	State:
+[INFO] [1791301384.096212769] [gazebo_ros2_control]: 		 position
+[INFO] [1791301384.096215726] [gazebo_ros2_control]: 			 found initial value: 0.000000
+[INFO] [1791301384.096219381] [gazebo_ros2_control]: 		 velocity
+[INFO] [1791301384.096222453] [gazebo_ros2_control]: 		 effort
+[INFO] [1791301384.096229854] [gazebo_ros2_control]: 	Command:
+[INFO] [1791301384.096233073] [gazebo_ros2_control]: 		 position
+[INFO] [1791301384.096259868] [gazebo_ros2_control]: 		 velocity
+[INFO] [1791301384.096306407] [gazebo_ros2_control]: 		 effort
+[INFO] [1791301384.096353111] [resource_manager]: Initialize hardware 'GazeboSystem' 
+[INFO] [1791301384.096453818] [resource_manager]: Successful initialization of hardware 'GazeboSystem'
+[INFO] [1791301384.096516951] [resource_manager]: 'configure' hardware 'GazeboSystem' 
+[INFO] [1791301384.096524037] [resource_manager]: Successful 'configure' of hardware 'GazeboSystem'
+[INFO] [1791301384.096529501] [resource_manager]: 'activate' hardware 'GazeboSystem' 
+[INFO] [1791301384.096533406] [resource_manager]: Successful 'activate' of hardware 'GazeboSystem'
+[INFO] [1791301384.096595913] [gazebo_ros2_control]: Loading controller_manager
+[INFO] [1791301384.114638699] [gazebo_ros2_control]: Loaded gazebo_ros2_control.
+[INFO] [1791301385.293519461] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[INFO] [1791301385.312751200] [controller_manager]: Configuring controller 'joint_state_broadcaster'
+[INFO] [1791301385.313108627] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[INFO] [1791301385.749223085] [controller_manager]: Loading controller 'forward_position_controller'
+[INFO] [1791301385.775551014] [controller_manager]: Configuring controller 'forward_position_controller'
+[INFO] [1791301385.777072548] [forward_position_controller]: configure successful
+[INFO] [1791301385.779309028] [forward_position_controller]: activate successful
+[INFO] [1791301386.226653101] [controller_manager]: Loading controller 'gim_arm_effort_controller'
+[INFO] [1791301386.249991128] [controller_manager]: Configuring controller 'gim_arm_effort_controller'
+[INFO] [1791301386.250931983] [gim_arm_effort_controller]: configure successful
+[INFO] [1791301386.678760904] [controller_manager]: Loading controller 'gim_arm_group_controller'
+[WARN] [1791301386.691252145] [gim_arm_group_controller]: [Deprecated]: "allow_nonzero_velocity_at_trajectory_end" is set to true. The default behavior will change to false.
+[INFO] [1791301386.703050360] [controller_manager]: Configuring controller 'gim_arm_group_controller'
+[INFO] [1791301386.703287565] [gim_arm_group_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[INFO] [1791301386.703337010] [gim_arm_group_controller]: Command interfaces are [position velocity] and state interfaces are [position velocity].
+[INFO] [1791301386.703387429] [gim_arm_group_controller]: Using 'splines' interpolation method.
+[INFO] [1791301386.705892894] [gim_arm_group_controller]: Controller state will be published at 50.00 Hz.
+[INFO] [1791301386.707406868] [gim_arm_group_controller]: Action status changes will be monitored at 20.00 Hz.
+[INFO] [1791301389.435078746] [gim_arm_effort_controller]: activate successful
+[INFO] [1791301401.186841257] [forward_position_controller]: activate successful

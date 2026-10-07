@@ -1,0 +1,20 @@
+[INFO] [1791304772.995410812] [mpc_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791304772.996631769] [mpc_controller]: Thuật toán: mpc
+MPC tuyến tính hoá cục bộ, có giới hạn total torque và slew-rate; QP giải bằng ADMM
+  solver=admm, Np=40, Nc=10, dt=0.01s, slew=[100. 200. 100.] Nm/s
+  tau_limit=[ 5. 40.  5.] Nm. BẮT BUỘC benchmark deadline trên MuJoCo trước khi cân nhắc chạy phần cứng.
+[INFO] [1791304772.997206765] [mpc_controller]: Trần controller: [ 5. 40.  5.] Nm (effort URDF [ 5. 40.  5.] × 1)
+[INFO] [1791304772.997643359] [mpc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791304772.998247549] [mpc_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[0.1 0.3 0.1] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791304772.999164612] [mpc_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791304773.000197932] [mpc_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791304773.001475337] [mpc_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791304773.130827602] [mpc_controller]: Bắt đầu precompute 3701 mẫu tham chiếu MPC @ 100 Hz. Giữ position controller active...
+[INFO] [1791304773.140047992] [mpc_controller]: Precompute xong 3701 mẫu tham chiếu MPC trong 0.01s. Đang chờ mẫu /joint_states mới...
+[INFO] [1791304773.140919784] [mpc_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0. -0. -0.]
+[WARN] [1791304773.142275211] [mpc_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1 lần, timer_dt=1.32 ms)
+[INFO] [1791304778.152658460] [mpc_controller]: GRAVITY -> APPROACH (5s), START=[-0.0192 -0.017   0.0008], HOME=[-0. -0. -0.]
+[WARN] [1791304779.121189654] [mpc_controller]: mpc: compute 8.17 ms > ngân sách cảnh báo 8.00 ms (1 lần)
+[WARN] [1791304779.135463948] [mpc_controller]: MPC từ chối nghiệm solver, dùng warm-start khả thi: status=0, violation=0 (1 lần)
+[ERROR] [1791304779.289702556] [mpc_controller]: ABORT: sai số bám pha APPROACH 0.173 rad > 0.100 rad. Chuyển về gravity compensation; deactivate gim_arm_effort_controller trước khi kiểm tra.
+[INFO] [1791304779.292578636] [mpc_controller]: Ghi 73 dòng -> /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/payload_0p5.csv

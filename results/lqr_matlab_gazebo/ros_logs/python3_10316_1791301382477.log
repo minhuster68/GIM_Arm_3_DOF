@@ -1,0 +1,37 @@
+[INFO] [1791301388.763912890] [lqr_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791301388.825496463] [lqr_controller]: Thuật toán: lqr
+Bộ điều khiển: TVLQR (LQR biến thiên 9 trạng thái + tích phân), CARE liên tục theo setup_lqr.m
+  trọng số Bryson: max_int_e=[10. 20. 10.] rad·s  max_e=[0.05 0.02 0.01] rad  max_de=[10. 10. 10.] rad/s
+  max_tau=[ 5. 40.  5.] Nm  x tau_penalty_scale=1
+  feedforward: inverse_dynamics(q_ref) (G lấy ở q_ref, đúng kiểu matlab)
+  K precompute dọc quỹ đạo @ 20 Hz; nội suy tuyến tính theo thời gian quỹ đạo ROS
+  trần mô-men: [ 2.5 20.   2.5] Nm   |∫e| <= 0.5 rad·s
+  slew-rate mô-men: không giới hạn
+
+  KIỂM TRA ZOH (2000 Hz): |z|max = 1.0000  -> ỔN ĐỊNH
+  cực liên tục: nhanh nhất 597.6 rad/s (Nyquist vòng 6283 rad/s), chậm nhất 0.001 rad/s -> t_xác_lập ≈ 4000.10 s
+  mô-men riêng khâu tích phân khi ∫e chạm kẹp: [0.263 2.272 0.285] Nm
+  K tại q = [0.155 0.553 0.771] (Nm trên mỗi đơn vị trạng thái):
+    base_joint      ∫e:[ 0.499  0.012 -0.001]  e:[100.48  12.17  -0.48]  ė:[3.87 1.61 0.27]
+    shoulder_joint  ∫e:[-0.11   1.116 -3.318]  e:[  -21.87  1112.82 -3318.44]  ė:[ 1.4  13.98 -6.36]
+    elbow_joint     ∫e:[-0.02   0.207  0.279]  e:[ -3.82 206.9  278.96]  ė:[0.32 4.85 3.55]
+    (K đổi theo tư thế -- đây chỉ là một điểm làm việc)
+[INFO] [1791301388.826049631] [lqr_controller]: Trần controller: [ 2.5 20.   2.5] Nm (effort URDF [ 5. 40.  5.] × 0.5)
+[INFO] [1791301388.826372123] [lqr_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791301388.826780898] [lqr_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[1.  3.  0.8] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791301388.831957338] [lqr_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791301388.833220432] [lqr_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791301388.845921157] [lqr_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791301388.873429766] [lqr_controller]: Bắt đầu precompute 741 gain LQR @ 20 Hz. Giữ position controller active...
+[INFO] [1791301389.432301494] [lqr_controller]: Precompute xong 741 gain trong 0.56s; runtime sẽ chỉ tra bảng, không giải Riccati. Đang chờ mẫu /joint_states mới...
+[INFO] [1791301389.433314865] [lqr_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0.  0. -0.]
+[WARN] [1791301389.436160410] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1 lần, timer_dt=2.21 ms)
+[WARN] [1791301389.534100941] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (10 lần, timer_dt=0.34 ms)
+[WARN] [1791301390.202905677] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (100 lần, timer_dt=0.39 ms)
+[INFO] [1791301394.439080747] [lqr_controller]: GRAVITY -> APPROACH (5s), START=[ 0.0004 -0.0213 -0.0002], HOME=[-0.  0. -0.]
+[WARN] [1791301395.935518401] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1000 lần, timer_dt=0.55 ms)
+[WARN] [1791301395.995930140] [lqr_controller]: lqr: compute 0.45 ms > ngân sách cảnh báo 0.40 ms (1 lần)
+[INFO] [1791301400.687616078] [lqr_controller]: APPROACH -> TRACK
+[ERROR] [1791301400.837744628] [lqr_controller]: ABORT: sai số bám pha TRACK 0.060 rad > 0.050 rad. Chuyển về gravity compensation; deactivate gim_arm_effort_controller trước khi kiểm tra.
+[INFO] [1791301401.185590968] [lqr_controller]: Ghi 12124 mẫu /joint_states -> /home/mirabo/GIM_Arm_3_DOF/results/lqr_matlab_gazebo/noload_states.csv
+[INFO] [1791301401.185850825] [lqr_controller]: Ghi 11839 dòng -> /home/mirabo/GIM_Arm_3_DOF/results/lqr_matlab_gazebo/noload.csv

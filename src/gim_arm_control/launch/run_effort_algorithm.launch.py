@@ -98,17 +98,24 @@ def generate_launch_description():
                 "PID only: original MATLAB cascade or position-only PID "
                 "for Gazebo")),
         DeclareLaunchArgument(
-            "lqr_profile", default_value="matlab_reference",
-            choices=["matlab_reference", "safe_100hz"],
+            "lqr_profile", default_value="gazebo_matlab",
+            choices=["matlab_reference", "safe_100hz", "gazebo_matlab"],
             description=(
-                "LQR only: exact MATLAB weights or the discretely-stable "
-                "100 Hz Gazebo/hardware bring-up profile")),
+                "LQR only: MATLAB CARE at 2 kHz with interpolated gains, "
+                "legacy MATLAB at 100 Hz, or safe discrete weights")),
         DeclareLaunchArgument(
-            "mpc_profile", default_value="gazebo_safe",
-            choices=["matlab_reference", "gazebo_safe"],
+            "mpc_profile", default_value="gazebo_position",
+            choices=["matlab_reference", "gazebo_safe", "gazebo_position"],
             description=(
-                "MPC only: validated MATLAB slew limits or a delay-robust "
-                "100 Hz Gazebo bring-up profile")),
+                "MPC only: MATLAB position-tracking at 100 Hz, or legacy "
+                "MATLAB/Gazebo weights")),
+        DeclareLaunchArgument(
+            "mpc_torque_penalty_scale",
+            default_value=PythonExpression([
+                "'10000.0' if '", mpc_profile,
+                "' == 'gazebo_position' else '1.0'",
+            ]),
+            description="MPC only: multiplier on R and Rdu after cost scaling"),
         DeclareLaunchArgument(
             "smc_profile", default_value="gazebo_safe",
             choices=["matlab_reference", "gazebo_safe"],
@@ -128,7 +135,8 @@ def generate_launch_description():
             "lqr_tau_penalty_scale",
             default_value=PythonExpression([
                 "'512.0' if '", lqr_profile,
-                "' == 'safe_100hz' else '1.0'",
+                "' == 'safe_100hz' else ('16.0' if '", lqr_profile,
+                "' == 'gazebo_matlab' else '1.0')",
             ]),
             description=(
                 "LQR only: multiplier on Bryson R; larger values reduce "
@@ -149,13 +157,17 @@ def generate_launch_description():
             "' == 'pid' and '", pid_profile,
             "' == 'gazebo_smooth') or ('", algorithm,
             "' == 'smc' and '", smc_profile,
-            "' == 'gazebo_safe') else '0.35')",
+            "' == 'gazebo_safe') or ('", algorithm,
+            "' == 'lqr' and '", lqr_profile,
+            "' == 'gazebo_matlab') else '0.35')",
         ])),
         DeclareLaunchArgument("control_hz", default_value=PythonExpression([
             "'2000.0' if '", algorithm, "' == 'pid' and '", pid_profile,
-            "' == 'gazebo_smooth' else ('200.0' if '", algorithm,
+            "' == 'gazebo_smooth' else ('2000.0' if '", algorithm,
             "' == 'lqr' and '", lqr_profile,
-            "' == 'safe_100hz' else '100.0')",
+            "' == 'gazebo_matlab' else ('200.0' if '", algorithm,
+            "' == 'lqr' and '", lqr_profile,
+            "' == 'safe_100hz' else '100.0'))",
         ])),
         DeclareLaunchArgument("max_track_error_rad", default_value="0.05"),
         DeclareLaunchArgument(
@@ -207,13 +219,15 @@ def generate_launch_description():
             ])
         if name == "lqr":
             config_file = PythonExpression([
-                "'lqr_safe_100hz.yaml' if '", lqr_profile,
-                "' == 'safe_100hz' else 'lqr.yaml'",
+                "'lqr_gazebo_matlab.yaml' if '", lqr_profile,
+                "' == 'gazebo_matlab' else ('lqr_safe_100hz.yaml' if '", lqr_profile,
+                "' == 'safe_100hz' else 'lqr.yaml')",
             ])
         if name == "mpc":
             config_file = PythonExpression([
-                "'mpc_gazebo_safe.yaml' if '", mpc_profile,
-                "' == 'gazebo_safe' else 'mpc.yaml'",
+                "'mpc_gazebo_position.yaml' if '", mpc_profile,
+                "' == 'gazebo_position' else ('mpc_gazebo_safe.yaml' if '", mpc_profile,
+                "' == 'gazebo_safe' else 'mpc.yaml')",
             ])
         if name == "smc":
             config_file = PythonExpression([
@@ -232,10 +246,17 @@ def generate_launch_description():
                 "use_armature": ParameterValue(
                     LaunchConfiguration("lqr_use_armature"), value_type=bool),
             })
+        if name == "mpc":
+            parameter_overrides.append({
+                "torque_penalty_scale": ParameterValue(
+                    LaunchConfiguration("mpc_torque_penalty_scale"), value_type=float),
+            })
         actions.append(Node(
             package=package,
             executable=executable,
             output="screen",
+            additional_env=({"OPENBLAS_NUM_THREADS": "1", "OMP_NUM_THREADS": "1"}
+                            if name == "mpc" else {}),
             parameters=[
                 PathJoinSubstitution([
                     FindPackageShare(package), "config", config_file]),

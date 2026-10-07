@@ -1,0 +1,41 @@
+[INFO] [1791303391.024689311] [lqr_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791303391.095807213] [lqr_controller]: Thuật toán: lqr
+Bộ điều khiển: LQR/LQI gain-scheduling (9 trạng thái), CARE liên tục theo setup_lqr.m
+  trọng số Bryson: max_int_e=[10. 20. 10.] rad·s  max_e=[0.05 0.02 0.01] rad
+  mục tiêu vận tốc: Q_vel=[0, 0, 0] (chỉ tối ưu bám vị trí; không dùng max_de)
+  max_tau=[ 5. 40.  5.] Nm  x tau_penalty_scale=16
+  feedforward: inverse_dynamics(q_ref) (G lấy ở q_ref, đúng kiểu matlab)
+  K precompute dọc quỹ đạo @ 20 Hz; nội suy tuyến tính theo thời gian quỹ đạo ROS
+  trần mô-men: [ 3.75 30.    3.75] Nm   |∫e| <= 0.5 rad·s
+  slew-rate mô-men: không giới hạn
+
+  KIỂM TRA ZOH (2000 Hz): |z|max = 0.999999500  -> ỔN ĐỊNH
+  cực liên tục: nhanh nhất 298.8 rad/s (Nyquist vòng 6283 rad/s), chậm nhất 0.001 rad/s -> t_xác_lập ≈ 4001.61 s
+  mô-men riêng khâu tích phân khi ∫e chạm kẹp: [0.066 0.568 0.071] Nm
+  K tại q = [0.155 0.553 0.771] (Nm trên mỗi đơn vị trạng thái):
+    base_joint      ∫e:[ 1.249e-01  2.928e-03 -1.822e-05]  e:[25.56  3.15  0.06]  ė:[1.93 0.81 0.14]
+    shoulder_joint  ∫e:[-0.026  0.278 -0.831]  e:[  -5.01  274.83 -831.67]  ė:[ 0.73  6.83 -2.92]
+    elbow_joint     ∫e:[-0.005  0.052  0.069]  e:[-0.89 51.64 69.2 ]  ė:[0.17 2.41 1.75]
+    (K đổi theo tư thế -- đây chỉ là một điểm làm việc)
+[INFO] [1791303391.096227879] [lqr_controller]: Trần controller: [ 3.75 30.    3.75] Nm (effort URDF [ 5. 40.  5.] × 0.75)
+[INFO] [1791303391.096512025] [lqr_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791303391.096915845] [lqr_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[1.  3.  0.8] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791303391.097615255] [lqr_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791303391.098456220] [lqr_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791303391.099962528] [lqr_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791303391.178440996] [lqr_controller]: Bắt đầu precompute 741 gain LQR @ 20 Hz. Giữ position controller active...
+[INFO] [1791303391.789566579] [lqr_controller]: Precompute xong 741 gain trong 0.61s; runtime sẽ chỉ tra bảng, không giải Riccati. Đang chờ mẫu /joint_states mới...
+[INFO] [1791303391.790699943] [lqr_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0. -0. -0.]
+[WARN] [1791303391.791687836] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1 lần, timer_dt=0.98 ms)
+[WARN] [1791303391.817192021] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (10 lần, timer_dt=0.38 ms)
+[WARN] [1791303392.221332778] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (100 lần, timer_dt=0.70 ms)
+[INFO] [1791303396.794527528] [lqr_controller]: GRAVITY -> APPROACH (5s), START=[-0.0117 -0.0171  0.0003], HOME=[-0. -0. -0.]
+[WARN] [1791303396.799112934] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1000 lần, timer_dt=0.35 ms)
+[WARN] [1791303401.375118056] [lqr_controller]: lqr: compute 0.41 ms > ngân sách cảnh báo 0.40 ms (1 lần)
+[WARN] [1791303403.540162809] [lqr_controller]: lqr: compute 0.46 ms > ngân sách cảnh báo 0.40 ms (10 lần)
+[INFO] [1791303404.340226405] [lqr_controller]: APPROACH -> TRACK
+[WARN] [1791303413.052724532] [lqr_controller]: lqr: compute 0.69 ms > ngân sách cảnh báo 0.40 ms (100 lần)
+[INFO] [1791303449.543796596] [lqr_controller]: TRACK -> RETURN (5s)
+[INFO] [1791303456.632622847] [lqr_controller]: RETURN -> HOLD_HOME gravity-hold PID (Ctrl-C để ghi file log)
+[INFO] [1791303456.956740551] [lqr_controller]: Ghi 11567 mẫu /joint_states -> /home/mirabo/GIM_Arm_3_DOF/results/lqr_matlab_gazebo/payload_0p5_states.csv
+[INFO] [1791303456.957077108] [lqr_controller]: Ghi 11253 dòng -> /home/mirabo/GIM_Arm_3_DOF/results/lqr_matlab_gazebo/payload_0p5.csv

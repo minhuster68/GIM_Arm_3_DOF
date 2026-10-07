@@ -1,0 +1,7 @@
+[INFO] [1791303312.602771003] [robot_state_publisher]: got segment base_footprint
+[INFO] [1791303312.602879822] [robot_state_publisher]: got segment base_link
+[INFO] [1791303312.602886129] [robot_state_publisher]: got segment lower_arm_link
+[INFO] [1791303312.602889597] [robot_state_publisher]: got segment shoulder_link
+[INFO] [1791303312.602892379] [robot_state_publisher]: got segment upper_arm_link
+[INFO] [1791303312.602894929] [robot_state_publisher]: got segment world
+[INFO] [1791303384.477766908] [rclcpp]: signal_handler(signum=2)

@@ -9,6 +9,7 @@ topic effort.
 
 import csv
 import os
+import signal
 import tempfile
 import time
 
@@ -82,6 +83,8 @@ class EffortControllerNode(Node):
         declare("autostart", False)
         declare("log_file", "")
         declare("deadline_warn_fraction", 0.8)
+        declare("diagnostic_log_hz", 0.0)
+        declare("joint_state_qos_depth", 10)
         declare("command_heartbeat_nm", 1.0e-6)
         factory.declare_parameters(self)
 
@@ -139,6 +142,12 @@ class EffortControllerNode(Node):
                                and bool(get("log_file").value))
         self.diagnostic_mpc = (factory.algorithm_name == "mpc"
                                and bool(get("log_file").value))
+        log_hz = float(get("diagnostic_log_hz").value)
+        state_qos_depth = int(get("joint_state_qos_depth").value)
+        if not np.isfinite(log_hz) or log_hz < 0.0 or state_qos_depth < 1:
+            raise ValueError("diagnostic_log_hz phải >= 0; joint_state_qos_depth phải >= 1")
+        self.diagnostic_log_period_ns = int(1e9 / log_hz) if log_hz else 0
+        self.last_logged_tick_ns = self.last_logged_state_ns = -1
         self.mpc_solver_rejections = 0
         self.state_seq = 0
         self.last_control_state_seq = -1
@@ -276,7 +285,7 @@ class EffortControllerNode(Node):
         self.publisher = self.create_publisher(
             Float64MultiArray, str(get("command_topic").value), 10)
         self.create_subscription(
-            JointState, "/joint_states", self._on_state, 10)
+            JointState, "/joint_states", self._on_state, state_qos_depth)
         if self.diagnostic_lqr:
             self.create_subscription(
                 Clock, "/clock", self._on_clock,
@@ -319,14 +328,19 @@ class EffortControllerNode(Node):
         return value
 
     def _prepare_controller_schedule(self, home_q):
-        """Precompute an optional gain schedule before effort mode starts.
+        """Prepare reference-dependent bounds or gains before effort starts.
 
         Return ``True`` when the callback was deliberately blocked for
         precomputation, so the caller can discard the now-stale joint sample.
         """
-        prepare = getattr(self.controller, "precompute_gain_schedule", None)
+        prepare_reference = getattr(self.controller, "prepare_reference", None)
+        preparing_reference = (callable(prepare_reference) and float(getattr(
+            self.controller, "reference_precompute_hz", 0.0)) > 0.0)
+        prepare = (prepare_reference if preparing_reference else
+                   getattr(self.controller, "precompute_gain_schedule", None))
         schedule_hz = float(getattr(
-            self.controller, "gain_schedule_hz", 0.0))
+            self.controller, "reference_precompute_hz" if preparing_reference
+            else "gain_schedule_hz", 0.0))
         if not callable(prepare) or schedule_hz <= 0.0:
             self.controller_schedule_ready = True
             return False
@@ -338,6 +352,8 @@ class EffortControllerNode(Node):
             return (
                 np.asarray([value[0] for value in values], dtype=float),
                 np.asarray([value[1] for value in values], dtype=float),
+                np.asarray([value[2] for value in values], dtype=float),
+                times,
             )
 
         target_q = self.trajectory.at(0.0)[0]
@@ -349,19 +365,35 @@ class EffortControllerNode(Node):
             (Quintic(sweep_end_q, home_q, self.return_time),
              self.return_time),
         )
-        q_parts, qd_parts = [], []
+        q_parts, qd_parts, qdd_parts, time_parts = [], [], [], []
+        time_offset = 0.0
+        timed_schedule = preparing_reference or (
+            getattr(self.controller, "gain_schedule_mode", "") == "trajectory_time")
         for reference, duration in references:
-            q_ref, qd_ref = sample(reference, duration)
-            q_parts.append(q_ref)
-            qd_parts.append(qd_ref)
+            q_ref, qd_ref, qdd_ref, times = sample(reference, duration)
+            # A time schedule needs unique endpoints. Preserve legacy table
+            # indices for reference-state/fixed-index diagnostic schedules.
+            first = 1 if timed_schedule and q_parts else 0
+            q_parts.append(q_ref[first:])
+            qd_parts.append(qd_ref[first:])
+            qdd_parts.append(qdd_ref[first:])
+            time_parts.append(times[first:] + time_offset)
+            time_offset += duration
 
         q_schedule = np.vstack(q_parts)
         qd_schedule = np.vstack(qd_parts)
         started = time.perf_counter()
+        kind = "mẫu tham chiếu MPC" if preparing_reference else "gain LQR"
         self.get_logger().info(
-            f"Bắt đầu precompute {len(q_schedule)} gain LQR "
+            f"Bắt đầu precompute {len(q_schedule)} {kind} "
             f"@ {schedule_hz:g} Hz. Giữ position controller active...")
-        count = prepare(q_schedule, qd_schedule)
+        if preparing_reference:
+            count = prepare(q_schedule, qd_schedule, np.vstack(qdd_parts),
+                            np.concatenate(time_parts))
+        elif timed_schedule:
+            count = prepare(q_schedule, qd_schedule, np.concatenate(time_parts))
+        else:
+            count = prepare(q_schedule, qd_schedule)
         if self.fixed_track_gain_index >= count:
             raise ValueError(
                 f"fixed_track_gain_index={self.fixed_track_gain_index} "
@@ -369,8 +401,7 @@ class EffortControllerNode(Node):
         elapsed = time.perf_counter() - started
         self.controller_schedule_ready = True
         self.get_logger().info(
-            f"Precompute xong {count} gain trong {elapsed:.2f}s; "
-            "runtime sẽ chỉ tra bảng, không giải Riccati. Đang chờ "
+            f"Precompute xong {count} {kind} trong {elapsed:.2f}s. Đang chờ "
             "mẫu /joint_states mới...")
         return True
 
@@ -394,10 +425,14 @@ class EffortControllerNode(Node):
         self.state_rx_wall_ns = time.time_ns()
         if self.diagnostic_lqr:
             if self.phase in (APPROACH, TRACK, RETURN):
-                self.state_rows.append([
-                    self.state_header_ns, self.state_rx_wall_ns,
-                    *self.q, *self.qd, *self.measured_effort,
-                ])
+                if (self.last_logged_state_ns < 0
+                        or self.state_header_ns - self.last_logged_state_ns
+                        >= self.diagnostic_log_period_ns):
+                    self.state_rows.append((
+                        self.state_header_ns, self.state_rx_wall_ns,
+                        *self.q, *self.qd, *self.measured_effort,
+                    ))
+                    self.last_logged_state_ns = self.state_header_ns
         self.state_stamp = self.get_clock().now()
 
     def _on_clock(self, msg):
@@ -409,6 +444,13 @@ class EffortControllerNode(Node):
     def _append_tracking_row(self, tick_wall_ns, phase_elapsed, dt,
                              compute_time, q_ref, qd_ref, tau,
                              event="CONTROL"):
+        if ((self.diagnostic_lqr or self.diagnostic_mpc)
+                and not event.startswith("ABORT")
+                and self.last_logged_tick_ns >= 0
+                and tick_wall_ns - self.last_logged_tick_ns
+                < self.diagnostic_log_period_ns):
+            return
+        self.last_logged_tick_ns = tick_wall_ns
         row = [
             tick_wall_ns * 1e-9, self.phase, dt, compute_time,
             *self.q, *self.qd, *q_ref, *qd_ref, *tau,
@@ -458,7 +500,10 @@ class EffortControllerNode(Node):
                 *(last.get("tau_raw", missing)),
                 *(last.get("saturated", missing)),
             ])
-        self.rows.append(row)
+        # Scalar-only tuples can be untracked by Python's cyclic GC. Avoid
+        # retaining tens of thousands of tracked lists in the torque loop;
+        # long callback pauses leave Gazebo on the previous torque.
+        self.rows.append(tuple(row))
 
     def _set_hand_guiding(self, request, response):
         if self.q is None:
@@ -507,6 +552,14 @@ class EffortControllerNode(Node):
                 self.trajectory.duration)
             return self.trajectory.at(loop_time)
         return self.reference.at(elapsed)
+
+    def _gain_schedule_time(self, elapsed):
+        """Map phase time onto APPROACH + one TRACK loop + RETURN."""
+        if self.phase == TRACK:
+            return self.approach_time + elapsed % self.trajectory.duration
+        if self.phase == RETURN:
+            return self.approach_time + self.trajectory.duration + elapsed
+        return elapsed
 
     def _hold_command_for_stale_state(self, tick_wall_ns, timer_dt):
         """Keep the previous torque when the timer outruns joint states."""
@@ -624,7 +677,7 @@ class EffortControllerNode(Node):
                     state_became_stale = self._prepare_controller_schedule(
                         self.home_q)
                 except Exception as error:
-                    self._abort(f"precompute gain LQR thất bại: {error}")
+                    self._abort(f"chuẩn bị tham chiếu controller thất bại: {error}")
                     self._publish(self._gravity_torque())
                     return
                 if state_became_stale:
@@ -769,6 +822,9 @@ class EffortControllerNode(Node):
             return
 
         started = time.perf_counter()
+        set_reference_time = getattr(self.controller, "set_reference_time", None)
+        if callable(set_reference_time):
+            set_reference_time(self._gain_schedule_time(elapsed))
         tau = np.asarray(self.controller.compute(
             self.q, self.qd, q_ref, qd_ref, qdd_ref, dt), dtype=float)
         compute_time = time.perf_counter() - started
@@ -965,7 +1021,14 @@ def run_controller(factory):
         if rclpy.ok():
             raise
     finally:
-        node.dump()
-        node.destroy_node()
-        if rclpy.ok():
-            rclpy.shutdown()
+        # ros2 launch can forward SIGINT after the foreground process group
+        # already received it. Finish the atomic CSV write and cleanup even
+        # when that second signal arrives during shutdown.
+        previous_sigint = signal.signal(signal.SIGINT, signal.SIG_IGN)
+        try:
+            node.dump()
+            node.destroy_node()
+            if rclpy.ok():
+                rclpy.shutdown()
+        finally:
+            signal.signal(signal.SIGINT, previous_sigint)

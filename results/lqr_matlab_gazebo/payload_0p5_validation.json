@@ -1,0 +1,61 @@
+{
+  "case": "payload_0p5",
+  "payload_mass_kg": 0.5,
+  "tau_scale": 0.75,
+  "final_phase": "HOLD",
+  "phases": [
+    "APPROACH",
+    "GRAVITY",
+    "HOLD",
+    "RETURN",
+    "TRACK"
+  ],
+  "samples": 11253,
+  "passed": true,
+  "control_hz": 2000.0,
+  "profile": "gazebo_matlab",
+  "gain_schedule_mode": "trajectory_time",
+  "gain_samples": 741,
+  "max_int_e": [
+    10.0,
+    20.0,
+    10.0
+  ],
+  "max_e": [
+    0.05,
+    0.02,
+    0.01
+  ],
+  "matlab_branch": "position-tracking",
+  "matlab_commit": "addec462971d946519cafa6cda5ebbcd18539da2",
+  "position_tracking_only": true,
+  "q_velocity": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "integral_limit": 0.5,
+  "use_discrete_lqr": false,
+  "tau_penalty_scale": 16.0,
+  "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)",
+  "rms_error_deg": [
+    0.769376143262538,
+    1.4497959503236093,
+    0.3602319565982185
+  ],
+  "max_error_deg": [
+    1.7858294606179086,
+    2.089437020308698,
+    0.4993807976048962
+  ],
+  "track_rms_error_deg": [
+    0.7955176924254462,
+    1.5383414220435325,
+    0.38944082365672333
+  ],
+  "max_torque_nm": [
+    1.2222910032371337,
+    6.888372917135347,
+    3.590438481125902
+  ]
+}

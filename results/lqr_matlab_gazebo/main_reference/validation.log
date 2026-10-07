@@ -1,0 +1,104 @@
+[INFO] [1791301952.195233545] [lqr_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791301952.257332896] [lqr_controller]: Thuật toán: lqr
+Bộ điều khiển: TVLQR (LQR biến thiên 9 trạng thái + tích phân), CARE liên tục theo setup_lqr.m
+  trọng số Bryson: max_int_e=[10. 20. 10.] rad·s  max_e=[0.05 0.02 0.01] rad  max_de=[10. 10. 10.] rad/s
+  max_tau=[ 5. 40.  5.] Nm  x tau_penalty_scale=16
+  feedforward: inverse_dynamics(q_ref) (G lấy ở q_ref, đúng kiểu matlab)
+  K precompute dọc quỹ đạo @ 20 Hz; nội suy tuyến tính theo thời gian quỹ đạo ROS
+  trần mô-men: [ 2.5 20.   2.5] Nm   |∫e| <= 0.5 rad·s
+  slew-rate mô-men: không giới hạn
+
+  KIỂM TRA ZOH (2000 Hz): |z|max = 1.0000  -> ỔN ĐỊNH
+  cực liên tục: nhanh nhất 298.8 rad/s (Nyquist vòng 6283 rad/s), chậm nhất 0.001 rad/s -> t_xác_lập ≈ 4001.61 s
+  mô-men riêng khâu tích phân khi ∫e chạm kẹp: [0.066 0.568 0.071] Nm
+  K tại q = [0.155 0.553 0.771] (Nm trên mỗi đơn vị trạng thái):
+    base_joint      ∫e:[ 1.249e-01  2.962e-03 -4.757e-05]  e:[25.56  3.18  0.03]  ė:[1.94 0.81 0.14]
+    shoulder_joint  ∫e:[-0.027  0.278 -0.831]  e:[  -5.11  275.18 -831.19]  ė:[ 0.72  6.87 -2.98]
+    elbow_joint     ∫e:[-0.005  0.052  0.07 ]  e:[-0.9  51.61 69.29]  ė:[0.16 2.41 1.76]
+    (K đổi theo tư thế -- đây chỉ là một điểm làm việc)
+[INFO] [1791301952.257715170] [lqr_controller]: Trần controller: [ 2.5 20.   2.5] Nm (effort URDF [ 5. 40.  5.] × 0.5)
+[INFO] [1791301952.257971725] [lqr_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791301952.258406906] [lqr_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[1.  3.  0.8] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791301952.261928679] [lqr_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791301952.263976014] [lqr_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791301952.272645686] [lqr_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791301952.302907747] [lqr_controller]: Bắt đầu precompute 741 gain LQR @ 20 Hz. Giữ position controller active...
+[INFO] [1791301952.820126745] [lqr_controller]: Precompute xong 741 gain trong 0.52s; runtime sẽ chỉ tra bảng, không giải Riccati. Đang chờ mẫu /joint_states mới...
+[INFO] [1791301952.821018444] [lqr_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0. -0. -0.]
+[WARN] [1791301952.821944915] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1 lần, timer_dt=0.94 ms)
+[WARN] [1791301952.979538276] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (10 lần, timer_dt=0.65 ms)
+[WARN] [1791301953.571466428] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (100 lần, timer_dt=0.29 ms)
+[INFO] [1791301957.825377663] [lqr_controller]: GRAVITY -> APPROACH (5s), START=[ 0.0004 -0.0213 -0.0002], HOME=[-0. -0. -0.]
+[WARN] [1791301958.724452323] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1000 lần, timer_dt=0.49 ms)
+[WARN] [1791301963.270355484] [lqr_controller]: lqr: compute 0.41 ms > ngân sách cảnh báo 0.40 ms (1 lần)
+[INFO] [1791301964.556583831] [lqr_controller]: APPROACH -> TRACK
+[WARN] [1791301972.008135570] [lqr_controller]: lqr: compute 0.47 ms > ngân sách cảnh báo 0.40 ms (10 lần)
+[WARN] [1791302001.795332926] [lqr_controller]: lqr: compute 0.51 ms > ngân sách cảnh báo 0.40 ms (100 lần)
+[INFO] [1791302006.866923530] [lqr_controller]: TRACK -> RETURN (5s)
+[INFO] [1791302013.646754531] [lqr_controller]: RETURN -> HOLD_HOME gravity-hold PID (Ctrl-C để ghi file log)
+{"case": "noload", "payload_mass_kg": 0.0, "tau_scale": 0.5, "final_phase": "HOLD", "phases": ["APPROACH", "GRAVITY", "HOLD", "RETURN", "TRACK"], "samples": 10508, "passed": true, "control_hz": 2000.0, "profile": "gazebo_matlab", "gain_schedule_mode": "trajectory_time", "gain_samples": 741, "max_int_e": [10.0, 20.0, 10.0], "max_e": [0.05, 0.02, 0.01], "max_de": [10.0, 10.0, 10.0], "integral_limit": 0.5, "use_discrete_lqr": false, "tau_penalty_scale": 16.0, "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)"}
+[INFO] [1791302013.945405139] [lqr_controller]: Ghi 10803 mẫu /joint_states -> /tmp/gim-lqr-r16-fresh/noload_states.csv
+[INFO] [1791302013.945756883] [lqr_controller]: Ghi 10508 dòng -> /tmp/gim-lqr-r16-fresh/noload.csv
+[INFO] [1791302022.307248279] [lqr_controller]: Quán tính rotor cộng vào mô hình M(q): [0.00016832 0.01077248 0.00016832] kg·m² (use_armature=True)
+[INFO] [1791302022.360855331] [lqr_controller]: Thuật toán: lqr
+Bộ điều khiển: TVLQR (LQR biến thiên 9 trạng thái + tích phân), CARE liên tục theo setup_lqr.m
+  trọng số Bryson: max_int_e=[10. 20. 10.] rad·s  max_e=[0.05 0.02 0.01] rad  max_de=[10. 10. 10.] rad/s
+  max_tau=[ 5. 40.  5.] Nm  x tau_penalty_scale=16
+  feedforward: inverse_dynamics(q_ref) (G lấy ở q_ref, đúng kiểu matlab)
+  K precompute dọc quỹ đạo @ 20 Hz; nội suy tuyến tính theo thời gian quỹ đạo ROS
+  trần mô-men: [ 3.75 30.    3.75] Nm   |∫e| <= 0.5 rad·s
+  slew-rate mô-men: không giới hạn
+
+  KIỂM TRA ZOH (2000 Hz): |z|max = 1.0000  -> ỔN ĐỊNH
+  cực liên tục: nhanh nhất 298.8 rad/s (Nyquist vòng 6283 rad/s), chậm nhất 0.001 rad/s -> t_xác_lập ≈ 4001.61 s
+  mô-men riêng khâu tích phân khi ∫e chạm kẹp: [0.066 0.568 0.071] Nm
+  K tại q = [0.155 0.553 0.771] (Nm trên mỗi đơn vị trạng thái):
+    base_joint      ∫e:[ 1.249e-01  2.962e-03 -4.757e-05]  e:[25.56  3.18  0.03]  ė:[1.94 0.81 0.14]
+    shoulder_joint  ∫e:[-0.027  0.278 -0.831]  e:[  -5.11  275.18 -831.19]  ė:[ 0.72  6.87 -2.98]
+    elbow_joint     ∫e:[-0.005  0.052  0.07 ]  e:[-0.9  51.61 69.29]  ė:[0.16 2.41 1.76]
+    (K đổi theo tư thế -- đây chỉ là một điểm làm việc)
+[INFO] [1791302022.361289929] [lqr_controller]: Trần controller: [ 3.75 30.    3.75] Nm (effort URDF [ 5. 40.  5.] × 0.75)
+[INFO] [1791302022.361562942] [lqr_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791302022.361942386] [lqr_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[1.  3.  0.8] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791302022.362630331] [lqr_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791302022.363444993] [lqr_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791302022.365129727] [lqr_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791302022.434954408] [lqr_controller]: Bắt đầu precompute 741 gain LQR @ 20 Hz. Giữ position controller active...
+[INFO] [1791302022.970751654] [lqr_controller]: Precompute xong 741 gain trong 0.54s; runtime sẽ chỉ tra bảng, không giải Riccati. Đang chờ mẫu /joint_states mới...
+[INFO] [1791302022.972253499] [lqr_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0. -0. -0.]
+[WARN] [1791302022.973251421] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1 lần, timer_dt=0.94 ms)
+[WARN] [1791302023.037830923] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (10 lần, timer_dt=0.66 ms)
+[WARN] [1791302024.057245109] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (100 lần, timer_dt=0.34 ms)
+[INFO] [1791302027.975723299] [lqr_controller]: GRAVITY -> APPROACH (5s), START=[-0.0116 -0.0171  0.0003], HOME=[-0. -0. -0.]
+[WARN] [1791302028.819477961] [lqr_controller]: lqr: compute 0.48 ms > ngân sách cảnh báo 0.40 ms (1 lần)
+[WARN] [1791302028.894920482] [lqr_controller]: Bỏ qua control tick vì chưa có /joint_states mới; giữ torque trước (1000 lần, timer_dt=0.47 ms)
+[INFO] [1791302034.345223227] [lqr_controller]: APPROACH -> TRACK
+[WARN] [1791302035.833932778] [lqr_controller]: lqr: compute 0.50 ms > ngân sách cảnh báo 0.40 ms (10 lần)
+[WARN] [1791302068.398246599] [lqr_controller]: lqr: compute 0.44 ms > ngân sách cảnh báo 0.40 ms (100 lần)
+[INFO] [1791302075.290902669] [lqr_controller]: TRACK -> RETURN (5s)
+[INFO] [1791302081.626691066] [lqr_controller]: RETURN -> HOLD_HOME gravity-hold PID (Ctrl-C để ghi file log)
+
+Metrics từng khớp
+phase       samples   RMS e_q [deg]       MAX |e_q| [deg]   MAX |tau| [Nm]
+----------------------------------------------------------------------------------------------------
+ALL           10508   [  0.177   0.092   0.026]   [  0.920   0.779   0.404]   [  1.061  20.000   1.819]
+APPROACH       1267   [  0.202   0.147   0.039]   [  0.548   0.422   0.115]   [  0.688   3.891   1.471]
+TRACK          7963   [  0.147   0.040   0.016]   [  0.567   0.169   0.105]   [  0.942   4.039   1.603]
+RETURN         1278   [  0.289   0.195   0.051]   [  0.920   0.779   0.404]   [  1.061  20.000   1.819]
+Đã lưu: /tmp/gim-lqr-r16-fresh/noload_joints_q1_base.png
+Đã lưu: /tmp/gim-lqr-r16-fresh/noload_joints_q2_shoulder.png
+Đã lưu: /tmp/gim-lqr-r16-fresh/noload_joints_q3_elbow.png
+{"case": "payload_0p5", "payload_mass_kg": 0.5, "tau_scale": 0.75, "final_phase": "HOLD", "phases": ["APPROACH", "GRAVITY", "HOLD", "RETURN", "TRACK"], "samples": 10107, "passed": true, "control_hz": 2000.0, "profile": "gazebo_matlab", "gain_schedule_mode": "trajectory_time", "gain_samples": 741, "max_int_e": [10.0, 20.0, 10.0], "max_e": [0.05, 0.02, 0.01], "max_de": [10.0, 10.0, 10.0], "integral_limit": 0.5, "use_discrete_lqr": false, "tau_penalty_scale": 16.0, "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)"}
+[INFO] [1791302081.895513224] [lqr_controller]: Ghi 10409 mẫu /joint_states -> /tmp/gim-lqr-r16-fresh/payload_0p5_states.csv
+[INFO] [1791302081.895760447] [lqr_controller]: Ghi 10107 dòng -> /tmp/gim-lqr-r16-fresh/payload_0p5.csv
+
+Metrics từng khớp
+phase       samples   RMS e_q [deg]       MAX |e_q| [deg]   MAX |tau| [Nm]
+----------------------------------------------------------------------------------------------------
+ALL           10107   [  0.760   1.449   0.360]   [  1.281   1.910   0.481]   [  1.135   6.543   3.560]
+APPROACH       1205   [  0.670   1.014   0.217]   [  1.184   1.615   0.371]   [  0.780   5.909   3.353]
+TRACK          7704   [  0.798   1.539   0.389]   [  1.281   1.875   0.481]   [  1.135   6.543   3.560]
+RETURN         1198   [  0.563   1.204   0.269]   [  1.047   1.910   0.453]   [  0.707   5.502   3.386]
+Đã lưu: /tmp/gim-lqr-r16-fresh/payload_0p5_joints_q1_base.png
+Đã lưu: /tmp/gim-lqr-r16-fresh/payload_0p5_joints_q2_shoulder.png
+Đã lưu: /tmp/gim-lqr-r16-fresh/payload_0p5_joints_q3_elbow.png

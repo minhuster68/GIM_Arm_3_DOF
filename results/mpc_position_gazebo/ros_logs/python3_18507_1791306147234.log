@@ -1,0 +1,20 @@
+[INFO] [1791306152.707210966] [mpc_controller]: Quán tính rotor cộng vào mô hình M(q): [0. 0. 0.] kg·m² (use_armature=False)
+[INFO] [1791306152.708058669] [mpc_controller]: Thuật toán: mpc
+MPC tuyến tính hoá cục bộ, có giới hạn total torque và slew-rate; QP giải bằng ACTIVE_SET
+  solver=active_set, Np=40, Nc=10, dt=0.01s, slew=[100. 200. 100.] Nm/s
+  tau_limit=[ 5. 40.  5.] Nm, bounds=trajectory_global, prediction_precompute=True
+[INFO] [1791306152.708397129] [mpc_controller]: Trần controller: [ 5. 40.  5.] Nm (effort URDF [ 5. 40.  5.] × 1)
+[INFO] [1791306152.708646744] [mpc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791306152.709032421] [mpc_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[0.1 0.3 0.1] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791306152.712310978] [mpc_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791306152.713261711] [mpc_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791306152.716619509] [mpc_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791306152.863564195] [mpc_controller]: Bắt đầu precompute 3701 mẫu tham chiếu MPC @ 100 Hz. Giữ position controller active...
+[INFO] [1791306156.934497863] [mpc_controller]: Precompute xong 3701 mẫu tham chiếu MPC trong 4.07s. Đang chờ mẫu /joint_states mới...
+[INFO] [1791306156.935329811] [mpc_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0.  0. -0.]
+[INFO] [1791306156.936694470] [mpc_controller]: CLUTCH OFF -> giữ q_hold=[-0.  0. -0.]
+[INFO] [1791306161.947192512] [mpc_controller]: GRAVITY -> APPROACH (5s), START=[-0.0028 -0.0131 -0.0009], HOME=[-0.  0. -0.]
+[INFO] [1791306166.957075862] [mpc_controller]: APPROACH -> TRACK
+[INFO] [1791306193.957170454] [mpc_controller]: TRACK -> RETURN (5s)
+[INFO] [1791306198.966878357] [mpc_controller]: RETURN -> HOLD_HOME gravity-hold PID (Ctrl-C để ghi file log)
+[INFO] [1791306199.034331776] [mpc_controller]: Ghi 2325 dòng -> /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/noload.csv

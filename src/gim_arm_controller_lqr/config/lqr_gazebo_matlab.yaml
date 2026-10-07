@@ -1,0 +1,29 @@
+lqr_controller:
+  ros__parameters:
+    # position-tracking/setup_lqr.m @ addec462 (minhuster68/matlab-sim).
+    # CARE + position/integral Bryson cost + tau_ff; Q_vel = 0.
+    # Gazebo physics and ros2_control run at 2 kHz; do not use this CARE
+    # profile at 100 Hz with the same weights.
+    control_hz: 2000.0
+    tau_scale: 0.50
+    autostart: false
+    max_int_e: [10.0, 20.0, 10.0]
+    max_e: [0.05, 0.02, 0.01]
+    position_tracking_only: true
+    max_tau: [5.0, 40.0, 5.0]
+    # Same Bryson limits; R x16 reduces feedback bandwidth under ROS delays.
+    tau_penalty_scale: 16.0
+    linearization_step: 0.00001
+    integral_limit: 0.5
+    gravity_at_measured: false
+    recompute_every: 1
+    require_discrete_stable: true
+    use_discrete_lqr: false
+    # Like ts_K in Simulink: linear interpolation of a precomputed gain table.
+    # Times come from the ROS trajectory clock, which freezes on stale state.
+    gain_schedule_mode: trajectory_time
+    gain_schedule_hz: 20.0
+    max_tau_rate_nm_s: [0.0, 0.0, 0.0]
+    # Keep only fresh feedback and bound diagnostic allocation at 2 kHz.
+    joint_state_qos_depth: 1
+    diagnostic_log_hz: 200.0

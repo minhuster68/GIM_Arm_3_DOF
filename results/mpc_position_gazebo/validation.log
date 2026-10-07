@@ -1,0 +1,64 @@
+[INFO] [1791306152.707210966] [mpc_controller]: Quán tính rotor cộng vào mô hình M(q): [0. 0. 0.] kg·m² (use_armature=False)
+[INFO] [1791306152.708058669] [mpc_controller]: Thuật toán: mpc
+MPC tuyến tính hoá cục bộ, có giới hạn total torque và slew-rate; QP giải bằng ACTIVE_SET
+  solver=active_set, Np=40, Nc=10, dt=0.01s, slew=[100. 200. 100.] Nm/s
+  tau_limit=[ 5. 40.  5.] Nm, bounds=trajectory_global, prediction_precompute=True
+[INFO] [1791306152.708397129] [mpc_controller]: Trần controller: [ 5. 40.  5.] Nm (effort URDF [ 5. 40.  5.] × 1)
+[INFO] [1791306152.708646744] [mpc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791306152.709032421] [mpc_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[0.1 0.3 0.1] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791306152.712310978] [mpc_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791306152.713261711] [mpc_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791306152.716619509] [mpc_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791306152.863564195] [mpc_controller]: Bắt đầu precompute 3701 mẫu tham chiếu MPC @ 100 Hz. Giữ position controller active...
+[INFO] [1791306156.934497863] [mpc_controller]: Precompute xong 3701 mẫu tham chiếu MPC trong 4.07s. Đang chờ mẫu /joint_states mới...
+[INFO] [1791306156.935329811] [mpc_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0.  0. -0.]
+[INFO] [1791306156.936694470] [mpc_controller]: CLUTCH OFF -> giữ q_hold=[-0.  0. -0.]
+[INFO] [1791306161.947192512] [mpc_controller]: GRAVITY -> APPROACH (5s), START=[-0.0028 -0.0131 -0.0009], HOME=[-0.  0. -0.]
+[INFO] [1791306166.957075862] [mpc_controller]: APPROACH -> TRACK
+[INFO] [1791306193.957170454] [mpc_controller]: TRACK -> RETURN (5s)
+[INFO] [1791306198.966878357] [mpc_controller]: RETURN -> HOLD_HOME gravity-hold PID (Ctrl-C để ghi file log)
+{"case": "noload", "payload_mass_kg": 0.0, "tau_scale": 1.0, "final_phase": "HOLD", "phases": ["APPROACH", "GRAVITY", "HOLD", "RETURN", "TRACK"], "samples": 2325, "passed": true, "control_hz": 100.0, "use_armature": false, "profile": "gazebo_position", "config_file": "/home/mirabo/GIM_Arm_3_DOF/src/gim_arm_controller_mpc/config/mpc_gazebo_position.yaml", "matlab_branch": "position-tracking", "matlab_commit": "addec462971d946519cafa6cda5ebbcd18539da2", "prediction_horizon": 40, "control_horizon": 10, "q_velocity": [0.0, 0.0, 0.0], "Q_diagonal": [64.0, 64.0, 64.0, 157.301764, 983.073316, 157.301764, 0.0, 0.0, 0.0], "R_diagonal": [0.037636, 0.0005880625, 0.037636], "Rd_diagonal": [0.36, 0.005625, 0.36], "feedback_bounds_mode": "trajectory_global", "feedback_min": [-4.86547026718883, -39.90082489847746, -5.09646669239549], "feedback_max": [4.270536336618592, 36.62382369549971, 3.5036630609164856], "torque_slew_rate": [100.0, 200.0, 100.0], "qp_solver": "active_set", "torque_penalty_scale": 10000.0, "precompute_prediction": true, "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)"}
+[INFO] [1791306199.034331776] [mpc_controller]: Ghi 2325 dòng -> /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/noload.csv
+[INFO] [1791306206.915530218] [mpc_controller]: Quán tính rotor cộng vào mô hình M(q): [0. 0. 0.] kg·m² (use_armature=False)
+[INFO] [1791306206.916383776] [mpc_controller]: Thuật toán: mpc
+MPC tuyến tính hoá cục bộ, có giới hạn total torque và slew-rate; QP giải bằng ACTIVE_SET
+  solver=active_set, Np=40, Nc=10, dt=0.01s, slew=[100. 200. 100.] Nm/s
+  tau_limit=[ 5. 40.  5.] Nm, bounds=trajectory_global, prediction_precompute=True
+[INFO] [1791306206.916814599] [mpc_controller]: Trần controller: [ 5. 40.  5.] Nm (effort URDF [ 5. 40.  5.] × 1)
+[INFO] [1791306206.917200773] [mpc_controller]: HAND_GUIDING dùng gravity + damping: Kd_drag=[0.3 1.  0.3] Nm/(rad/s)
+[INFO] [1791306206.917773847] [mpc_controller]: HOLD_HOME dùng gravity-hold PID: Kp=[ 5. 12.  4.] Nm/rad, Kd=[0.1 0.3 0.1] Nm/(rad/s), Ki=[0.8 2.  0.8] Nm/(rad*s), |tau_i|<=[0.5 1.  0.5] Nm
+[INFO] [1791306206.919014840] [mpc_controller]: Dùng waypoint đã cache: /tmp/gim_effort_way.npz
+[INFO] [1791306206.920179851] [mpc_controller]: Kịch bản: HOME -> APPROACH 5s -> TRACK 1 vòng (27s/vòng) -> RETURN 5s -> HOLD_HOME
+[INFO] [1791306206.921559975] [mpc_controller]: Sẵn sàng ở GRAVITY_HOLD. Service /gim_arm/set_hand_guiding: true=kéo tay, false=chốt và giữ vị trí hiện tại. Chỉ bật autostart sau khi effort controller đã được activate.
+[INFO] [1791306207.073793827] [mpc_controller]: Bắt đầu precompute 3701 mẫu tham chiếu MPC @ 100 Hz. Giữ position controller active...
+[INFO] [1791306211.054576231] [mpc_controller]: Precompute xong 3701 mẫu tham chiếu MPC trong 3.98s. Đang chờ mẫu /joint_states mới...
+[INFO] [1791306211.061860298] [mpc_controller]: WAIT -> GRAVITY, đã chụp HOME=[-0. -0. -0.]
+[INFO] [1791306211.063339918] [mpc_controller]: CLUTCH OFF -> giữ q_hold=[-0.  0. -0.]
+[INFO] [1791306216.072843571] [mpc_controller]: GRAVITY -> APPROACH (5s), START=[-0.011  -0.0098  0.0009], HOME=[-0.  0. -0.]
+[INFO] [1791306221.081755261] [mpc_controller]: APPROACH -> TRACK
+[INFO] [1791306248.081884052] [mpc_controller]: TRACK -> RETURN (5s)
+[INFO] [1791306253.111758526] [mpc_controller]: RETURN -> HOLD_HOME gravity-hold PID (Ctrl-C để ghi file log)
+
+Metrics từng khớp
+phase       samples   RMS e_q [deg]       MAX |e_q| [deg]   MAX |tau| [Nm]
+----------------------------------------------------------------------------------------------------
+ALL            2325   [  0.053   0.088   0.135]   [  0.175   0.166   0.251]   [  0.781   3.628   1.545]
+APPROACH        312   [  0.029   0.108   0.068]   [  0.045   0.159   0.116]   [  0.628   3.381   1.446]
+TRACK          1702   [  0.059   0.075   0.147]   [  0.175   0.112   0.251]   [  0.781   3.628   1.545]
+RETURN          311   [  0.032   0.121   0.121]   [  0.060   0.166   0.164]   [  0.561   3.102   1.408]
+Đã lưu: /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/noload_joints_q1_base.png
+Đã lưu: /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/noload_joints_q2_shoulder.png
+Đã lưu: /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/noload_joints_q3_elbow.png
+{"case": "payload_0p5", "payload_mass_kg": 0.5, "tau_scale": 1.0, "final_phase": "HOLD", "phases": ["APPROACH", "GRAVITY", "HOLD", "RETURN", "TRACK"], "samples": 2343, "passed": true, "control_hz": 100.0, "use_armature": false, "profile": "gazebo_position", "config_file": "/home/mirabo/GIM_Arm_3_DOF/src/gim_arm_controller_mpc/config/mpc_gazebo_position.yaml", "matlab_branch": "position-tracking", "matlab_commit": "addec462971d946519cafa6cda5ebbcd18539da2", "prediction_horizon": 40, "control_horizon": 10, "q_velocity": [0.0, 0.0, 0.0], "Q_diagonal": [64.0, 64.0, 64.0, 157.301764, 983.073316, 157.301764, 0.0, 0.0, 0.0], "R_diagonal": [0.037636, 0.0005880625, 0.037636], "Rd_diagonal": [0.36, 0.005625, 0.36], "feedback_bounds_mode": "trajectory_global", "feedback_min": [-4.865470355301023, -39.90089954817478, -5.096495686283477], "feedback_max": [4.270536336618592, 36.62382369549971, 3.5036630609164856], "torque_slew_rate": [100.0, 200.0, 100.0], "qp_solver": "active_set", "torque_penalty_scale": 10000.0, "precompute_prediction": true, "tau_ff": "inverse_dynamics(q_ref, qd_ref, qdd_ref)"}
+[INFO] [1791306253.155671052] [mpc_controller]: Ghi 2343 dòng -> /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/payload_0p5.csv
+
+Metrics từng khớp
+phase       samples   RMS e_q [deg]       MAX |e_q| [deg]   MAX |tau| [Nm]
+----------------------------------------------------------------------------------------------------
+ALL            2343   [  0.487   0.462   1.313]   [  1.074   0.710   2.960]   [  1.057   6.334   3.540]
+APPROACH        319   [  0.516   0.483   2.180]   [  0.829   0.710   2.960]   [  0.733   5.832   3.312]
+TRACK          1713   [  0.465   0.486   1.025]   [  0.830   0.660   2.789]   [  1.057   6.334   3.540]
+RETURN          311   [  0.567   0.261   1.529]   [  1.074   0.383   2.783]   [  0.751   5.449   3.321]
+Đã lưu: /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/payload_0p5_joints_q1_base.png
+Đã lưu: /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/payload_0p5_joints_q2_shoulder.png
+Đã lưu: /home/mirabo/GIM_Arm_3_DOF/results/mpc_position_gazebo/payload_0p5_joints_q3_elbow.png
