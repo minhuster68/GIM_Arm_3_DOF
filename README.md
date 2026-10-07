@@ -3,8 +3,8 @@
 ## Chuẩn bị
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF
-git switch pid-test
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_pid_test
+git branch --show-current
 source /opt/ros/humble/setup.bash
 colcon build --symlink-install --packages-select gim_arm_description gim_arm_hardware gim_control gim_arm_controller_pid
 source install/setup.bash
@@ -13,6 +13,7 @@ source install/setup.bash
 ## Terminal 1 — CAN, zero phần mềm, position controller
 
 ```bash
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_pid_test
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ip -details link show can0
@@ -33,6 +34,7 @@ gim_arm_effort_controller: inactive
 ## Terminal 2 — PID và quỹ đạo
 
 ```bash
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_pid_test
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 # trajectory_shape: circle (vòng tròn), r (chữ R), a (chữ A)
@@ -52,6 +54,7 @@ HOME gần [0, 0, 0]; tay đứng yên.
 ## Terminal 3 — bắt đầu
 
 ```bash
+cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_pid_test
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ros2 control switch_controllers \
