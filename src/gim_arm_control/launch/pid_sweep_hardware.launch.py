@@ -1,4 +1,4 @@
-"""Run circle/R/A once using the existing hardware PID profile."""
+"""Run circle/R/A once using the hardware position PID baseline."""
 
 import math
 import os

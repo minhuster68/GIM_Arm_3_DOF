@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Interactive GIM6010 driver gain tuning through Linux SocketCAN.
+"""Terminal for single-loop position PID tuning, joint 3 -> 2 -> 1.
 
-Command IDs come from SteadyWin GIM6010-8 manual rev1.3, section 4.1.2.
-Little-endian float32 fields match ODrive CANSimple fw-v0.5.4 callbacks:
-https://github.com/odriverobotics/ODrive/blob/fw-v0.5.4/Firmware/communication/can/can_simple.cpp
-These are motor driver gains, independent of the PC cascade PID gains.
+The default terminal tunes the PC PID with URDF feedforward in torque mode.
+Pass --driver-gains to explicitly use the legacy SocketCAN driver terminal.
 """
 
 import argparse
@@ -503,7 +501,7 @@ class GainTerminal:
                 print(f'Lỗi: {error}')
 
 
-def main(argv=None):
+def driver_main(argv=None):
     try:
         import readline
         readline.set_history_length(200)
@@ -540,6 +538,19 @@ def main(argv=None):
         terminal.close()
         sender.close()
     return 0
+
+
+def main(argv=None):
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    if '--driver-gains' in arguments:
+        arguments.remove('--driver-gains')
+        return driver_main(arguments)
+    import importlib.util
+    path = Path(__file__).with_name('tune_position_pid.py')
+    spec = importlib.util.spec_from_file_location('position_pid_terminal', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.main(arguments)
 
 
 if __name__ == '__main__':

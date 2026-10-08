@@ -59,7 +59,8 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(PROGRAMS scripts/tune_motor_gains.py DESTINATION lib/${PROJECT_NAME})
+install(PROGRAMS scripts/tune_motor_gains.py scripts/tune_position_pid.py
+  DESTINATION lib/${PROJECT_NAME})
 
 # 7. Xuất các thông tin cho các package khác dùng (nếu cần)
 ament_export_include_directories(include)

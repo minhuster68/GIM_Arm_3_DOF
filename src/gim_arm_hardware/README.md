@@ -125,6 +125,23 @@ Log phần cứng sẽ báo `base_joint` và `shoulder_joint` `KHOA o che do VI 
 Chỉ elbow nhận lệnh mô-men; lệnh mô-men hai khớp còn lại bị bỏ qua.
 Position mode trước và sau bài thử vẫn điều khiển được cả ba khớp.
 
+## Terminal PID một vòng trên PC — khâu 3 → 2 → 1
+
+`tune_motor_gains.py` nay mặc định dùng terminal Kp/Ki/Kd của PID vị trí trên
+PC, với `tau_cmd = tau_ff(URDF) + tau_fb(PID)`. Bài thử chạy torque ở một
+khớp, hai khớp còn lại giữ position. Lệnh `next` chuyển elbow → shoulder → base.
+`save` ghi YAML gain trên PC. Xem toàn bộ lệnh cho các terminal tại
+[TERMINAL_TUNING.md](../gim_arm_controller_pid/TERMINAL_TUNING.md).
+
+```bash
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+python3 src/gim_arm_hardware/scripts/tune_motor_gains.py \
+  --params-file src/gim_arm_controller_pid/config/pid_hardware_soft.yaml
+```
+
+Phần bên dưới là terminal driver cũ, chỉ dùng khi chọn rõ `--driver-gains`.
+
 ## Chỉnh gain bên trong driver bằng terminal
 
 File `scripts/tune_motor_gains.py` dùng thư viện chuẩn Python và SocketCAN,
@@ -132,7 +149,7 @@ không cần odrivetool hay python-can. Cấu hình `can0` như ở trên rồi 
 
 ```bash
 cd /home/minh/git_gim_ws/GIM_Arm_3_DOF
-python3 src/gim_arm_hardware/scripts/tune_motor_gains.py --interface can0 --joint elbow
+python3 src/gim_arm_hardware/scripts/tune_motor_gains.py --driver-gains --interface can0 --joint elbow
 ```
 
 Chương trình không tự gửi gain khi mở, không đổi mode, không đặt zero và không
@@ -242,18 +259,18 @@ Chỉ gõ `save` khi muốn gửi `Save_Configuration` (`0x01F`) cho node đang 
 flash; chương trình không tự lưu khi đổi gain hay khi thoát.
 
 Các giá trị này ở đơn vị driver, giống nhập bằng odrivetool. Chúng độc lập
-với `kpp/kvp/kvi` trong `pid_hardware_tuning.yaml` trên PC. Gain position/velocity
+với `position_kp/position_ki/position_kd` trong YAML PID trên PC. Gain position/velocity
 của driver dùng khi motor chạy các vòng này; ở torque mode, `tau_fb` vẫn do
 bộ PID trên PC tính theo YAML.
 
 Kiểm tra giao diện và frame mà không mở CAN:
 
 ```bash
-python3 src/gim_arm_hardware/scripts/tune_motor_gains.py --joint elbow --dry-run
+python3 src/gim_arm_hardware/scripts/tune_motor_gains.py --driver-gains --joint elbow --dry-run
 ```
 
 Sau khi build package, cũng có thể chạy:
 
 ```bash
-ros2 run gim_arm_hardware tune_motor_gains.py --interface can0 --joint elbow
+ros2 run gim_arm_hardware tune_motor_gains.py --driver-gains --interface can0 --joint elbow
 ```

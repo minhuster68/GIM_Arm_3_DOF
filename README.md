@@ -1,29 +1,48 @@
-# PID — chạy phần cứng
+# GIM Arm 3 DOF — nhánh pid-test
 
-## Chuẩn bị
+PID trên nhánh này dùng một vòng bám vị trí với feedforward nghịch động lực
+học, tham khảo source nhánh `sim_gazebo2`.
+
+```text
+e = q_ref - q
+tau = inverse_dynamics(q_ref, qd_ref, qdd_ref) + Kp*e + Ki*integral(e) + Kd*(qd_ref-qd)
+```
+
+Vận tốc phục vụ thành phần D và feedforward; không có vòng PI vận tốc bên
+trong. Gain hiện tại là baseline, chưa tune lại từng khớp.
+
+- [Luật điều khiển và hướng dẫn chung](src/README.md).
+- [Thử và tune từng khớp](src/gim_arm_controller_pid/README.md).
+- [Terminal tune lần lượt khâu 3 → 2 → 1](src/gim_arm_controller_pid/TERMINAL_TUNING.md).
+- [Gain phần cứng](src/gim_arm_controller_pid/config/pid_hardware_soft.yaml).
+- [Gain Gazebo](src/gim_arm_controller_pid/config/pid_gazebo_smooth.yaml).
+
+## Chạy quỹ đạo phần cứng
+
+### Chuẩn bị
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_pid_test
+cd /home/mirabo/GIM_Arm_3_DOF
 git branch --show-current
 source /opt/ros/humble/setup.bash
 colcon build --symlink-install --packages-select gim_arm_description gim_arm_hardware gim_control gim_arm_controller_pid
 source install/setup.bash
 ```
 
-## Terminal 1 — CAN, zero phần mềm, position controller
+### Terminal 1 — CAN, zero phần mềm, position controller
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_pid_test
+cd /home/mirabo/GIM_Arm_3_DOF
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ip -details link show can0
-# Đặt và kê đỡ tay ở đúng tư thế zero trước khi chụp mốc phần mềm.
+## Đặt và kê đỡ tay ở đúng tư thế zero trước khi chụp mốc phần mềm.
 ros2 launch gim_control origin_gim_arm_control.launch.py \
   can_interface:=can0 set_zero_on_startup:=true zero_method:=software \
   torque_joint:=all
 ```
 
-### Output mong muốn
+#### Output mong muốn
 
 ```text
 joint_state_broadcaster: active
@@ -31,30 +50,30 @@ gim_arm_group_controller: active
 gim_arm_effort_controller: inactive
 ```
 
-## Terminal 2 — PID và quỹ đạo
+### Terminal 2 — PID và quỹ đạo
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_pid_test
+cd /home/mirabo/GIM_Arm_3_DOF
 source /opt/ros/humble/setup.bash
 source install/setup.bash
-# trajectory_shape: circle (vòng tròn), r (chữ R), a (chữ A)
+## trajectory_shape: circle (vòng tròn), r (chữ R), a (chữ A)
 ros2 launch gim_control pid_sweep_hardware.launch.py \
   trajectory_shape:=circle approach_time:=16 return_time:=16 \
   params_file:=src/gim_arm_controller_pid/config/pid_hardware_soft.yaml \
   log_file:=results/pid_circle_run01.csv
 ```
 
-### Output mong muốn
+#### Output mong muốn
 
 ```text
 WAIT -> READY_PID
 HOME gần [0, 0, 0]; tay đứng yên.
 ```
 
-## Terminal 3 — bắt đầu
+### Terminal 3 — bắt đầu
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_pid_test
+cd /home/mirabo/GIM_Arm_3_DOF
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ros2 control switch_controllers \
@@ -64,16 +83,16 @@ ros2 control switch_controllers \
 ros2 param set /cascade_pid_controller autostart true
 ```
 
-### Output mong muốn — Terminal 2
+#### Output mong muốn — Terminal 2
 
 ```text
 GRAVITY -> APPROACH (16s)
 APPROACH -> TRACK
 TRACK -> RETURN (16s)
-RETURN -> HOLD_HOME cascade PID
+RETURN -> HOLD_HOME PID vị trí
 ```
 
-## Terminal 3 — kết thúc hoặc dừng bài thử
+### Terminal 3 — kết thúc hoặc dừng bài thử
 
 ```bash
 ros2 control switch_controllers \
@@ -82,32 +101,32 @@ ros2 control switch_controllers \
   --activate gim_arm_group_controller
 ```
 
-### Output mong muốn
+#### Output mong muốn
 
 ```text
 gim_arm_group_controller: active
 gim_arm_effort_controller: inactive
 ```
 
-## Terminal 2 — ghi CSV
+### Terminal 2 — ghi CSV
 
 ```text
 Ctrl+C
 ```
 
-### Output mong muốn
+#### Output mong muốn
 
 ```text
 Ghi ... dòng -> results/pid_circle_run01.csv
 ```
 
-## Terminal 3 — kết quả vị trí
+### Terminal 3 — kết quả vị trí
 
 ```bash
 ros2 run gim_control plot_joint_tracking results/pid_circle_run01.csv --show
 ```
 
-### Output mong muốn
+#### Output mong muốn
 
 ```text
 RMS e_q [deg], MAX |e_q| [deg], MAX |tau| [Nm].
@@ -117,13 +136,13 @@ results/pid_circle_run01_joints_q2_shoulder.png
 results/pid_circle_run01_joints_q3_elbow.png
 ```
 
-## Xem trước ba quỹ đạo
+### Xem trước ba quỹ đạo
 
 ```bash
 python3 tools/preview_trajectories.py
 ```
 
-### Output mong muốn
+#### Output mong muốn
 
 ```text
 results/trajectory_shapes/reference_paths.png

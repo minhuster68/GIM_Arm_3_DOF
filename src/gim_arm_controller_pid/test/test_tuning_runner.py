@@ -52,7 +52,7 @@ class TestTuningRunner(unittest.TestCase):
         msg.velocity = list(np.zeros(3) if qd is None else np.asarray(qd, dtype=float))
         self.node._on_state(msg)
 
-    def test_entire_move_hold_return_uses_cascade_and_preserves_integral_at_home(self):
+    def test_entire_move_hold_return_uses_position_pid_and_preserves_integral_at_home(self):
         node = self.node
         self.state(np.zeros(3))
         node._tick()
@@ -74,7 +74,7 @@ class TestTuningRunner(unittest.TestCase):
                 break
         self.assertEqual(phases, {APPROACH, TRACK, RETURN, HOLD})
         np.testing.assert_allclose(node.controller.integral, preserved)
-        np.testing.assert_allclose(node.controller.last['tau_i'], node.controller.kvi * preserved)
+        np.testing.assert_allclose(node.controller.last['tau_i'], node.controller.ki * preserved)
         node.dump()
         with open(self.log_file, newline='') as stream:
             rows = list(csv.DictReader(stream))
@@ -84,6 +84,9 @@ class TestTuningRunner(unittest.TestCase):
             for name in node.joint_names:
                 self.assertAlmostEqual(float(row['tau_ff_' + name]) + float(row['tau_fb_' + name]),
                                        float(row['tau_raw_' + name]))
+                self.assertAlmostEqual(
+                    sum(float(row[prefix + name]) for prefix in ('tau_p_', 'tau_i_', 'tau_d_')),
+                    float(row['tau_fb_' + name]))
         log = load_log(self.log_file)
         self.assertIn('tau_fb', log)
         self.assertIn('tau_ff', log)
@@ -122,7 +125,8 @@ class TestTuningRunner(unittest.TestCase):
         self.assertEqual(row['event'], 'CONTROL')
         for index, name in enumerate(node.joint_names):
             self.assertAlmostEqual(
-                float(row['tau_p_' + name]), -node.controller.kvp[index] * node.qd[index])
+                float(row['tau_d_' + name]), -node.controller.kd[index] * node.qd[index])
+            self.assertEqual(float(row['tau_p_' + name]), 0)
             self.assertEqual(float(row['tau_i_' + name]), 0)
             self.assertEqual(float(row['integral_' + name]), 0)
         load_log(self.log_file)

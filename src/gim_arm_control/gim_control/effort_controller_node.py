@@ -37,9 +37,11 @@ WAIT, GRAVITY, APPROACH, TRACK, RETURN, HOLD, ABORT = (
 class EffortControllerNode(Node):
     """State machine và lớp an toàn chung quanh một torque controller."""
 
-    def __init__(self, factory):
+    def __init__(self, factory, parameter_overrides=None):
         self.factory = factory
-        super().__init__(f"{factory.algorithm_name}_controller")
+        super().__init__(
+            f"{factory.algorithm_name}_controller",
+            parameter_overrides=parameter_overrides)
 
         declare = self.declare_parameter
         declare("urdf_file", "")
@@ -150,7 +152,7 @@ class EffortControllerNode(Node):
             self.diagnostic_lqr or self.diagnostic_mpc or self.diagnostic_pid)
         self.cascade_hold = bool(get("cascade_hold").value)
         if self.cascade_hold and factory.algorithm_name != "cascade_pid":
-            raise ValueError("cascade_hold chỉ dùng với cascade PID")
+            raise ValueError("cascade_hold chỉ dùng với PID vị trí một vòng")
         self.mpc_solver_rejections = 0
         self.state_seq = 0
         self.last_control_state_seq = -1
@@ -210,7 +212,7 @@ class EffortControllerNode(Node):
             f"Kd_drag={np.round(self.drag_kd, 3)} Nm/(rad/s)")
         if self.cascade_hold:
             self.get_logger().info(
-                "PREP/HOLD_HOME dùng cùng cascade PID như quỹ đạo; "
+                "PREP/HOLD_HOME dùng cùng PID vị trí một vòng như quỹ đạo; "
                 "tau_cmd = inverse_dynamics(ref) + tau_fb")
         else:
             self.get_logger().info(
@@ -305,7 +307,7 @@ class EffortControllerNode(Node):
         self.create_timer(self.dt_nom, self._tick)
         if self.cascade_hold:
             self.get_logger().info(
-                "Chờ /joint_states để chốt HOME bằng cascade PID. "
+                "Chờ /joint_states để chốt HOME bằng PID vị trí một vòng. "
                 "Chỉ bật autostart sau khi effort controller đã được activate.")
         else:
             self.get_logger().info(
@@ -484,11 +486,10 @@ class EffortControllerNode(Node):
             last = self.controller.last if event == "CONTROL" else {}
             missing = np.full(self.n, np.nan)
             for name in (
-                    "tau_ff", "tau_fb", "tau_p", "tau_i", "tau_raw",
-                    "tau", "position_error", "velocity_command",
-                    "velocity_error", "integral", "saturated"):
+                    "tau_ff", "tau_fb", "tau_p", "tau_i", "tau_d", "tau_raw",
+                    "tau", "position_error", "error_rate", "integral", "saturated"):
                 row.extend(float(value) for value in last.get(name, missing))
-            for name in ("kpp", "kvp", "kvi"):
+            for name in ("kp", "ki", "kd"):
                 row.extend(getattr(self.controller, name))
         self.rows.append(row)
 
@@ -755,7 +756,7 @@ class EffortControllerNode(Node):
             # vòng tạo hàng chục nghìn dòng; ghi đồng bộ sẽ ngừng phát torque
             # gần một giây và tự kích hoạt state-timeout. File được ghi sạch
             # khi người dùng Ctrl-C node sau khi đã quan sát HOLD_HOME.
-            hold_controller = "cascade PID" if self.cascade_hold else "gravity-hold PID"
+            hold_controller = "PID vị trí một vòng" if self.cascade_hold else "gravity-hold PID"
             self.get_logger().info(
                 f"RETURN -> HOLD_HOME {hold_controller} (Ctrl-C để ghi file log)")
 
@@ -975,9 +976,9 @@ class EffortControllerNode(Node):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
         elif self.diagnostic_pid:
             for prefix in (
-                    "tau_ff", "tau_fb", "tau_p", "tau_i", "tau_raw",
-                    "tau_controller", "position_error", "velocity_command",
-                    "velocity_error", "integral", "saturated", "kpp", "kvp", "kvi"):
+                    "tau_ff", "tau_fb", "tau_p", "tau_i", "tau_d", "tau_raw",
+                    "tau_controller", "position_error", "error_rate",
+                    "integral", "saturated", "kp", "ki", "kd"):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
         self._write_csv_atomic(path, header, self.rows)
         if self.diagnostic_lqr and self.state_rows:

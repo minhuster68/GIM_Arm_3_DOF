@@ -1,4 +1,4 @@
-"""Test cascade PID on isolated joints or synchronized multi-joint references."""
+"""Test single-loop position PID on isolated joints or synchronized multi-joint references."""
 
 import math
 import os

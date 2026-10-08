@@ -1,3 +1,10 @@
+> Cập nhật PID trên nhánh `pid-test`: dùng một vòng PID vị trí, tham khảo
+> `PositionPidController` của `sim_gazebo2`. Xem luật và gain hiện tại tại
+> [gim_arm_controller_pid/README.md](src/gim_arm_controller_pid/README.md).
+> Các kết quả/gain cascade MATLAB dưới đây là lịch sử trước khi đổi cấu trúc;
+> không dùng chúng để đánh giá hoặc tune PID vị trí hiện tại.
+> Với `cascade_hold=true`, PREP/HOLD_HOME dùng cùng PID vị trí và giữ trạng thái I.
+
 # Kiến trúc bốn bộ điều khiển mô-men GIM Arm
 
 Cả bốn thuật toán dùng chung một đường tín hiệu:
@@ -161,7 +168,7 @@ khỏi URDF runtime của Gazebo. Các mesh lắp ráp có nhiều mặt lõm v�
 bằng 0. Đây là mô phỏng điều khiển khớp, chưa phải mô phỏng va chạm với người
 hoặc ghế.
 
-### Chạy thử cascade PID trên Gazebo
+### Chạy thử PID vị trí một vòng trên Gazebo
 
 Terminal 1:
 

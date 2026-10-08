@@ -4,11 +4,14 @@ cascade_pid_controller:
     tau_scale: 0.35
     autostart: false
     gravity_scale: [1.0, 1.0, 1.0]
+    # Tên parameter cũ: giữ PREP/HOME bằng cùng PID vị trí một vòng.
     cascade_hold: true
-    kpp: [25.0, 10.0, 25.0]
-    kvp: [0.7639437268, 61.1154981473, 0.7639437268]
-    kvi: [12.7323954474, 81.48733086305, 12.7323954474]
-    velocity_integral_limit: 0.5
+    # Một vòng PID vị trí; gain baseline, chưa tune lại từng khớp.
+    # Kp [Nm/rad], Ki [Nm/(rad*s)], Kd [Nm/(rad/s)].
+    position_kp: [20.0, 24.5, 7.0]
+    position_ki: [2.0, 1.5, 4.0]
+    position_kd: [0.8, 0.7, 0.7]
+    position_integral_limit: [0.3, 0.3, 0.3]
     max_transition_error_rad: 0.10
     max_track_error_rad: 0.10
     state_timeout: 0.25

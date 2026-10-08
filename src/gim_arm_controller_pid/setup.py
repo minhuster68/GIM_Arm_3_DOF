@@ -18,7 +18,7 @@ setup(
     zip_safe=True,
     maintainer="minh",
     maintainer_email="minhvuviet20051311123456789@gmail.com",
-    description="Cascade PID torque controller for GIM Arm 3-DOF",
+    description="Single-loop position PID torque controller for GIM Arm 3-DOF",
     license="TODO",
     entry_points={
         "console_scripts": [

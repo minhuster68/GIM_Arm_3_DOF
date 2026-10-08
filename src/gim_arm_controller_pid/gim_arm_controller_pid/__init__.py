@@ -1,1 +1,1 @@
-"""Cascade PID torque controller for GIM Arm."""
+"""Single-loop position PID torque controller for GIM Arm."""

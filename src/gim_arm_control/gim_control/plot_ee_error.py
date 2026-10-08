@@ -36,7 +36,7 @@ def load_log(path):
             "qd_ref": [],
             "tau": [],
         }
-        optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i', 'saturated')
+        optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i', 'tau_d', 'saturated')
                     if all(f'{prefix}_{name}' in reader.fieldnames for name in JOINT_NAMES)]
         columns.update({prefix: [] for prefix in optional})
         for row in reader:
@@ -194,7 +194,8 @@ def plot(log, output, show, max_plot_points):
             label=f"MAX |tau|={torque_peak:.3f} Nm")
         if 'tau_fb' in log:
             for prefix, color in (('tau_ff', 'tab:green'), ('tau_fb', 'tab:orange'),
-                                  ('tau_p', 'tab:red'), ('tau_i', 'tab:brown')):
+                                  ('tau_p', 'tab:red'), ('tau_i', 'tab:brown'),
+                                  ('tau_d', 'tab:cyan')):
                 if prefix in log:
                     axes[2].plot(t, log[prefix][sample, index], color=color,
                                  linewidth=0.8, linestyle='--', label=prefix)

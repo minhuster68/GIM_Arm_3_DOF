@@ -6,16 +6,15 @@ cascade_pid_controller:
     autostart: false
     # Clutch ON: bù trọng lực + damping để người dùng kéo tay robot.
     drag_kd: [0.3, 1.0, 0.3]
-    # Sau RETURN, không dùng lại Cascade PID rất cứng để giữ HOME. Gravity
+    # Khi cascade_hold=false, RETURN chuyển sang gravity-hold PID mềm. Gravity
     # feedforward + PID mềm này dập vận tốc và xóa sai số tĩnh quanh HOME.
     hold_kp: [5.0, 12.0, 4.0]
     hold_kd: [1.0, 3.0, 0.8]
     hold_ki: [0.8, 2.0, 0.8]
     hold_i_torque_limit_nm: [0.5, 1.0, 0.5]
-    # Kpp giữ từ setup_pid.m; Kvp/Kvi đã đổi sang gain mô-men tại khớp
-    # để giữ nguyên đáp ứng của profile cũ khi bỏ khâu dòng điện trung gian.
-    kpp: [46.0, 60.0, 36.0]
-    kvp: [3.76, 4.465, 4.7]       # Nm/(rad/s)
-    kvi: [3.572, 3.572, 3.572]    # Nm/rad
-    # 0 = không kẹp tích phân, đúng PID block trong urdf.slx.
-    velocity_integral_limit: 0.0
+    # Một vòng PID vị trí; gain baseline, chưa tune lại từng khớp.
+    # Kp [Nm/rad], Ki [Nm/(rad*s)], Kd [Nm/(rad/s)].
+    position_kp: [16.92, 33.84, 16.45]
+    position_ki: [12.69, 16.92, 9.87]
+    position_kd: [0.94, 1.41, 1.175]
+    position_integral_limit: [0.3, 0.3, 0.3]

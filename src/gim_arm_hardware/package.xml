@@ -25,6 +25,9 @@
   <exec_depend>trajectory_msgs</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>gim_arm_description</exec_depend>
+  <exec_depend>gim_arm_controller_pid</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>rcl_interfaces</exec_depend>
   <exec_depend>python3-matplotlib</exec_depend>
   <exec_depend>python3-tk</exec_depend>
 

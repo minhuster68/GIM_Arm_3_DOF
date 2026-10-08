@@ -93,7 +93,8 @@ class TestMotorGainTuner(unittest.TestCase):
         from unittest.mock import patch
         with patch.object(tuner, 'SocketCanSender') as socket_sender, patch(
                 'builtins.input', side_effect=['set 20 0.16 0', 'kvi 0.04', 'quit']):
-            self.assertEqual(tuner.main(['--dry-run', '--joint', 'elbow']), 0)
+            self.assertEqual(tuner.main([
+                '--driver-gains', '--dry-run', '--joint', 'elbow']), 0)
         socket_sender.assert_not_called()
 
     def test_trial_plan_moves_only_selected_joint_and_returns_to_start(self):

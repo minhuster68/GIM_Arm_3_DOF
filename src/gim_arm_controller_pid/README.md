@@ -1,4 +1,9 @@
-# Tune cascade PID trên tay thật
+# PID một vòng bám vị trí — chuẩn bị tune từng khớp
+
+Để chỉnh Kp/Ki/Kd trong terminal và tune lần lượt **khâu 3 → 2 → 1**, dùng
+[hướng dẫn terminal](TERMINAL_TUNING.md). Mỗi lượt chỉ một khớp dùng
+`tau_ff(URDF) + tau_fb(PID)`; hai khớp còn lại giữ bằng position mode.
+Hướng dẫn bên dưới dành cho cách chỉnh YAML và chạy launch thủ công.
 
 Bài thử có thể cô lập một khớp: khớp đó dùng mô-men, hai khớp còn lại giữ
 bằng position mode của motor. Một khớp đi theo quỹ đạo bậc 5 từ HOME
@@ -16,16 +21,16 @@ Trong mọi pha đi, giữ đích, quay về và giữ HOME:
 ```text
 tau_ff = inverse_dynamics_URDF(q_ref, qd_ref, qdd_ref)
 e_q = q_ref - q
-qd_cmd = qd_ref + kpp * e_q
-e_v = qd_cmd - qd
-tau_p = kvp * e_v
-tau_i = kvi * integral(e_v)
-tau_fb = tau_p + tau_i
+de_q_dt = qd_ref - qd
+tau_p = position_kp * e_q
+tau_i = position_ki * integral(e_q)
+tau_d = position_kd * de_q_dt
+tau_fb = tau_p + tau_i + tau_d
 tau_cmd = clip(tau_ff + tau_fb, -tau_limit, tau_limit)
 ```
 
 Feedforward gồm cả thành phần quán tính, vận tốc và trọng lực. PID hoạt động
-liên tục cùng feedforward. Trước khi bắt đầu quỹ đạo, cùng cascade PID giữ
+liên tục cùng feedforward. Trước khi bắt đầu quỹ đạo, cùng PID vị trí một vòng giữ
 HOME với phần I được reset mỗi tick để tránh tích lũy khi effort controller
 còn inactive. Sau khi bắt đầu, I được giữ liên tục qua các pha, kể cả HOLD_HOME.
 Không cần dùng service hand-guiding cho bài thử này.
@@ -102,7 +107,7 @@ ros2 param set /cascade_pid_controller autostart true
 ```
 
 Trình tự: APPROACH 6 s (0 tới 30 độ) → TRACK giữ 3 s → RETURN 6 s → HOLD_HOME.
-Sau khi về HOME, cùng cascade PID vẫn giữ tay; không tự chuyển sang bộ gain
+Sau khi về HOME, cùng PID vị trí một vòng vẫn giữ tay; không tự chuyển sang bộ gain
 giữ mềm khác. Khi kết thúc hoặc cần dừng, chuyển về position trước:
 
 ```bash
@@ -172,7 +177,7 @@ ros2 param set /cascade_pid_controller autostart true
 ```
 
 Hai khớp đi đồng thời 6 s tới `[0,15,30]` độ, giữ 3 s, quay về HOME trong
-6 s rồi giữ HOME bằng cùng cascade PID. Khi kết thúc, switch về position
+6 s rồi giữ HOME bằng cùng PID vị trí một vòng. Khi kết thúc, switch về position
 trước khi Ctrl-C node PID để ghi CSV:
 
 ```bash
@@ -202,10 +207,11 @@ Log cũ không ghi pha giữ trước quỹ đạo nên chưa xác định đư�
 rung bắt đầu. Gain quy đổi tương đương về đơn vị chưa đảm bảo ổn định
 khi chạy vòng feedback trên PC.
 
-File `config/pid_hardware_soft.yaml` là bộ thử gain thấp hơn, chưa được xác
-nhận ổn định trên phần cứng: shoulder `[6,1.41,0]`, elbow `[8,0.20,0]`
-theo thứ tự `kpp/kvp/kvi`. Feedforward, dấu CAN và trần mô-men giữ nguyên.
-Profile gốc vẫn lưu bộ gain quy đổi để đối chiếu. Thử biên độ nhỏ hơn:
+Các log nêu trên thuộc luật cascade P–PI cũ, không phải kết quả của PID vị trí
+hiện tại. `config/pid_hardware_soft.yaml` và `pid_hardware_tuning.yaml` nay
+cùng dùng baseline vị trí: Kp `[20,24.5,7]`, Ki `[2,1.5,4]`,
+Kd `[0.8,0.7,0.7]`, theo thứ tự base/shoulder/elbow, chưa tune lại.
+Feedforward, dấu CAN và trần mô-men giữ nguyên. Bài thử biên độ nhỏ:
 
 ```bash
 ros2 launch gim_control pid_joint_tuning.launch.py \
@@ -220,7 +226,7 @@ dừng PID cũ, đưa tay về HOME trước khi chạy node PID mới. Sau khi 
 effort, quan sát pha giữ trước quỹ đạo; chỉ bật autostart khi tay đã đứng yên.
 Nếu rung khi giữ thì chuyển ngay lại position, dừng PID để lấy log, chưa chạy
 quỹ đạo. CSV mới ghi cả pha GRAVITY/READY_PID với `q/qd`, `tau_ff`, `tau_fb`
-và saturation; tên GRAVITY trong CSV là trạng thái chờ, vẫn dùng cascade PID
+và saturation; tên GRAVITY trong CSV là trạng thái chờ, vẫn dùng PID vị trí một vòng
 khi `cascade_hold=true`. Lệnh plot ở phần trên cũng đọc được log này.
 Trước khi effort controller active, torque trong CSV là lệnh node tính và
 publish, chưa phải torque được áp dụng xuống driver. Đối chiếu thời điểm
@@ -374,91 +380,47 @@ hiện tại `[1.75,14,1.75] Nm`. Elbow còn khoảng `0.25 Nm` dư địa feedb
 điểm feedforward lớn nhất; theo dõi saturation khi thử thực tế. Các kiểm tra
 mô hình và runner với state giả lập không xác nhận độ bám trên phần cứng.
 
-## Chỉnh gain
+## Chỉnh gain cho một vòng PID vị trí
 
-File `config/pid_hardware_tuning.yaml` chứa các vector theo thứ tự
-`[base, shoulder, elbow]`. Đây là gain khởi đầu cho bài thử ở 100 Hz, chưa
-được tune trên tay thật. `tau_scale=0.35` đặt trần `[1.75,14,1.75] Nm` theo URDF;
-không nhân feedforward với 0.35.
+File mặc định của hai launch thử phần cứng là `config/pid_hardware_soft.yaml`.
+`config/pid_hardware_tuning.yaml` cũng đã chuyển sang cùng baseline vị trí,
+không còn sử dụng bộ gain cascade quy đổi từ driver. Vector có thứ tự
+`[base, shoulder, elbow]`; các gain này chưa tune lại trên tay thật.
+`tau_scale=0.35` đặt trần `[1.75,14,1.75] Nm`; không nhân feedforward với 0.35.
 
-- `kpp`: vòng P vị trí, đơn vị 1/s.
-- `kvp`: phần P của vòng vận tốc, đơn vị Nm/(rad/s).
-- `kvi`: phần I của vòng vận tốc, đơn vị Nm/rad. Có thể đặt bằng 0 để bắt đầu
-  tune phần P. Sau khi đáp ứng ổn, thêm I để giảm sai số tĩnh.
-- `velocity_integral_limit`: giới hạn trạng thái tích phân; tổng mô-men còn
-  có saturation và conditional anti-windup.
+- `position_kp`: P theo sai số vị trí, đơn vị Nm/rad.
+- `position_ki`: I theo tích phân sai số vị trí, đơn vị Nm/(rad*s).
+- `position_kd`: D theo `qd_ref-qd`, đơn vị Nm/(rad/s).
+- `position_integral_limit`: kẹp tích phân sai số vị trí, đơn vị rad*s.
 
-Mỗi lần thay gain của khớp đang thử, chuyển về position, dừng node PID, sửa
-YAML và chạy lại với tên CSV mới. Gain được đọc khi khởi tạo; không dùng
-`ros2 param set kpp/kvp/kvi` để tune trong phiên chạy này.
-Nếu dùng bản YAML riêng, truyền `params_file:=/duong/dan/pid_tuning.yaml`.
+Luật PID vị trí tham khảo từ nhánh `sim_gazebo2`. Baseline phần cứng dùng
+Kp `[20,24.5,7]`, Kd `[0.8,0.7,0.7]` để giữ các hệ số vị trí và damping
+của phần feedback không tích phân trong profile mềm cũ. Ki `[2,1.5,4]`
+là điểm khởi đầu mới, không tương đương I của vòng vận tốc trước đây.
+Profile Gazebo dùng baseline từ nhánh tham khảo; đây chưa phải bước retune.
 
-`kvp` ảnh hưởng cả damping lẫn độ cứng tương đương, vì phần P của feedback là
-`kvp*kpp*e_q + kvp*(qd_ref-qd)`. Đổi một gain mỗi lần để đánh giá tác động.
+Mỗi lần sửa gain, chuyển về position, dừng node PID, sửa YAML và khởi động
+lại node với tên CSV mới. Gain được đọc khi khởi tạo, không tune trực tiếp
+bằng `ros2 param set` trong phiên đang chạy. Có thể đặt Ki bằng 0 để tune
+P và D trước rồi thêm I để giảm sai số tĩnh. YAML cũ dùng `kpp/kvp/kvi`
+hoặc `velocity_integral_limit` phải đổi sang các tham số vị trí ở trên.
+Không có phép đổi trực tiếp bộ gain cascade trong driver thành bộ PID này.
 
-### Dùng gain đã tune trong driver làm điểm khởi đầu
+CSV ghi `q/qref`, `qd/qdref`, `tau`, `tau_ff`, `tau_fb`, `tau_p`, `tau_i`,
+`tau_d`, `tau_raw`, `position_error`, `error_rate`, `integral`, trạng thái
+bão hòa và `kp/ki/kd` thực đang dùng. P/I đều theo vị trí; D là đạo hàm sai
+số vị trí. Đồ thị PID chỉ tập trung góc khớp, sai số góc và mô-men với
+các thành phần feedforward/P/I/D. Vận tốc vẫn lưu trong CSV để chẩn đoán.
 
-Shoulder (CAN ID 1) trong profile hiện tại lấy từ bộ driver đã tune:
-`pos_gain=10`, `vel_gain=0.75`, `vel_integrator_gain=1` (lần tune cuối trong CSV driver).
-Elbow (CAN ID 2) lấy từ `pos_gain=25`, `vel_gain=0.6`, `vel_integrator_gain=10`.
-Hai bộ có cùng cấu trúc cascade P/PI, nên có thể chuyển gain sau khi đổi đơn vị.
-Phép đổi giả định driver dùng gain PI tạo torque theo quy ước
-[ODrive](https://github.com/odriverobotics/ODrive/blob/fw-v0.5.4/Firmware/odrive-interface.yaml)
-và dùng đúng phép quy đổi CAN hiện tại của plugin.
+Dòng stale/recovery không có feedback PID mới, nên các cột thành phần được
+đánh dấu NaN. Nếu bão hòa nhiều, đánh giá trần mô-men và tốc độ quỹ đạo trước
+khi tăng I. `cascade_hold=true` chỉ là tên parameter cũ để chọn cùng PID
+vị trí trong PREP/HOLD_HOME; không tạo thêm một vòng vận tốc.
 
-Gọi `Nv` là `gear_ratio` dùng đổi góc khớp thành encoder rev, `Nt` là
-`torque_gear_ratio` dùng đổi torque khớp thành torque CAN. Khi dấu vị trí và
-dấu torque phù hợp như shoulder và elbow hiện tại:
-
-```text
-kpp_PC = pos_gain
-kvp_PC = vel_gain * Nv * Nt / (2*pi)
-kvi_PC = vel_integrator_gain * Nv * Nt / (2*pi)
-```
-
-Elbow có `Nv=8` (mặc định của plugin), `Nt=1`, nên hệ số là `8/(2*pi)`:
-
-```text
-kpp_PC = 25
-kvp_PC = 0.7639437268
-kvi_PC = 12.7323954474
-```
-
-Shoulder có `Nv=64`, `Nt=8`, nên hệ số là `512/(2*pi)`:
-
-```text
-kpp_PC = 10
-kvp_PC = 61.1154981473
-kvi_PC = 81.48733086305
-```
-
-Các gain shoulder lớn hơn do phép quy đổi encoder và torque trong cấu hình
-CAN của khớp này. YAML có thứ tự `[base, shoulder, elbow]`; base (CAN ID 0)
-tạm dùng cùng gain với elbow vì chưa tune riêng. Hai khớp này cùng `Nv=8`, `Nt=1`.
-Không nhân thêm torque constant vì controller PC xuất Nm trực tiếp và phép đổi trên
-giả định gain driver cũng xuất torque, không phải dòng điện.
-
-Đây là tương đương phần feedback khi chưa bão hòa, cùng reference và state
-tích phân tương ứng. Chu kỳ điều khiển PC 100 Hz, giới hạn tích phân,
-anti-windup, velocity limiting của driver và feedforward URDF có thể tạo đáp
-ứng khác. Vì vậy bộ số quy đổi là điểm khởi đầu để thử torque, chưa phải kết
-quả đã được xác nhận ổn định trên tay thật. Giới hạn torque và dấu CAN không đổi.
-
-CSV ghi `q/qref`, `qd/qdref`, `tau` đã kẹp, `tau_ff`, `tau_fb`, `tau_p`,
-`tau_i`, `tau_raw` trước kẹp, trạng thái bão hòa và gain thực đang dùng.
-Đồ thị mô-men hiển thị riêng các thành phần này. `tau_p/tau_i` là phần P/I
-của vòng vận tốc; `kpp` thuộc vòng vị trí bên ngoài.
-
-Nếu `saturated` xuất hiện nhiều, đánh giá trần mô-men, tốc độ quỹ đạo và gain
-trước khi tăng I. Dòng stale/recovery trong CSV không có feedback PID mới,
-nên các cột thành phần được đánh dấu NaN thay vì ghi lại giá trị cũ.
-
-Để đổi khớp, chọn cùng tên ở cả launch phần cứng (`torque_joint:=base` hoặc
-`torque_joint:=shoulder`) và launch PID (`joint:=base` hoặc `joint:=shoulder`).
-Việc đổi `torque_joint` cần khởi động lại phần cứng và thiết lập lại mốc zero
-ở đúng tư thế; chỉ sửa gain cùng một khớp thì không cần khởi động lại phần cứng.
-Góc đích là góc tuyệt đối trong hệ zero ROS; node kiểm giới hạn URDF và margin
-hiện có. Dấu và hệ số quy đổi CAN dùng nguyên cấu hình phần cứng hiện tại.
+Đổi khớp thì chọn cùng tên trong launch phần cứng (`torque_joint`) và launch
+PID (`joint`). Việc đổi `torque_joint` cần khởi động lại phần cứng; chỉ sửa
+gain cùng một khớp thì không cần. Góc đích là góc tuyệt đối trong hệ zero ROS.
+Dấu và hệ số quy đổi CAN giữ theo cấu hình phần cứng hiện tại.
 
 ## Chọn vòng tròn / R / A
 
@@ -468,5 +430,5 @@ ros2 launch gim_control pid_sweep_hardware.launch.py \
   log_file:=results/pid_r_run01.csv
 ```
 
-`trajectory_shape:=circle|r|a`. Giữ nguyên gain và cascade PID đã chạy trên tay thật.
+`trajectory_shape:=circle|r|a`. Dùng PID vị trí một vòng và gain hiện có trong YAML; đổi quỹ đạo không tự tune lại gain.
 Tham chiếu giữ đủ q/qd/qdd; báo cáo và đồ thị chỉ đánh giá vị trí.

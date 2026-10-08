@@ -43,7 +43,7 @@ def test_original_sweep_uses_yaml_without_overriding_gains(sweep_launch, tmp_pat
     assert overrides['return_time'] == 16.0
     assert overrides['start_velocity_limit_rad_s'] == 0.05
     assert overrides['cache_file'] == ''
-    assert not {'kpp', 'kvp', 'kvi', 'tau_scale', 'control_hz'}.intersection(overrides)
+    assert not {'position_kp', 'position_ki', 'position_kd', 'tau_scale', 'control_hz'}.intersection(overrides)
     assert (tmp_path / 'logs').is_dir()
 
 
@@ -71,7 +71,7 @@ def test_shape_selection_keeps_existing_pid_gains(sweep_launch, tmp_path, monkey
         context(tmp_path, trajectory_shape=shape))[0]['parameters'][1]
     assert overrides['trajectory_shape'] == shape
     assert overrides['cascade_hold']
-    assert not {'kpp', 'kvp', 'kvi', 'tau_scale', 'control_hz'}.intersection(overrides)
+    assert not {'position_kp', 'position_ki', 'position_kd', 'tau_scale', 'control_hz'}.intersection(overrides)
 
 
 @pytest.mark.parametrize('options', [

@@ -3,14 +3,29 @@ cascade_pid_controller:
     control_hz: 100.0
     tau_scale: 0.35
     autostart: false
-    gravity_scale: [1.0, 1.0, 1.0]
+    gravity_scale:
+    - 1.0
+    - 1.0
+    - 1.0
     cascade_hold: true
-    kpp: [25.0, 35.0, 10.0]
-    kvp: [0.8, 0.7, 0.7]
-    kvi: [2.0, 1.5, 4.0]
-    velocity_integral_limit: 0.5
-    max_transition_error_rad: 0.10
-    max_track_error_rad: 0.10
+    position_kp:
+    - 20.0
+    - 24.5
+    - 7.0
+    position_ki:
+    - 2.0
+    - 1.5
+    - 4.0
+    position_kd:
+    - 0.8
+    - 0.7
+    - 1.0
+    position_integral_limit:
+    - 0.3
+    - 0.3
+    - 0.3
+    max_transition_error_rad: 0.1
+    max_track_error_rad: 0.1
     state_timeout: 0.25
     joint_margin_rad: 0.05
-    command_heartbeat_nm: 0.000001
+    command_heartbeat_nm: 1.0e-06

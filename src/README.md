@@ -1,24 +1,30 @@
-## PID cascade xuất mô-men trực tiếp
+## PID một vòng bám vị trí
 
-Vòng P vị trí tạo vận tốc đặt, vòng PI vận tốc tạo mô-men phản hồi tại khớp:
+Luật điều khiển trên nhánh `pid-test` lấy từ `PositionPidController` của
+nhánh tham khảo `sim_gazebo2`:
 
 ```text
-e_q = q_ref - q
-qd_cmd = qd_ref + Kpp * e_q
-e_v = qd_cmd - qd
-tau_fb = Kvp * e_v + Kvi * integral(e_v)
+e = q_ref - q
+de/dt = qd_ref - qd
+tau_fb = Kp*e + Ki*integral(e) + Kd*de/dt
 tau_cmd = clip(inverse_dynamics(q_ref, qd_ref, qdd_ref) + tau_fb)
 ```
 
-`Kpp` có đơn vị 1/s, `Kvp` là Nm/(rad/s), `Kvi` là Nm/rad.
-PID không có biến lệnh dòng điện hay parameter `torque_constant`.
-Hai profile đi kèm đã quy đổi gain vận tốc để giữ nguyên đáp ứng trước đây.
-Nếu dùng YAML riêng từ phiên bản cũ, nhân `kvp` và `kvi` với giá trị
-`torque_constant` cũ một lần, rồi bỏ parameter đó; `kpp` giữ nguyên.
-Giới hạn mô-men và anti-windup vẫn áp dụng cho mô-men tổng.
+Không có vòng PI vận tốc bên trong. Vận tốc dùng để tính đạo hàm sai số
+vị trí và feedforward nghịch động lực học. Các thành phần PID xuất Nm
+trực tiếp; tích phân sai số vị trí có đơn vị rad*s và có anti-windup.
 
-Simulator CAN vẫn có telemetry `Get_Iq` cho công cụ chẩn đoán; đây là dòng
-suy ra từ mô-men, không phải vòng dòng trong PID hay mô hình FOC.
+Gain YAML mới: `position_kp` [Nm/rad], `position_ki` [Nm/(rad*s)],
+`position_kd` [Nm/(rad/s)], `position_integral_limit` [rad*s]. Gain hiện tại
+là baseline, chưa tune lại từng khớp. YAML cũ dùng `kpp/kvp/kvi` cần cập nhật;
+không thể chép nguyên gain tích phân vận tốc thành gain tích phân vị trí.
+
+Các launch thử từng khớp và vòng quét vẫn dùng cùng PID vị trí trong các
+pha đi, giữ đích, về HOME và giữ HOME. `cascade_hold` và tên node
+`/cascade_pid_controller` chỉ được giữ để tương thích các lệnh cũ.
+CSV bổ sung `tau_d`, `error_rate`, `kp/ki/kd`; đồ thị PID gồm góc,
+sai số góc và mô-men với các thành phần feedforward/P/I/D.
+Hướng dẫn từng khớp: [gim_arm_controller_pid/README.md](gim_arm_controller_pid/README.md).
 
 <!-- PID -->
 T1:
