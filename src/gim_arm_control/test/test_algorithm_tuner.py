@@ -43,8 +43,8 @@ def test_reject_invalid_gain_without_mutation(session, values):
     assert session.document == before
 
 
-def test_safety_and_position_objective_are_not_editable(session):
-    for name in ('control_hz', 'tau_scale', 'max_track_error_rad', 'q_velocity',
+def test_safety_and_objective_mode_are_not_editable(session):
+    for name in ('control_hz', 'tau_scale', 'max_track_error_rad',
                  'position_tracking_only', 'autostart', 'command_topic'):
         with pytest.raises(ValueError):
             session.set_value(name, ['1'])
@@ -84,8 +84,11 @@ def test_horizon_validation_is_transactional(tmp_path):
 
 
 @pytest.mark.parametrize('algorithm,field,value', [
-    ('lqr', 'position_tracking_only', False), ('mpc', 'q_velocity', [1.0, 0.0, 0.0])])
-def test_reject_velocity_objective_from_custom_yaml(tmp_path, algorithm, field, value):
+    ('lqr', 'position_tracking_only', True), ('lqr', 'max_de', [1, 0, 1]),
+    ('mpc', 'q_velocity', [-1.0, 0.0, 0.0]),
+    ('mpc', 'q_velocity', [float('nan'), 1.0, 1.0]),
+    ('mpc', 'output_scale_velocity', [0.1, 0.0, 0.1])])
+def test_reject_invalid_velocity_cost_from_custom_yaml(tmp_path, algorithm, field, value):
     source = ROOT / f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml'
     document = yaml.safe_load(source.read_text())
     document[f'{algorithm}_controller']['ros__parameters'][field] = value
@@ -93,6 +96,34 @@ def test_reject_velocity_objective_from_custom_yaml(tmp_path, algorithm, field, 
     path.write_text(yaml.safe_dump(document))
     with pytest.raises(ValueError):
         tuner.TuningSession(algorithm, path)
+
+
+def test_velocity_weights_are_editable_and_saved(session, tmp_path):
+    if session.algorithm == 'smc':
+        return
+    name = 'max_de' if session.algorithm == 'lqr' else 'q_velocity'
+    session.set_value(name, ['0.5', '1.0', '2.0'])
+    target = tmp_path / 'velocity.yaml'
+    session.save(target)
+    restored = tuner.TuningSession(session.algorithm, target)
+    assert restored.params[name] == [0.5, 1.0, 2.0]
+    if session.algorithm == 'mpc':
+        session.set_value('output_scale_velocity', ['0.2', '0.3', '0.4'])
+        assert session.params['output_scale_velocity'] == [0.2, 0.3, 0.4]
+
+
+def test_tracking_evaluation_depends_on_position_only(capsys):
+    import numpy as np
+    from gim_control.plot_ee_error import print_metrics
+    log = dict(q=np.full((2, 3), 0.01), q_ref=np.zeros((2, 3)),
+               tau=np.ones((2, 3)), phase=np.array(['TRACK', 'TRACK']),
+               qd=np.zeros((2, 3)), qd_ref=np.zeros((2, 3)))
+    print_metrics(log)
+    before = capsys.readouterr().out
+    log['qd'][:] = 100.0
+    print_metrics(log)
+    assert capsys.readouterr().out == before
+    assert 'RMS e_q [deg]' in before and 'MAX |e_q| [deg]' in before
 
 
 @pytest.mark.parametrize('states', [
@@ -191,8 +222,8 @@ def test_staged_gains_rebuild_actual_controller_and_schedule(session, tmp_path):
     from gim_control.effort_controller_node import EffortControllerNode
     algorithm = session.algorithm
     name, values, shape = {
-        'lqr': ('max_e', ['0.08']*3, 'r'),
-        'mpc': ('q_position', ['0.7', '1.7', '0.7'], 'a'),
+        'lqr': ('max_de', ['0.5', '1.0', '2.0'], 'r'),
+        'mpc': ('q_velocity', ['0.02', '0.04', '0.08'], 'a'),
         'smc': ('lambda_gain', ['3.1', '4.1', '4.1'], 'circle'),
     }[algorithm]
     session.set_value(name, values)
@@ -215,8 +246,11 @@ def test_staged_gains_rebuild_actual_controller_and_schedule(session, tmp_path):
         assert np.isfinite(torque).all()
         assert np.all(np.abs(torque) <= node.tau_limit + 1e-8)
         if algorithm == 'lqr':
-            np.testing.assert_allclose(node.controller.weights.max_e, [0.08]*3)
+            np.testing.assert_allclose(np.diag(node.controller.Q)[6:], [4.0, 1.0, 0.25])
         elif algorithm == 'mpc':
+            scale = np.array(session.params['output_scale_velocity'])
+            np.testing.assert_allclose(np.diag(node.controller.Q)[6:],
+                                       (np.array(values, dtype=float) / scale)**2)
             assert node.controller.last['solver_accepted']
         else:
             np.testing.assert_allclose(node.controller.lambda_gain, [3.1, 4.1, 4.1])

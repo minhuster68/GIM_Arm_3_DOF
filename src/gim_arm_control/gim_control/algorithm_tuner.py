@@ -20,15 +20,18 @@ import yaml
 FIELDS = {
     'lqr': {
         'max_int_e': (3, True, False), 'max_e': (3, True, False),
+        'max_de': (3, True, False),
         'max_tau': (3, True, False), 'tau_penalty_scale': (1, True, False),
         'integral_limit': (1, True, False),
         'max_tau_rate_nm_s': (3, True, False),
     },
     'mpc': {
         'q_integral': (3, False, False), 'q_position': (3, True, False),
+        'q_velocity': (3, False, False),
         'r_input': (3, True, False), 'r_rate': (3, False, False),
         'output_scale_integral': (3, True, False),
         'output_scale_position': (3, True, False),
+        'output_scale_velocity': (3, True, False),
         'torque_penalty_scale': (1, True, False),
         'integral_limit': (1, True, False), 'torque_slew_rate': (3, True, False),
         'prediction_horizon': (1, True, True), 'control_horizon': (1, True, True),
@@ -92,11 +95,9 @@ class TuningSession:
             for name in FIELDS[self.algorithm]:
                 self.parse_value(name, params[name] if isinstance(params[name], list)
                                  else [params[name]])
-            if self.algorithm == 'lqr' and params.get('position_tracking_only') is not True:
-                raise ValueError('position_tracking_only phải là true')
+            if self.algorithm == 'lqr' and params.get('position_tracking_only') is not False:
+                raise ValueError('Tune LQR cần position_tracking_only=false để dùng Q vận tốc')
             if self.algorithm == 'mpc':
-                if params.get('q_velocity') != [0.0, 0.0, 0.0]:
-                    raise ValueError('q_velocity phải là [0, 0, 0]')
                 if params['control_horizon'] > params['prediction_horizon']:
                     raise ValueError('control_horizon phải <= prediction_horizon')
         except (KeyError, TypeError) as error:

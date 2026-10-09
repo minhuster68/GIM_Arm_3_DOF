@@ -16,7 +16,8 @@ mpc_controller:
     control_horizon: 10
     q_integral: [2.0, 2.0, 2.0]
     q_position: [0.6271, 1.5677, 0.6271]
-    q_velocity: [0.0, 0.0, 0.0]
+    # Include velocity error in the cost; tracking metrics remain position-only.
+    q_velocity: [0.02, 0.02, 0.02]
     r_input: [0.0097, 0.0097, 0.0097]
     r_rate: [0.03, 0.03, 0.03]
     output_scale_integral: [0.25, 0.25, 0.25]

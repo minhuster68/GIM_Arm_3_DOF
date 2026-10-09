@@ -31,11 +31,13 @@ def test_profiles_and_shapes_route_without_changing_gains(tmp_path, monkeypatch,
     assert overrides['algorithm_hold'] and not overrides['cascade_hold']
     assert not overrides['autostart'] and not overrides['use_sim_time']
     assert overrides['start_velocity_limit_rad_s'] == 0.05
-    assert not {'control_hz', 'tau_scale', 'lambda_gain', 'max_e', 'q_position'}.intersection(overrides)
+    assert not {'control_hz', 'tau_scale', 'lambda_gain', 'max_e', 'max_de',
+                'q_position', 'q_velocity', 'output_scale_velocity'}.intersection(overrides)
     if algorithm == 'lqr':
-        assert params['position_tracking_only'] and params['use_discrete_lqr']
+        assert params['position_tracking_only'] is False and params['use_discrete_lqr']
+        assert all(v > 0 for v in params['max_de'])
     if algorithm == 'mpc':
-        assert params['q_velocity'] == [0.0, 0.0, 0.0]
+        assert all(v > 0 for v in params['q_velocity'])
 
 
 @pytest.mark.parametrize('options', [

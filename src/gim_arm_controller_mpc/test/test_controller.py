@@ -58,6 +58,19 @@ class TestMpcPositionTracking(unittest.TestCase):
         c = self.controller(weight_convention="legacy_linear")
         np.testing.assert_allclose(np.diag(c.Q)[:3], np.full(3, 2.0/0.25**2))
 
+    def test_velocity_weight_and_scale_reach_prediction_cost(self):
+        plain = self.controller(q_velocity=[0.0, 0.0, 0.0])
+        weighted = self.controller(q_velocity=[0.02, 0.04, 0.08],
+                                   output_scale_velocity=[0.1, 0.2, 0.2])
+        np.testing.assert_allclose(np.diag(weighted.Q)[6:], [0.04, 0.04, 0.16])
+        zero = np.zeros(3)
+        a, b = weighted._linearize(zero, zero, zero)
+        state = np.r_[zero, zero, [0.1, -0.1, 0.2]]
+        h0, f0 = plain._qp_terms(state, a, b)
+        h1, f1 = weighted._qp_terms(state, a, b)
+        self.assertGreater(np.linalg.norm(h1-h0), 0.0)
+        self.assertGreater(np.linalg.norm(f1-f0), 0.0)
+
     def test_gazebo_penalty_multiplies_both_input_costs_without_velocity_cost(self):
         source = self.controller()
         gazebo = self.controller(torque_penalty_scale=10000.0)
@@ -125,7 +138,8 @@ class TestMpcPositionTracking(unittest.TestCase):
             c.prepare_reference(q, np.zeros_like(q), np.zeros_like(q), [0.0, 1.0])
 
     def test_condensed_qp_equals_direct_rollout_cost_with_move_blocking(self):
-        c = self.controller(prediction_horizon=5, control_horizon=2)
+        c = self.controller(prediction_horizon=5, control_horizon=2,
+                            q_velocity=[0.02, 0.04, 0.08])
         c.previous_feedback = np.array([0.1, -0.2, 0.05])
         rng = np.random.default_rng(12)
         state = rng.normal(scale=0.01, size=9)
