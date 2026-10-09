@@ -216,6 +216,9 @@ sed -n '1,100p' src/gim_arm_controller_mpc/config/mpc_hardware_soft.yaml
 control_hz: 100.0
 tau_scale: 0.35
 max_track_error_rad: 0.10
-q_velocity: [0.0, 0.0, 0.0]
-q_integral, q_position, r_input, r_rate, torque_penalty_scale, torque_slew_rate.
+q_velocity: [0.02, 0.02, 0.02]
+q_integral, q_position, output_scale_velocity, r_input, r_rate, torque_penalty_scale, torque_slew_rate.
 ```
+
+Chi phí MPC có trọng số sai số vận tốc; đánh giá tracking vẫn dựa
+vào vị trí. Xem [cách chỉnh trọng số vận tốc](src/gim_arm_control/VELOCITY_WEIGHT_TUNING.md).
