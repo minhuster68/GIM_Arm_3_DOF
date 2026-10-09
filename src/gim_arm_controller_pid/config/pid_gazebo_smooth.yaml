@@ -3,6 +3,7 @@ cascade_pid_controller:
     # PID vị trí lấy luật từ nhánh sim_gazebo2, xuất mô-men khớp trực tiếp.
     control_hz: 2000.0
     tau_scale: 0.50
+    base_ff_alpha: 1.0
     autostart: false
     # Một vòng PID vị trí; gain baseline, chưa tune lại từng khớp.
     # Kp [Nm/rad], Ki [Nm/(rad*s)], Kd [Nm/(rad/s)].

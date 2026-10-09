@@ -6,7 +6,9 @@ Lượt thử dùng cùng `PositionPidController` với các launch PID của nh
 
 ```text
 e = q_ref - q
-tau_ff = M(q_ref)*qdd_ref + C(q_ref, qd_ref)*qd_ref + G(q_ref)
+tau_ff_urdf = M(q_ref)*qdd_ref + C(q_ref, qd_ref)*qd_ref + G(q_ref)
+tau_ff = tau_ff_urdf.copy()
+tau_ff[base] *= base_ff_alpha
 tau_fb = Kp*e + Ki*integral(e) + Kd*(qd_ref - qd)
 tau_cmd = clip(tau_ff + tau_fb, -tau_limit, tau_limit)
 ```
@@ -88,8 +90,28 @@ test 5 6 3
 
 `test 5 6 3` đi **thêm 5 độ từ góc đo hiện tại**, đi trong 6 s, giữ 3 s,
 về điểm đầu trong 6 s và giữ thêm 3 s. Hai reference còn lại giữ nguyên.
-Terminal tự dựng PID, switch sang effort, chạy thử, switch về position,
-ghi CSV và mở đồ thị. Đóng cửa sổ đồ thị để tiếp tục nhập lệnh.
+Terminal tự dựng PID, chuẩn bị torque giữ HOME khi position còn active,
+plugin đọc Get_Torques của driver ở 20 Hz và lấy trung bình 5 mẫu mới khi
+motor đang giữ position. Khi đổi mode, plugin gửi ngay torque giữ đo được
+(quy đổi dấu và hộp số ngoài), rồi blend sang lệnh PC trong
+`torque_handoff_duration_s` (mặc định 1 s trong URDF). Giới hạn cứng
+`max_torque_joint_nm` vẫn áp dụng; torque ban đầu lấy từ driver đang giữ,
+còn `tau_scale` áp dụng cho nhánh lệnh PID trên PC. Không có feedback mới
+(cần ít nhất 3 mẫu, mẫu cuối không quá 0.2 s) thì từ chối chuyển torque.
+Terminal chờ kết thúc bàn giao, rồi giữ HOME bằng cùng `tau_ff + PID`. Pha giữ cho I
+tích lũy sau khi effort active; HOME vẫn là góc chụp trước switch.
+Chỉ bắt đầu quỹ đạo khi cả ba khớp có `|qd| <= 0.05 rad/s` và sai lệch
+HOME không quá `min(0.02, max_transition_error_rad)` rad liên tục 0.3 s.
+Nếu không ổn định trong 3 s, trôi quá `max_transition_error_rad`, hoặc PID
+ABORT thì trả về position và lưu log, chưa chạy quỹ đạo. Pha này giúp xử lý
+độ trôi khi chuyển mode, đặc biệt với trục base nghiêng chịu trọng lực;
+không tự đổi gain hoặc chốt lại HOME tại vị trí bị trôi.
+Sau lượt thử, terminal switch về position, ghi CSV và mở đồ thị.
+Đóng cửa sổ đồ thị để tiếp tục nhập lệnh.
+Trong giây bàn giao, `tau` trong CSV là lệnh PC trước blend của plugin;
+log phần cứng in torque giữ khởi đầu. Khi bắt đầu APPROACH, blend đã kết thúc.
+Đây là hỗ trợ tạm thời khi đổi mode; luật PID và feedforward URDF không đổi.
+Thay đổi plugin C++ cần build và khởi động lại launch phần cứng mới có hiệu lực.
 Ctrl-C trong lượt thử cũng thực hiện bước trả về position.
 
 Lệnh chỉnh gain chỉ thay giá trị của khớp đang chọn trong bộ nhớ terminal:
@@ -165,6 +187,26 @@ test 5 6 3
 ```
 
 Chỉ base nhận `tau_ff + tau_fb`; shoulder và elbow giữ position.
+Có thể nhân feedforward của riêng base bằng hệ số `base_ff_alpha`:
+
+```text
+alpha 1.2
+show
+test 3 6 3
+save
+```
+
+Mặc định `base_ff_alpha: 1.0` trong YAML. `alpha VALUE` yêu cầu số hữu hạn
+và lớn hơn 0, chỉ nhập khi terminal đang chọn base. Hệ số áp dụng từ lượt
+`test` tiếp theo; `save` lưu cùng gain, mở lại terminal sẽ đọc giá trị đã lưu.
+Không cần khởi động lại phần cứng giữa các lần đổi alpha.
+Hệ số nhân toàn bộ `tau_ff_base` (M, C và G), giữ nguyên P/I/D và
+feedforward của shoulder, elbow. Lúc giữ HOME với vận tốc/gia tốc tham chiếu
+bằng 0, nó tương đương nhân torque bù trọng lực base. `tau_ff` trong CSV
+và đồ thị là giá trị sau nhân alpha; `parameters.yaml` và `trial.json` ghi
+hệ số của lượt thử. Giới hạn torque và anti-windup vẫn áp dụng sau khi cộng
+feedforward với feedback; tăng alpha có thể làm torque chạm giới hạn.
+
 Sau khi chọn xong gain:
 
 ```text

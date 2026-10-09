@@ -21,20 +21,26 @@ import yaml
 JOINTS = ('base', 'shoulder', 'elbow')
 JOINT_NAMES = tuple(name + '_joint' for name in JOINTS)
 GAIN_KEYS = dict(kp='position_kp', ki='position_ki', kd='position_kd')
+START_VELOCITY_LIMIT_RAD_S = 0.05
+PRESTART_STABLE_TIME_S = 0.3
+PRESTART_TIMEOUT_S = 3.0
 HELP = """PID một vòng trên PC: tau = tau_ff(URDF) + tau_p + tau_i + tau_d.
 Thứ tự: khâu 3 elbow -> khâu 2 shoulder -> khâu 1 base.
-  show                   Xem Kp/Ki/Kd và YAML đang dùng
+  show                   Xem Kp/Ki/Kd, alpha của base và YAML đang dùng
   set KP KI KD           Chỉnh ba gain của riêng khớp đang chọn
   kp VALUE / ki VALUE / kd VALUE
+  alpha VALUE            Nhân tau_ff riêng base; hữu hạn > 0, mặc định 1
   test DEG [MOVE HOLD]   Đi thêm DEG độ, giữ, về điểm đầu; mặc định 6 / 3 s
-  save                   Lưu gain ba khớp vào YAML, không ghi flash motor
+  save                   Lưu gain và alpha vào YAML, không ghi flash motor
   next                   Chuyển 3 -> 2 -> 1 và in lệnh launch phần cứng cần dùng
   help / quit
 
 Set chỉ đổi gain trong terminal; mỗi test dựng PID mới với gain vừa nhập.
+Alpha chỉ chỉnh khi chọn base, áp dụng từ test tiếp theo; không nhân tau_fb.
 Hai khớp còn lại giữ bằng position mode tại góc chụp khi switch sang effort.
 Khi đổi khớp, cần khởi động lại launch phần cứng với torque_joint tương ứng.
 Test kiểm lựa chọn đó từ robot_description trước khi chuyển sang effort.
+Sau switch: PID giữ HOME, chờ đứng yên liên tục 0.3s rồi mới chạy quỹ đạo.
 Sau test/Ctrl-C, trả về position rồi mới lưu CSV và mở đồ thị.
 """
 
@@ -43,6 +49,13 @@ def checked_gain(value):
     value = float(value)
     if not math.isfinite(value) or value < 0:
         raise ValueError('Gain phải hữu hạn và >= 0')
+    return value
+
+
+def checked_alpha(value):
+    value = float(value)
+    if not math.isfinite(value) or value <= 0:
+        raise ValueError('base_ff_alpha phải hữu hạn và > 0')
     return value
 
 
@@ -68,6 +81,7 @@ def load_config(path):
             if value == 0 and key == 'position_integral_limit':
                 raise ValueError('position_integral_limit phải > 0')
         parameters[key] = normalized
+    parameters['base_ff_alpha'] = checked_alpha(parameters.get('base_ff_alpha', 1.0))
     return config
 
 
@@ -116,6 +130,52 @@ class RosPositionTrial:
         self.log_dir = Path(log_dir)
         self.show_plot = show_plot
         self.pid = None
+
+    def wait_for_stable_hold(self, executor, handoff_duration=0.0):
+        """Keep the original HOME under PID before starting the trajectory."""
+        pid = self.pid
+        handoff_end = time.monotonic() + handoff_duration
+        deadline = handoff_end + PRESTART_TIMEOUT_S
+        stable_since = None
+        previous_seq = pid.state_seq
+        last_fresh = time.monotonic()
+        position_limit = min(0.02, pid.max_transition_error)
+        while time.monotonic() < deadline:
+            executor.spin_once(timeout_sec=0.01)
+            if pid.phase == 'ABORT':
+                raise RuntimeError('PID ABORT khi giữ HOME trước quỹ đạo; xem CSV')
+            if pid.state_seq == previous_seq:
+                if time.monotonic() - last_fresh > 0.05:
+                    stable_since = None
+                continue
+            now = time.monotonic()
+            if now - last_fresh > 0.05:
+                stable_since = None
+            last_fresh = now
+            previous_seq = pid.state_seq
+            error = max(abs(float(q - home)) for q, home in zip(pid.q, pid.home_q))
+            if error > pid.max_transition_error:
+                raise RuntimeError(
+                    f'Tay trôi khỏi HOME {math.degrees(error):.2f} độ khi chuyển sang torque; '
+                    'trả về position, chưa chạy quỹ đạo')
+            if now < handoff_end:
+                stable_since = None
+                continue
+            still = max(abs(float(value)) for value in pid.qd) <= START_VELOCITY_LIMIT_RAD_S
+            if still and error <= position_limit:
+                if stable_since is None:
+                    stable_since = time.monotonic()
+                if time.monotonic() - stable_since >= PRESTART_STABLE_TIME_S:
+                    return
+            else:
+                stable_since = None
+        values = ', '.join(
+            f'{name}: qd={float(velocity):.3f} rad/s, '
+            f'e_HOME={math.degrees(float(q - home)):.2f} độ'
+            for name, velocity, q, home in zip(JOINTS, pid.qd, pid.q, pid.home_q))
+        raise RuntimeError(
+            f'PID chưa giữ HOME ổn định sau {PRESTART_TIMEOUT_S:g}s; {values}. '
+            'Dừng bài thử và trả về position, chưa chạy quỹ đạo')
 
     def run(self, selected, degrees, move, hold, parameters):
         import rclpy
@@ -199,6 +259,11 @@ class RosPositionTrial:
                 raise RuntimeError('Chưa đọc được robot_description từ /controller_manager')
             description = descriptions[0].string_value
             check_torque_selection(description, selected)
+            handoff_param = ET.fromstring(description).find(
+                "ros2_control/hardware/param[@name='torque_handoff_duration_s']")
+            handoff_duration = float(handoff_param.text) if handoff_param is not None else 1.0
+            if not math.isfinite(handoff_duration) or not 0 < handoff_duration <= 5.0:
+                raise RuntimeError('torque_handoff_duration_s phải trong (0, 5] giây')
             if probe.count_publishers('/gim_arm_effort_controller/commands'):
                 raise RuntimeError('Một node khác đang phát effort; dừng node PID cũ trước test')
             deadline = time.monotonic() + 3.0
@@ -206,7 +271,7 @@ class RosPositionTrial:
                 if time.monotonic() >= deadline:
                     raise RuntimeError('Chưa có joint state mới với đủ góc/vận tốc')
                 executor.spin_once(timeout_sec=0.01)
-            if max(abs(value) for value in state['qd']) > 0.05:
+            if max(abs(value) for value in state['qd']) > 0.1:
                 raise RuntimeError('Tay đang chuyển động; giữ yên trước test')
 
             stamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y%m%d_%H%M%S_%f')
@@ -223,7 +288,8 @@ class RosPositionTrial:
                 gravity_scale=[1.0, 1.0, 1.0],
                 diagnostic_hold=True, diagnostic_segment=False,
                 approach_time=move, return_time=move, diagnostic_hold_time=hold,
-                start_velocity_limit_rad_s=0.05, command_heartbeat_nm=1.0e-6)
+                start_velocity_limit_rad_s=START_VELOCITY_LIMIT_RAD_S,
+                command_heartbeat_nm=1.0e-6)
             # Construct with a hold at the measured pose; update the target
             # after WAIT captures the exact HOME from a fresh state sample.
             for index in range(3):
@@ -251,15 +317,46 @@ class RosPositionTrial:
             (directory / 'trial.json').write_text(json.dumps({
                 'joint': JOINTS[selected], 'home_rad': self.pid.home_q.tolist(),
                 'target_rad': target, 'move_s': move, 'hold_s': hold,
-                'tau_ff': 'inverse_dynamics(runtime URDF, q_ref, qd_ref, qdd_ref)',
+                'tau_ff': 'inverse_dynamics(runtime URDF, q_ref, qd_ref, qdd_ref); '
+                          'base component multiplied by base_ff_alpha',
+                'base_ff_alpha': self.pid.controller.base_ff_alpha,
                 'tau_fb': 'Kp*e_q + Ki*integral(e_q) + Kd*(qd_ref-qd)',
+                'prestart_hold': {
+                    'hardware_handoff_duration_s': handoff_duration,
+                    'stable_time_s': PRESTART_STABLE_TIME_S,
+                    'timeout_s': PRESTART_TIMEOUT_S,
+                    'velocity_limit_rad_s': START_VELOCITY_LIMIT_RAD_S,
+                    'position_limit_rad': min(0.02, self.pid.max_transition_error),
+                },
             }, indent=2) + '\n')
             print(f'Test {JOINTS[selected]}: đi thêm {degrees:g} độ, '
                   f'đi/về {move:g}s, giữ {hold:g}s; tau_ff + tau_fb.')
+            # Establish the command connection while position mode still holds
+            # the arm. Send the current HOME PID + gravity command before the
+            # mode handoff instead of enabling the trajectory immediately.
+            deadline = time.monotonic() + 3.0
+            while self.pid.publisher.get_subscription_count() == 0:
+                if time.monotonic() >= deadline:
+                    raise RuntimeError('Effort controller chưa nhận topic commands')
+                executor.spin_once(timeout_sec=0.01)
+            prime_until = time.monotonic() + 0.05
+            while time.monotonic() < prime_until:
+                executor.spin_once(timeout_sec=0.01)
+            if self.pid.phase == 'ABORT':
+                raise RuntimeError('PID ABORT trước khi chuyển sang torque; xem CSV')
+            self.pid._publish(self.pid._hold_torque(self.pid.dt_nom, integrate=False))
             # A failed/timed-out activation may still have changed the manager;
             # mark the cleanup obligation before requesting the switch.
             active_effort = True
             switch(True)
+            # Position mode is now inactive: allow this same PID's I term to
+            # correct gravity/model mismatch while HOME stays fixed. Nothing
+            # accumulated while the driver was holding position.
+            self.pid.manual_hold_latched = True
+            print(f'Bàn giao torque trong {handoff_duration:g}s, rồi giữ HOME '
+                  'bằng tau_ff + PID; chờ tay ổn định 0.3s trước quỹ đạo.')
+            self.wait_for_stable_hold(executor, handoff_duration)
+            print('HOME đã ổn định; bắt đầu quỹ đạo.')
             self.pid.set_parameters([Parameter('autostart', value=True)])
             deadline = time.monotonic() + 5 * (2 * move + 2 * hold) + 15.0
             while self.pid.phase not in ('HOLD', 'ABORT'):
@@ -312,6 +409,8 @@ class PositionPidTerminal:
         gains = {name: self.parameters[key][self.selected] for name, key in GAIN_KEYS.items()}
         print(f'Khâu {self.selected + 1}: {JOINTS[self.selected]}, '
               f'Kp={gains["kp"]:g}, Ki={gains["ki"]:g}, Kd={gains["kd"]:g}')
+        print(f'base_ff_alpha={self.parameters["base_ff_alpha"]:g}; '
+              'chỉ nhân tau_ff của base, không nhân feedback PID.')
         print(f'YAML lưu bằng lệnh save: {self.params_file}')
 
     def stage(self):
@@ -339,6 +438,11 @@ class PositionPidTerminal:
         elif command in GAIN_KEYS and len(args) == 1:
             self.parameters[GAIN_KEYS[command]][self.selected] = checked_gain(args[0])
             self.show()
+        elif command == 'alpha' and len(args) == 1:
+            if self.selected != 0:
+                raise ValueError('alpha chỉ chỉnh khi đang chọn khớp base')
+            self.parameters['base_ff_alpha'] = checked_alpha(args[0])
+            self.show()
         elif command == 'next' and not args:
             if self.selected == 0:
                 print('Đã tới khâu 1; thứ tự 3 -> 2 -> 1 hoàn tất.')
@@ -359,7 +463,7 @@ class PositionPidTerminal:
             finally:
                 if temporary is not None and os.path.exists(temporary):
                     os.unlink(temporary)
-            print(f'Đã lưu gain PID trên PC: {self.params_file}')
+            print(f'Đã lưu gain PID và base_ff_alpha trên PC: {self.params_file}')
         elif command == 'test' and 1 <= len(args) <= 3:
             degrees, move, hold = checked_trial(
                 args[0], args[1] if len(args) >= 2 else 6, args[2] if len(args) >= 3 else 3)
@@ -369,7 +473,8 @@ class PositionPidTerminal:
             else:
                 self.trial.run(self.selected, degrees, move, hold, copy.deepcopy(self.parameters))
         else:
-            raise ValueError('Sai lệnh; dùng kp/ki/kd hoặc set KP KI KD. Gõ help để xem.')
+            raise ValueError('Sai lệnh; dùng kp/ki/kd, set KP KI KD hoặc alpha VALUE. '
+                             'Gõ help để xem.')
         return True
 
     def run(self):

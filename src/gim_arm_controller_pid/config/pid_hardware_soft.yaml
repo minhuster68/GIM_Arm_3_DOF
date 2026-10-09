@@ -1,7 +1,8 @@
 cascade_pid_controller:
   ros__parameters:
     control_hz: 100.0
-    tau_scale: 0.35
+    tau_scale: 1.0
+    base_ff_alpha: 2.0
     autostart: false
     gravity_scale:
     - 1.0
@@ -9,17 +10,17 @@ cascade_pid_controller:
     - 1.0
     cascade_hold: true
     position_kp:
-    - 20.0
-    - 24.5
-    - 7.0
+    - 30.0
+    - 22.0
+    - 2.5
     position_ki:
-    - 2.0
-    - 1.5
-    - 4.0
+    - 2.5
+    - 3.0
+    - 0.6
     position_kd:
-    - 0.8
-    - 0.7
-    - 1.0
+    - 0.1
+    - 10.0
+    - 0.5
     position_integral_limit:
     - 0.3
     - 0.3

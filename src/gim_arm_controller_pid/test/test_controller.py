@@ -117,3 +117,43 @@ def test_feedforward_uses_all_reference_signals_and_not_measured_state():
     np.testing.assert_allclose(pid.last["tau_ff"], expected)
     pid.compute(q + 0.02, qd * 0.5, qref, qdref, qddref, 0.01)
     np.testing.assert_allclose(pid.last["tau_ff"], expected)
+
+
+def test_alpha_scales_only_base_feedforward_and_preserves_feedback_and_model():
+    original = controller()
+    scaled = controller(base_ff_alpha=1.7)
+    q = np.array([0.1, 0.2, 0.3])
+    qd = np.array([0.2, -0.1, 0.3])
+    qref = q + 0.05
+    qdref = qd + 0.01
+    qddref = np.array([0.1, -0.2, 0.3])
+    for _ in range(2):
+        original.compute(q, qd, qref, qdref, qddref, 0.01)
+        scaled.compute(q, qd, qref, qdref, qddref, 0.01)
+    expected = original.last['tau_ff'] * np.array([1.7, 1.0, 1.0])
+    np.testing.assert_allclose(scaled.last['tau_ff'], expected)
+    np.testing.assert_allclose(scaled.last['tau_ff_urdf'], original.last['tau_ff'])
+    for term in ('tau_fb', 'tau_p', 'tau_i', 'tau_d', 'integral'):
+        np.testing.assert_allclose(scaled.last[term], original.last[term])
+    np.testing.assert_allclose(scaled.last['tau_raw'], expected + original.last['tau_fb'])
+
+
+def test_alpha_respects_torque_limit_and_saturation_antiwindup():
+    pid = controller(base_ff_alpha=100.0, tau_limit=[0.5, 10.0, 10.0])
+    zero = np.zeros(3)
+    pid.compute(zero, zero, np.array([0.1, 0.0, 0.0]), zero, zero, 0.01)
+    assert pid.last['tau_ff'][0] > 0.5
+    assert pid.last['tau'][0] == 0.5
+    assert pid.last['saturated'][0]
+    assert pid.integral[0] == 0.0
+
+
+def test_alpha_identifies_base_by_joint_name_when_order_changes():
+    dynamics = ReferenceDynamics()
+    dynamics.joint_names = ['shoulder_joint', 'base_joint', 'elbow_joint']
+    pid = PositionPidController(
+        dynamics, kp=[0.0] * 3, ki=[0.0] * 3, kd=[0.0] * 3,
+        integral_limit=[0.1] * 3, base_ff_alpha=2.0)
+    zero = np.zeros(3)
+    torque = pid.compute(zero, zero, zero, zero, zero, 0.01)
+    np.testing.assert_allclose(torque, [0.0, 4.0, 1.0])

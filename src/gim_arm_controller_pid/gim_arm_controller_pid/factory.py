@@ -12,6 +12,7 @@ class PositionPidFactory(ControllerFactory):
         node.declare_parameter("position_ki", [12.69, 16.92, 9.87])
         node.declare_parameter("position_kd", [0.94, 1.41, 1.175])
         node.declare_parameter("position_integral_limit", [0.3, 0.3, 0.3])
+        node.declare_parameter("base_ff_alpha", 1.0)
 
     def build(self, node, dynamics, tau_limit, control_hz):
         n = dynamics.nq
@@ -23,6 +24,7 @@ class PositionPidFactory(ControllerFactory):
             integral_limit=vector_parameter(
                 node, "position_integral_limit", n, positive=True),
             tau_limit=tau_limit,
+            base_ff_alpha=node.get_parameter("base_ff_alpha").value,
         )
 
 

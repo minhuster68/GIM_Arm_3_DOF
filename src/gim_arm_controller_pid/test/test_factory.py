@@ -93,7 +93,19 @@ def test_ros_entry_point_builds_position_pid_without_cascade_parameters():
     factory = PositionPidFactory()
     factory.declare_parameters(parameters)
     assert set(parameters.parameters) == {
-        'position_kp', 'position_ki', 'position_kd', 'position_integral_limit'}
+        'position_kp', 'position_ki', 'position_kd', 'position_integral_limit',
+        'base_ff_alpha'}
     with patch.object(node, 'run_controller') as run:
         node.main()
     assert isinstance(run.call_args.args[0], PositionPidFactory)
+
+
+def test_factory_passes_base_feedforward_alpha_with_neutral_default():
+    assert build().base_ff_alpha == 1.0
+    assert build({'base_ff_alpha': 1.5}).base_ff_alpha == 1.5
+
+
+@pytest.mark.parametrize('alpha', [0.0, -1.0, float('nan'), float('inf')])
+def test_factory_rejects_invalid_base_feedforward_alpha(alpha):
+    with pytest.raises(ValueError, match='base_ff_alpha'):
+        build({'base_ff_alpha': alpha})

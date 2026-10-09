@@ -10,8 +10,16 @@ class PositionPidController:
     Kp, Ki and Kd output joint torque directly, without a motor Kt factor.
     """
 
-    def __init__(self, dynamics, kp, ki, kd, integral_limit, tau_limit=None):
+    def __init__(self, dynamics, kp, ki, kd, integral_limit, tau_limit=None,
+                 base_ff_alpha=1.0):
         self.dyn = dynamics
+        self.base_ff_alpha = float(base_ff_alpha)
+        if not np.isfinite(self.base_ff_alpha) or self.base_ff_alpha <= 0:
+            raise ValueError('base_ff_alpha phải hữu hạn và > 0')
+        # The arm's standard order is base, shoulder, elbow. Honor explicit
+        # joint names when provided by the dynamics model.
+        self.base_index = list(getattr(
+            dynamics, 'joint_names', ['base_joint'])).index('base_joint')
         self.kp = np.asarray(kp, dtype=float)
         self.ki = np.asarray(ki, dtype=float)
         self.kd = np.asarray(kd, dtype=float)
@@ -34,7 +42,10 @@ class PositionPidController:
         qdd_ref = np.asarray(qdd_ref, dtype=float)
         position_error = q_ref - q
         error_rate = qd_ref - qd
-        tau_ff = self.dyn.inverse_dynamics(q_ref, qd_ref, qdd_ref)
+        tau_ff_urdf = np.asarray(
+            self.dyn.inverse_dynamics(q_ref, qd_ref, qdd_ref), dtype=float)
+        tau_ff = tau_ff_urdf.copy()
+        tau_ff[self.base_index] *= self.base_ff_alpha
         tau_position = self.kp * position_error
         tau_derivative = self.kd * error_rate
         tau_integral = self.ki * self.integral
@@ -57,6 +68,7 @@ class PositionPidController:
             "tau_i": tau_integral,
             "tau_d": tau_derivative,
             "tau_ff": tau_ff,
+            "tau_ff_urdf": tau_ff_urdf,
             "tau_position": tau_position,
             "tau_derivative": tau_derivative,
             "tau_integral": tau_integral,
@@ -72,7 +84,9 @@ class PositionPidController:
             "Single-loop position PID: e=qref-q, "
             "tau=tau_ff+Kp*e+Ki*integral(e)+Kd*de/dt; "
             "de/dt=qdot_ref-qdot\n"
-            "  tau_ff=M(qref)*qddot_ref+C(qref,qdot_ref)*qdot_ref+G(qref)\n"
+            "  tau_ff_urdf=M(qref)*qddot_ref+C(qref,qdot_ref)*qdot_ref+G(qref)\n"
+            f"  base tau_ff={self.base_ff_alpha:g}*tau_ff_urdf; "
+            "shoulder/elbow tau_ff=tau_ff_urdf\n"
             f"  Kp={self.kp} Nm/rad, Ki={self.ki} Nm/(rad*s), "
             f"Kd={self.kd} Nm/(rad/s)\n"
             f"  |integral position error| <= {self.integral_limit} rad*s, "

@@ -40,9 +40,9 @@ def test_tuning_moves_from_joint_three_to_two_to_one_and_preserves_other_gains(t
     assert terminal.selected == 0
     terminal.execute('save')
     restored = tuner.load_config(terminal.params_file)['cascade_pid_controller']['ros__parameters']
-    assert restored['position_kp'] == [20.0, 30.0, 8.0]
-    assert restored['position_ki'] == [2.0, 1.5, 0.1]
-    assert restored['position_kd'] == [1.2, 0.7, 0.9]
+    assert restored['position_kp'] == [original['position_kp'][0], 30.0, 8.0]
+    assert restored['position_ki'] == [*original['position_ki'][:2], 0.1]
+    assert restored['position_kd'] == [1.2, original['position_kd'][1], 0.9]
 
 
 @pytest.mark.parametrize('command', [
@@ -79,6 +79,50 @@ def test_dry_run_never_opens_ros_or_writes_yaml(terminal):
     terminal.execute('save')
     terminal.trial.run.assert_not_called()
     assert terminal.params_file.read_text() == original
+
+
+def test_alpha_is_saved_passed_to_next_test_and_preserves_all_pid_gains(terminal):
+    terminal.selected = 0
+    original = copy.deepcopy(terminal.parameters)
+    terminal.trial = Mock()
+    terminal.execute('alpha 1.5')
+    terminal.execute('test 3 6 3')
+    passed = terminal.trial.run.call_args.args[-1]
+    assert passed['base_ff_alpha'] == 1.5
+    for key in tuner.GAIN_KEYS.values():
+        assert passed[key] == original[key]
+    terminal.execute('save')
+    restored = tuner.PositionPidTerminal(terminal.params_file, joint='base')
+    assert restored.parameters['base_ff_alpha'] == 1.5
+
+
+@pytest.mark.parametrize('value', ['0', '-1', 'nan', 'inf', '1 extra'])
+def test_invalid_alpha_never_changes_parameters_or_starts_trial(terminal, value):
+    terminal.selected = 0
+    original = copy.deepcopy(terminal.parameters)
+    terminal.trial = Mock()
+    with pytest.raises(ValueError):
+        terminal.execute('alpha ' + value)
+    assert terminal.parameters == original
+    terminal.trial.run.assert_not_called()
+
+
+def test_alpha_command_requires_base_selection(terminal):
+    original = copy.deepcopy(terminal.parameters)
+    with pytest.raises(ValueError, match='base'):
+        terminal.execute('alpha 1.5')
+    assert terminal.parameters == original
+
+
+def test_old_yaml_defaults_to_neutral_alpha_and_rejects_invalid_saved_alpha(terminal):
+    del terminal.parameters['base_ff_alpha']
+    terminal.params_file.write_text(yaml.safe_dump(terminal.config))
+    assert tuner.load_config(terminal.params_file)[
+        'cascade_pid_controller']['ros__parameters']['base_ff_alpha'] == 1.0
+    terminal.parameters['base_ff_alpha'] = -1.0
+    terminal.params_file.write_text(yaml.safe_dump(terminal.config))
+    with pytest.raises(ValueError, match='base_ff_alpha'):
+        tuner.load_config(terminal.params_file)
 
 
 def test_existing_terminal_entry_point_defaults_to_pc_pid(terminal, capsys):

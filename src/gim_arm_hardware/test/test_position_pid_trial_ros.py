@@ -1,20 +1,24 @@
 """Run the PC PID terminal against a mock ROS arm, never CAN hardware."""
 
 import csv
+import json
 import importlib.util
 from pathlib import Path
 import threading
+import time
 import unittest
 from unittest.mock import patch
 
 import numpy as np
 import rclpy
+import yaml
 from controller_manager_msgs.msg import ControllerState
 from controller_manager_msgs.srv import ListControllers, SwitchController
 from rcl_interfaces.msg import ParameterType, ParameterValue
 from rcl_interfaces.srv import GetParameters
-from rclpy.executors import MultiThreadedExecutor
+from rclpy.executors import SingleThreadedExecutor
 from sensor_msgs.msg import JointState
+from std_msgs.msg import Float64MultiArray
 
 from gim_control.hardware_description import configure_hardware_description
 
@@ -41,6 +45,14 @@ class TestPositionPidRosTrial(unittest.TestCase):
         self.stale_description_requests = 0
         self.effort_active = False
         self.switches = []
+        self.prestart_velocity = 0.0
+        self.prestart_drift = 0.0
+        self.prestart_duration = 0.0
+        self.activation_time = None
+        self.commands_before_effort = []
+        self.node.create_subscription(
+            Float64MultiArray, '/gim_arm_effort_controller/commands',
+            self.receive_command, 10)
         self.publisher = self.node.create_publisher(JointState, '/joint_states', 10)
         self.timer = self.node.create_timer(0.01, self.publish_state)
         self.node.create_service(
@@ -51,7 +63,7 @@ class TestPositionPidRosTrial(unittest.TestCase):
             GetParameters, '/controller_manager/get_parameters', self.robot_description)
         self.node.create_service(
             GetParameters, '/robot_state_publisher/get_parameters', self.stale_robot_description)
-        self.executor = MultiThreadedExecutor(num_threads=3, context=self.context)
+        self.executor = SingleThreadedExecutor(context=self.context)
         self.executor.add_node(self.node)
         self.stop_spinning = threading.Event()
         self.thread = threading.Thread(target=self.spin_mock_arm, daemon=True)
@@ -75,6 +87,10 @@ class TestPositionPidRosTrial(unittest.TestCase):
     def publish_state(self):
         q, qd = np.array([0.03, 0.05, 0.1]), np.zeros(3)
         pid = self.trial.pid
+        if (pid is not None and self.effort_active and pid.phase == 'GRAVITY'
+                and time.monotonic() - self.activation_time < self.prestart_duration):
+            qd[0] = self.prestart_velocity
+            q[0] += self.prestart_drift
         if pid is not None and self.effort_active and pid.phase in (
                 'APPROACH', 'TRACK', 'RETURN', 'HOLD'):
             q, qd, _ = pid._reference_at_phase(pid.phase_elapsed)
@@ -84,6 +100,10 @@ class TestPositionPidRosTrial(unittest.TestCase):
         message.velocity = [float(value) for value in qd]
         message.header.stamp = self.node.get_clock().now().to_msg()
         self.publisher.publish(message)
+
+    def receive_command(self, message):
+        if not self.effort_active:
+            self.commands_before_effort.append(list(message.data))
 
     def list_controllers(self, request, response):
         for name, active in (
@@ -96,6 +116,9 @@ class TestPositionPidRosTrial(unittest.TestCase):
     def switch_controller(self, request, response):
         self.switches.append(request)
         self.effort_active = 'gim_arm_effort_controller' in request.activate_controllers
+        if self.effort_active:
+            self.activation_time = time.monotonic()
+            self.activation_wall_time = time.time()
         response.ok = True
         return response
 
@@ -153,6 +176,67 @@ class TestPositionPidRosTrial(unittest.TestCase):
             self.trial.run(1, 1, 0.15, 0.04, self.parameters)
         self.assertEqual(self.switches, [])
         self.assertIsNone(self.trial.pid)
+
+    def test_base_handoff_keeps_home_pid_active_until_transient_velocity_settles(self):
+        self.description = configure_hardware_description(self.stale_description, torque_joint='base')
+        self.parameters['base_ff_alpha'] = 1.5
+        # Exercise I during the handoff independently of the user's saved
+        # tuning gains (which may intentionally disable base integral).
+        self.parameters['position_ki'][0] = 2.0
+        self.prestart_velocity = -0.15
+        self.prestart_drift = -0.005
+        self.prestart_duration = 0.15
+        self.trial.run(0, 1, 0.15, 0.04, self.parameters)
+        self.assertTrue(self.commands_before_effort)
+        self.assertTrue(any(abs(command[0]) > 0.1 for command in self.commands_before_effort))
+        path = next(Path(self.directory.name).glob('*/tracking.csv'))
+        with path.open() as stream:
+            rows = list(csv.DictReader(stream))
+        prep = [row for row in rows if row['phase'] == 'GRAVITY' and row['event'] == 'CONTROL']
+        self.assertTrue(any(abs(float(row['qd_base_joint'])) > 0.05 for row in prep))
+        self.assertTrue(any(abs(float(row['tau_p_base_joint'])) > 0 for row in prep))
+        self.assertTrue(any(abs(float(row['tau_i_base_joint'])) > 0 for row in prep))
+        first_move = next(row for row in rows if row['phase'] == 'APPROACH')
+        self.assertGreaterEqual(float(first_move['t_wall']) - self.activation_wall_time, 1.3)
+        self.assertLessEqual(abs(float(first_move['qd_base_joint'])), 0.05)
+        self.assertAlmostEqual(float(first_move['qref_base_joint']), 0.03)
+        from gim_control.arm_dynamics import ArmDynamics
+        dynamics = ArmDynamics(str(path.with_name('model.urdf')))
+        for row in rows:
+            if row['event'] != 'CONTROL' or row['phase'] not in ('GRAVITY', 'TRACK', 'HOLD'):
+                continue
+            expected_ff = dynamics.inverse_dynamics(
+                [float(row['qref_' + joint]) for joint in tuner.JOINT_NAMES],
+                [float(row['qdref_' + joint]) for joint in tuner.JOINT_NAMES],
+                np.zeros(3))
+            expected_ff[0] *= 1.5
+            np.testing.assert_allclose(
+                [float(row['tau_ff_' + joint]) for joint in tuner.JOINT_NAMES], expected_ff)
+        metadata = json.loads(path.with_name('trial.json').read_text())
+        self.assertEqual(metadata['base_ff_alpha'], 1.5)
+        saved = yaml.safe_load(path.with_name('parameters.yaml').read_text())
+        self.assertEqual(saved['cascade_pid_controller']['ros__parameters']['base_ff_alpha'], 1.5)
+        self.assertFalse(self.effort_active)
+
+    def test_persistent_prestart_motion_returns_to_position_without_starting_trajectory(self):
+        self.prestart_velocity = -0.15
+        self.prestart_duration = 10.0
+        with patch.object(tuner, 'PRESTART_TIMEOUT_S', 0.25):
+            with self.assertRaisesRegex(RuntimeError, 'chưa giữ HOME ổn định'):
+                self.trial.run(2, 1, 0.15, 0.04, self.parameters)
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
+        path = next(Path(self.directory.name).glob('*/tracking.csv'))
+        with path.open() as stream:
+            self.assertEqual({row['phase'] for row in csv.DictReader(stream)}, {'GRAVITY'})
+
+    def test_prestart_drift_past_position_limit_returns_to_position(self):
+        self.prestart_drift = -0.15
+        self.prestart_duration = 10.0
+        with self.assertRaisesRegex(RuntimeError, 'trôi khỏi HOME'):
+            self.trial.run(2, 1, 0.15, 0.04, self.parameters)
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
 
     def test_ctrl_c_during_pid_motion_returns_to_position(self):
         from gim_control.effort_controller_node import EffortControllerNode

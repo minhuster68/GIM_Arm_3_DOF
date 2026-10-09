@@ -2,6 +2,7 @@ cascade_pid_controller:
   ros__parameters:
     control_hz: 100.0
     tau_scale: 0.35
+    base_ff_alpha: 1.0
     autostart: false
     gravity_scale: [1.0, 1.0, 1.0]
     # Tên parameter cũ: giữ PREP/HOME bằng cùng PID vị trí một vòng.

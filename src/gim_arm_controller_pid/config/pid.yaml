@@ -3,6 +3,7 @@ cascade_pid_controller:
     control_hz: 100.0
     # Đúng trần MATLAB. Launch chung mặc định override xuống 0.35 khi bring-up.
     tau_scale: 1.0
+    base_ff_alpha: 1.0
     autostart: false
     # Clutch ON: bù trọng lực + damping để người dùng kéo tay robot.
     drag_kd: [0.3, 1.0, 0.3]
