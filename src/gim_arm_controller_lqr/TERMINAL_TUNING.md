@@ -20,8 +20,9 @@ tau_raw = tau_ff + tau_fb
 tau_cmd = clip_and_slew_limit(tau_raw)
 ```
 
-K dùng DARE ở 100 Hz. Q vận tốc bằng 0 để tối ưu bám vị trí; vận tốc vẫn
-thuộc mô hình và feedback để tạo damping. Có tích phân nên đây là LQR/LQI.
+K dùng DARE ở 100 Hz. Q phạt sai số tích phân, vị trí và vận tốc.
+Đánh giá tracking dùng RMS và max sai số vị trí, không gộp sai số vận tốc.
+Có tích phân nên đây là LQR/LQI.
 K được tính trước theo HOME → góc thử → HOME ở 10 Hz và nội suy theo thời
 gian quỹ đạo. Không giải Riccati trong vòng gửi torque.
 
@@ -35,10 +36,14 @@ Các vector YAML theo thứ tự `[base, shoulder, elbow]`:
 ```text
 QI = 1 / max_int_e²
 QE = 1 / max_e²
+QV = 1 / max_de²
 R  = tau_penalty_scale / max_tau²
 ```
 
-`qe`, `qi`, `r` nhập trực tiếp phần tử đường chéo Q/R của khớp đang chọn;
+Baseline `max_de=[2,2,2]` rad/s cho `QV=[0.25,0.25,0.25]`.
+Giảm max_de làm tăng QV; max_de là thang trọng số, không phải giới hạn cứng.
+
+`qe`, `qi`, `qv`, `r` nhập trực tiếp phần tử đường chéo Q/R của khớp đang chọn;
 terminal đổi sang các tham số Bryson tương đương để lưu YAML.
 `max_tau` trong công thức R là thang chuẩn hóa trọng số, không đổi trần
 torque. Trần lệnh vẫn là effort URDF × tau_scale: `[5,40,5]` Nm với profile này.
@@ -126,6 +131,8 @@ qe 200
 test 3 6 3
 qi 50
 test 3 6 3
+qv 1
+test 3 6 3
 r 10
 test 3 6 3
 save
@@ -133,8 +140,10 @@ save
 
 Đây là ví dụ cú pháp, không phải bộ trọng số đã tune. QE tăng hoặc R giảm
 làm feedback vị trí mạnh hơn; QI tăng làm ưu tiên loại sai số tích lũy mạnh
-hơn. Thay một trọng số mỗi lần và so sánh sai số, dao động, saturation.
-`set QE QI R` đổi cả ba cùng lúc, không phải Kp/Ki/Kd.
+hơn. QV phạt sai số vận tốc trong tối ưu. Thay một trọng số mỗi lần và
+so sánh sai số vị trí, dao động, saturation.
+`set QE QI QV R` đổi cả bốn cùng lúc, không phải Kp/Ki/Kd.
+Cú pháp cũ `set QE QI R` vẫn dùng được và giữ nguyên QV hiện tại.
 `slew VALUE` chỉnh tốc độ đổi torque khớp đó [Nm/s], giá trị >0.
 `alpha VALUE` chỉ nhập khi chọn base; không nhân feedback -Kx.
 Lệnh chỉnh số áp dụng vào test tiếp theo; `save` mới ghi YAML.

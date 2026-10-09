@@ -12,18 +12,19 @@ from .lqr_joint_trial import JOINTS, RosLqrJointTrial, checked_trial
 
 HELP = """LQR từng khớp: elbow (3) -> shoulder (2) -> base (1).
 Luật: tau = tau_ff(URDF) - K @ [integral(e), e, qd-qd_ref], e=q-q_ref.
-Q vận tốc = 0; vận tốc vẫn dùng trong mô hình và feedback.
-  show                  Xem Q vị trí, Q tích phân, R và YAML
-  set QE QI R           Chỉnh ba trọng số của riêng khớp đang chọn
-  qe VALUE / qi VALUE / r VALUE
-  max_e VALUE / max_int_e VALUE / max_tau VALUE   Tham số Bryson tương đương
+Q gồm sai số tích phân, vị trí và vận tốc; đánh giá tracking theo vị trí.
+  show                  Xem QE, QI, QV, R và YAML
+  set QE QI QV R        Chỉnh bốn trọng số của riêng khớp đang chọn
+  set QE QI R           Cú pháp cũ: giữ nguyên QV hiện tại
+  qe VALUE / qi VALUE / qv VALUE / r VALUE
+  max_e VALUE / max_int_e VALUE / max_de VALUE / max_tau VALUE
   slew VALUE            Giới hạn tốc độ đổi torque riêng khớp [Nm/s], > 0
   alpha VALUE           Nhân tau_ff riêng base, chỉ chỉnh khi chọn base
   test DEG [MOVE HOLD]  Đi thêm DEG độ, giữ, quay về HOME; mặc định 6 / 3 s
   save                  Lưu bộ số vào YAML trên máy
   next                  Chuyển 3 -> 2 -> 1 và in launch phần cứng tương ứng
   help / quit
-QE/QI/R phải hữu hạn và > 0; chỉ áp dụng khi test tiếp theo.
+QE/QI/QV/R phải hữu hạn và > 0; chỉ áp dụng khi test tiếp theo.
 max_tau là thang chuẩn hóa R, không thay trần torque của URDF/tau_scale.
 Hai khớp còn lại giữ position. Mỗi test tạo lại K theo quỹ đạo đang thử.
 Ctrl-C trong test: trả về position rồi lưu log và mở đồ thị.
@@ -39,6 +40,8 @@ def positive(value):
 
 
 def validate_joint_profile(params):
+    if params.get('position_tracking_only') is not False:
+        raise ValueError('Tune từng khớp cần position_tracking_only=false để dùng Q vận tốc')
     if float(params['control_hz']) != 100.0:
         raise ValueError('Tune phần cứng dùng control_hz=100')
     if params.get('use_discrete_lqr') is not True or params.get('require_discrete_stable') is not True:
@@ -51,8 +54,10 @@ def validate_joint_profile(params):
         raise ValueError('Tune từng khớp cần gain_schedule_mode=trajectory_time')
     scale = positive(params['tau_penalty_scale'])
     try:
-        for e, ie, torque in zip(params['max_e'], params['max_int_e'], params['max_tau']):
-            for cost in (1 / positive(e)**2, 1 / positive(ie)**2, scale / positive(torque)**2):
+        for e, ie, de, torque in zip(params['max_e'], params['max_int_e'],
+                                      params['max_de'], params['max_tau']):
+            for cost in (1 / positive(e)**2, 1 / positive(ie)**2,
+                         1 / positive(de)**2, scale / positive(torque)**2):
                 positive(cost)
     except (OverflowError, ZeroDivisionError) as error:
         raise ValueError('Trọng số Q/R ngoài phạm vi số hữu hạn') from error
@@ -84,7 +89,7 @@ class LqrJointTerminal:
         validate_joint_profile(params)
         self.session.document = candidate
 
-    def set_costs(self, qe, qi, r):
+    def set_costs(self, qe, qi, r, qv=None):
         qe, qi, r = (positive(v) for v in (qe, qi, r))
         candidate = deepcopy(self.session.document)
         params = candidate['lqr_controller']['ros__parameters']
@@ -92,6 +97,8 @@ class LqrJointTerminal:
                   math.sqrt(params['tau_penalty_scale']) / math.sqrt(r))
         for key, value in zip(BRYSON, values):
             params[key][self.selected] = positive(value)
+        if qv is not None:
+            params['max_de'][self.selected] = positive(1 / math.sqrt(positive(qv)))
         self.session.validate(candidate)
         validate_joint_profile(params)
         self.session.document = candidate
@@ -103,8 +110,9 @@ class LqrJointTerminal:
 
     def show(self):
         qe, qi, r = self.costs()
+        qv = 1 / self.parameters['max_de'][self.selected]**2
         print(f'Khâu {self.selected + 1}: {JOINTS[self.selected]} | '
-              f'QE={qe:g}, QI={qi:g}, R={r:g}; Q vận tốc=0')
+              f'QE={qe:g}, QI={qi:g}, QV={qv:g}, R={r:g}')
         print(f'base_ff_alpha={self.parameters["base_ff_alpha"]:g}, '
               f'tau_scale={self.parameters["tau_scale"]:g}, '
               f'slew={self.parameters["max_tau_rate_nm_s"][self.selected]:g} Nm/s')
@@ -132,12 +140,19 @@ class LqrJointTerminal:
         elif command == 'set' and len(args) == 3:
             self.set_costs(*args)
             self.show()
+        elif command == 'set' and len(args) == 4:
+            qe, qi, qv, r = args
+            self.set_costs(qe, qi, r, qv=qv)
+            self.show()
         elif command in ('qe', 'qi', 'r') and len(args) == 1:
             costs = list(self.costs())
             costs[('qe', 'qi', 'r').index(command)] = positive(args[0])
             self.set_costs(*costs)
             self.show()
-        elif command in BRYSON and len(args) == 1:
+        elif command == 'qv' and len(args) == 1:
+            self.set_costs(*self.costs(), qv=args[0])
+            self.show()
+        elif command in (*BRYSON, 'max_de') and len(args) == 1:
             self.replace_parameter(command, args[0])
             self.show()
         elif command == 'slew' and len(args) == 1:

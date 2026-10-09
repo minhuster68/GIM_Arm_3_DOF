@@ -33,6 +33,27 @@ def test_costs_edit_only_selected_joint_and_save_bryson_equivalent(terminal):
     assert saved.costs() == pytest.approx((400, 100, 10))
 
 
+def test_velocity_cost_is_selected_joint_only_and_survives_save(terminal, capsys):
+    before = deepcopy(terminal.parameters)
+    terminal.execute('qv 4')
+    assert terminal.parameters['max_de'] == [2.0, 2.0, 0.5]
+    for key in ('max_e', 'max_int_e', 'max_tau'):
+        assert terminal.parameters[key] == before[key]
+    terminal.execute('set 400 100 1 10')
+    assert terminal.costs() == pytest.approx((400, 100, 10))
+    assert terminal.parameters['max_de'] == [2.0, 2.0, 1.0]
+    terminal.execute('set 225 25 20')  # Old syntax preserves QV.
+    assert terminal.parameters['max_de'][2] == 1.0
+    terminal.execute('save')
+    saved = LqrJointTerminal(terminal.session.params_file, show_plot=False)
+    saved.show()
+    assert saved.parameters['max_de'] == [2.0, 2.0, 1.0]
+    assert 'QV=1' in capsys.readouterr().out
+    terminal.execute('next')
+    terminal.execute('max_de 0.5')
+    assert terminal.parameters['max_de'] == [2.0, 0.5, 1.0]
+
+
 def test_stages_elbow_shoulder_base_and_preserves_other_costs(terminal):
     terminal.execute('qe 225')
     terminal.execute('next')
@@ -53,6 +74,8 @@ def test_stages_elbow_shoulder_base_and_preserves_other_costs(terminal):
     'set 100 nan 20', 'qe -1', 'qi 0', 'r inf', 'set 1 2', 'alpha 2',
     'slew 0', 'test nan', 'test 5 0', 'test 5 inf', 'test 5 6 -1',
     'max_e 1e300', 'max_int_e 1e-300', 'max_tau 1e-300',
+    'qv 0', 'qv nan', 'qv -1', 'max_de 1e300', 'max_de 1e-300',
+    'set 100 25 nan 10', 'set 100 25 0 10',
 ])
 def test_invalid_commands_preserve_state_and_never_start_trial(terminal, command):
     before = deepcopy(terminal.parameters)
@@ -67,10 +90,12 @@ def test_test_passes_current_profile_without_writing_original(terminal):
     before = terminal.session.params_file.read_text()
     terminal.trial = Mock()
     terminal.execute('qe 400')
+    terminal.execute('qv 4')
     terminal.execute('test 3 6 3')
     selected, degrees, move, hold, params = terminal.trial.run.call_args.args
     assert (selected, degrees, move, hold) == (2, 3.0, 6.0, 3.0)
     assert params['max_e'][2] == 0.05
+    assert params['max_de'][2] == 0.5
     assert terminal.session.params_file.read_text() == before
     terminal.execute('qe 100')
     assert params['max_e'][2] == 0.05  # Snapshot is not mutated by later edits.
@@ -92,6 +117,7 @@ def test_dry_run_never_saves_or_opens_ros(terminal):
     ('require_discrete_stable', False), ('tau_scale', 2),
     ('base_ff_alpha', float('nan')), ('gain_schedule_hz', 0),
     ('gain_schedule_mode', 'reference_state'),
+    ('position_tracking_only', True),
 ])
 def test_reject_incompatible_hardware_profile(terminal, field, value):
     params = deepcopy(terminal.parameters)

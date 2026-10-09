@@ -216,6 +216,9 @@ sed -n '1,100p' src/gim_arm_controller_lqr/config/lqr_hardware_soft.yaml
 control_hz: 100.0
 tau_scale: 0.35
 max_track_error_rad: 0.10
-position_tracking_only: true
-max_int_e, max_e, tau_penalty_scale, integral_limit, max_tau_rate_nm_s.
+position_tracking_only: false
+max_int_e, max_e, max_de, tau_penalty_scale, integral_limit, max_tau_rate_nm_s.
 ```
+
+Chi phí LQR/MPC có trọng số sai số vận tốc; đánh giá tracking vẫn dựa
+vào vị trí. Xem [cách chỉnh trọng số vận tốc](src/gim_arm_control/VELOCITY_WEIGHT_TUNING.md).
