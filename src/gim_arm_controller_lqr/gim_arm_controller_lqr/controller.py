@@ -114,9 +114,15 @@ class LqrController:
         use_discrete_lqr: bool = False,
         gain_schedule_hz: float = 0.0,
         gain_schedule_mode: str = "reference_state",
+        base_ff_alpha: float = 1.0,
     ):
         self.dyn = dynamics
         self.n = int(dynamics.nq)
+        self.base_ff_alpha = float(base_ff_alpha)
+        if not np.isfinite(self.base_ff_alpha) or self.base_ff_alpha <= 0:
+            raise ValueError('base_ff_alpha phải hữu hạn và > 0')
+        names = list(getattr(dynamics, 'joint_names', []))
+        self.base_index = names.index('base_joint') if 'base_joint' in names else 0
         self.weights = weights or LqrWeights()
         self.Q, self.R = self.weights.QR(dynamics.tau_max, self.n)
         self.i_limit = float(i_limit)
@@ -346,6 +352,9 @@ class LqrController:
         if self.gravity_at_measured:
             # đổi G(q_ref) -> G(q) cho profile gravity_at_measured
             tau_ff = tau_ff - self.dyn.gravity(q_ref) + self.dyn.gravity(q)
+        # Keep the feedforward calibration separate from Q/R and feedback.
+        tau_ff = np.asarray(tau_ff, dtype=float).copy()
+        tau_ff[self.base_index] *= self.base_ff_alpha
 
         tau = tau_ff - self.K @ x
         # Chỉ để chẩn đoán: giữ phép tính tau ở trên không đổi so với bộ gốc.
@@ -377,6 +386,8 @@ class LqrController:
         self.integral = np.clip(self.integral, -self.i_limit, self.i_limit)
 
         self.last = dict(e=e, ed=ed, tau_ff=tau_ff, tau_raw=tau, tau=tau_sat,
+                         tau_fb=tau - tau_ff,
+                         tau_p=tau_position, tau_i=tau_integral, tau_d=tau_velocity,
                          integral=self.integral.copy(),
                          tau_integral=tau_integral,
                          tau_position=tau_position,
@@ -468,6 +479,7 @@ class LqrController:
             f"  x tau_penalty_scale={w.tau_penalty_scale:g}",
             f"  feedforward: inverse_dynamics(q_ref) "
             f"{gravity_text}",
+            f"  base_ff_alpha={self.base_ff_alpha:g} (chỉ nhân feedforward base)",
             f"  {gain_update_text}",
             f"  trần mô-men: {np.round(self.tau_limit, 3)} Nm   "
             f"|∫e| <= {self.i_limit:g} rad·s",

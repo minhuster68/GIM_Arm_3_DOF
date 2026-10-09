@@ -26,6 +26,7 @@ class LqrFactory(ControllerFactory):
         node.declare_parameter("use_discrete_lqr", False)
         node.declare_parameter("gain_schedule_hz", 20.0)
         node.declare_parameter("gain_schedule_mode", "reference_state")
+        node.declare_parameter("base_ff_alpha", 1.0)
 
     def build(self, node, dynamics, tau_limit, control_hz):
         n = dynamics.nq
@@ -63,4 +64,5 @@ class LqrFactory(ControllerFactory):
                 node.get_parameter("gain_schedule_hz").value),
             gain_schedule_mode=str(
                 node.get_parameter("gain_schedule_mode").value),
+            base_ff_alpha=node.get_parameter("base_ff_alpha").value,
         )

@@ -23,3 +23,6 @@ _hl.xml
 _body_check.xml
 # export_mat.py sinh ra tu cache quy dao
 trajectory.mat
+
+# Logs/plots của các lượt tune khớp LQR trên tay thật.
+/results/lqr_joint_trials/

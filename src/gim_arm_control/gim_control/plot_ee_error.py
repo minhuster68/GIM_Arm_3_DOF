@@ -105,7 +105,7 @@ def print_metrics(log):
             f"[{format_vector(max_angle)}]   "
             f"[{format_vector(max_tau)}]")
     if all(prefix in log for prefix in ('tau_ff', 'tau_fb', 'saturated')):
-        print('\nPID: peak |tau_ff|, |tau_fb| [Nm] and saturation [%]')
+        print('\nTorque: peak |tau_ff|, |tau_fb| [Nm] and saturation [%]')
         for index, name in enumerate(JOINT_NAMES):
             valid = np.isfinite(log['tau_fb'][:, index])
             if not np.any(valid):

@@ -120,6 +120,25 @@ class TestLqrController(unittest.TestCase):
         self.assertGreater(np.linalg.norm(controller.K[:, 6:]), 0.0)
         self.assertIsNone(controller.weights.max_de)
 
+    def test_base_alpha_scales_only_feedforward_preserves_k_and_feedback(self):
+        plain = self._matlab_controller()
+        scaled = self._matlab_controller(base_ff_alpha=2.0)
+        zero = np.zeros(3)
+        q = np.full(3, 0.001)
+        qdd = np.array([0.1, 0.2, 0.3])
+        for controller in (plain, scaled):
+            controller.compute(q, zero, zero, zero, qdd, 0.0005)
+        np.testing.assert_allclose(scaled.K, plain.K)
+        np.testing.assert_allclose(scaled.last['tau_ff'], plain.last['tau_ff'] * [2, 1, 1])
+        np.testing.assert_allclose(scaled.last['tau_fb'], plain.last['tau_fb'])
+        np.testing.assert_allclose(scaled.last['tau_raw'],
+                                   scaled.last['tau_ff'] + scaled.last['tau_fb'])
+
+    def test_base_alpha_rejects_invalid_values(self):
+        for alpha in (0.0, -1.0, float('nan'), float('inf')):
+            with self.subTest(alpha=alpha), self.assertRaisesRegex(ValueError, 'base_ff_alpha'):
+                self._matlab_controller(base_ff_alpha=alpha)
+
     def test_position_cost_does_not_read_legacy_max_de(self):
         weights = LqrWeights(position_tracking_only=True, max_de=None)
         expected_q, expected_r = weights.QR(_Dynamics.tau_max)
