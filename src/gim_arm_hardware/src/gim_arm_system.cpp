@@ -25,6 +25,12 @@
 namespace gim_arm_hardware
 {
 
+static double steady_seconds()
+{
+  return std::chrono::duration<double>(
+    std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
 // ====================================================================
 //                           BẢNG CHẾ ĐỘ
 // ====================================================================
@@ -99,7 +105,7 @@ GimArmSystemHardware::ControlMode GimArmSystemHardware::resolve_mode(
   return ControlMode::Unknown;
 }
 
-void GimArmSystemHardware::apply_driver_mode(const ModeSpec & spec)
+bool GimArmSystemHardware::apply_driver_mode(const ModeSpec & spec)
 {
   const ModeSpec & pos_spec = mode_spec(ControlMode::Position);
   for (size_t i = 0; i < info_.joints.size(); ++i) {
@@ -112,10 +118,23 @@ void GimArmSystemHardware::apply_driver_mode(const ModeSpec & spec)
     if (locked) {
       hold_position_[i] = hw_states_position_[i];
     }
-    uint8_t data[8];
-    gim6010::pack_u32_le(data, use.drv_control_mode, use.drv_input_mode);
-    can_bus_.send(
-      gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetControllerMode), data, 8);
+    if (use.id == ControlMode::Torque && torque_handoff_active_) {
+      const double seed = std::clamp(
+        handoff_torque_joint_[i], -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
+      if (!start_torque_with_hold(
+          can_bus_, can_node_ids_[i], torque_sign_[i] * seed / torque_gear_ratio_[i]))
+      {
+        return false;
+      }
+    } else {
+      uint8_t data[8];
+      gim6010::pack_u32_le(data, use.drv_control_mode, use.drv_input_mode);
+      if (!can_bus_.send(
+          gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::SetControllerMode), data, 8))
+      {
+        return false;
+      }
+    }
     if (locked) {
       RCLCPP_WARN(
         rclcpp::get_logger("GimArmSystemHardware"),
@@ -123,20 +142,46 @@ void GimArmSystemHardware::apply_driver_mode(const ModeSpec & spec)
         info_.joints[i].name.c_str(), hold_position_[i]);
     }
   }
+  return true;
 }
 
-void GimArmSystemHardware::switch_to_mode(ControlMode target)
+bool GimArmSystemHardware::switch_to_mode(ControlMode target)
 {
   if (target == ControlMode::Unknown || target == active_mode_) {
-    return;
+    return target != ControlMode::Unknown;
   }
 
   const ModeSpec & spec = mode_spec(target);
+  torque_handoff_active_ = false;
+  if (active_mode_ == ControlMode::Position && target == ControlMode::Torque) {
+    const double now = steady_seconds();
+    for (size_t i = 0; i < holding_torque_.size(); ++i) {
+      if (!torque_mode_enable_[i]) {continue;}
+      if (!holding_torque_[i].fresh(now)) {
+        RCLCPP_ERROR(
+          rclcpp::get_logger("GimArmSystemHardware"),
+          "Từ chối chuyển torque: chưa có Get_Torques mới khi giữ position cho '%s'.",
+          info_.joints[i].name.c_str());
+        return false;
+      }
+      handoff_torque_joint_[i] = std::clamp(
+        holding_torque_[i].mean(), -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
+    }
+    torque_handoff_started_s_ = now;
+    torque_handoff_active_ = true;
+  }
 
   // 1) Driver đổi chế độ TRƯỚC. Gửi setpoint của chế độ mới khi driver còn ở
   //    chế độ cũ thì frame đó bị bỏ qua im lặng (vd 0x00C tới driver đang ở
   //    control_mode=1).
-  apply_driver_mode(spec);
+  if (!apply_driver_mode(spec)) {
+    torque_handoff_active_ = false;
+    apply_driver_mode(mode_spec(ControlMode::Position));
+    active_mode_ = ControlMode::Position;
+    enter_position_mode();
+    RCLCPP_ERROR(rclcpp::get_logger("GimArmSystemHardware"), "CAN mode/torque handoff send failed; restored position.");
+    return false;
+  }
   active_mode_ = target;
 
   // 2) Xoá trạng thái watchdog: chu kỳ đầu của chế độ mới phải được đánh giá
@@ -147,6 +192,17 @@ void GimArmSystemHardware::switch_to_mode(ControlMode target)
 
   // 3) Chế độ tự lập trạng thái an toàn ban đầu của nó.
   (this->*spec.on_enter)();
+  if (torque_handoff_active_) {
+    for (size_t i = 0; i < handoff_torque_joint_.size(); ++i) {
+      if (torque_mode_enable_[i]) {
+        RCLCPP_INFO(
+          rclcpp::get_logger("GimArmSystemHardware"),
+          "Torque handoff '%s': %.3f Nm phía khớp -> PC PID trong %.2fs (trần %.3f Nm).",
+          info_.joints[i].name.c_str(), handoff_torque_joint_[i],
+          torque_handoff_duration_s_, max_torque_joint_nm_[i]);
+      }
+    }
+  }
 
   if (spec.driver_holds_arm) {
     RCLCPP_INFO(
@@ -160,6 +216,7 @@ void GimArmSystemHardware::switch_to_mode(ControlMode target)
       "PC ngung gui = tay roi/troi. Khong chay che do nay khi tay dang deo tren nguoi.",
       spec.name, spec.drv_control_mode);
   }
+  return true;
 }
 
 // ====================================================================
@@ -168,6 +225,9 @@ void GimArmSystemHardware::switch_to_mode(ControlMode target)
 
 void GimArmSystemHardware::enter_position_mode()
 {
+  torque_handoff_active_ = false;
+  torque_query_started_s_ = -1.0;
+  for (auto & sample : holding_torque_) {sample.clear();}
   // Chốt setpoint tại CHỖ TAY ĐANG ĐỨNG trước khi trả quyền cho vòng vị trí
   // của driver. Bỏ bước này thì driver dùng lại input_pos cũ từ trước lúc rời
   // chế độ vị trí, và tay GIẬT về đó.
@@ -183,6 +243,18 @@ void GimArmSystemHardware::enter_position_mode()
 void GimArmSystemHardware::write_position_mode()
 {
   const size_t n = info_.joints.size();
+  const double now = steady_seconds();
+  if (now - torque_query_started_s_ >= 0.05) {
+    const uint8_t data[8]{};
+    for (size_t i = 0; i < n; ++i) {
+      if (torque_mode_enable_[i]) {
+        can_bus_.send(
+          gim6010::make_can_id(can_node_ids_[i], gim6010::CmdId::GetTorques) | CAN_RTR_FLAG,
+          data, 8);
+      }
+    }
+    torque_query_started_s_ = now;
+  }
 
   // Bù trọng lực tính MỘT LẦN cho cả tay: G(q) là hàm của TOÀN BỘ cấu hình,
   // không tách rời từng khớp được (mô-men giữ ở vai phụ thuộc cả góc khuỷu).
@@ -280,7 +352,7 @@ void GimArmSystemHardware::write_torque_mode()
 
   const bool all_valid = std::none_of(
     hw_commands_effort_.begin(), hw_commands_effort_.end(),
-    [](double c) {return std::isnan(c);});
+    [](double c) {return !std::isfinite(c);});
 
   bool stale = false;
   if (all_valid) {
@@ -315,6 +387,7 @@ void GimArmSystemHardware::write_torque_mode()
     }
   }
 
+  const double handoff_elapsed = steady_seconds() - torque_handoff_started_s_;
   for (size_t i = 0; i < n; ++i) {
     if (!torque_mode_enable_[i]) {
       // Khớp bị khoá: giữ vị trí đã chốt lúc chuyển chế độ. Driver vẫn ở
@@ -324,8 +397,12 @@ void GimArmSystemHardware::write_torque_mode()
       }
       continue;
     }
-    send_torque_command(i, tau[i]);
+    const double command = torque_handoff_active_ ? blend_handoff_torque(
+      handoff_torque_joint_[i], tau[i], handoff_elapsed,
+      torque_handoff_duration_s_, max_torque_joint_nm_[i]) : tau[i];
+    send_torque_command(i, command);
   }
+  if (handoff_elapsed >= torque_handoff_duration_s_) {torque_handoff_active_ = false;}
 }
 
 void GimArmSystemHardware::enter_mit_mode()
@@ -420,6 +497,8 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   last_cmd_seen_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_states_position_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_states_velocity_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
+  holding_torque_.resize(n_joints);
+  handoff_torque_joint_.assign(n_joints, 0.0);
   can_node_ids_.resize(n_joints, 0);
   gear_ratios_.resize(n_joints, 8.0);
   directions_.resize(n_joints, 1.0);
@@ -530,6 +609,15 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
     };
   velocity_feedforward_ = bool_param("velocity_feedforward", false);
   gravity_feedforward_ = bool_param("gravity_feedforward", false);
+  if (info_.hardware_parameters.count("torque_handoff_duration_s")) {
+    torque_handoff_duration_s_ = std::stod(info_.hardware_parameters.at("torque_handoff_duration_s"));
+  }
+  if (!std::isfinite(torque_handoff_duration_s_) ||
+      torque_handoff_duration_s_ <= 0.0 || torque_handoff_duration_s_ > 5.0)
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("GimArmSystemHardware"), "torque_handoff_duration_s phải trong (0, 5] giây.");
+    return hardware_interface::CallbackReturn::ERROR;
+  }
   set_zero_on_startup_ = bool_param("set_zero_on_startup", false);
   startup_zero_method_ = info_.hardware_parameters.count("zero_method")
     ? info_.hardware_parameters.at("zero_method") : "can";
@@ -1005,8 +1093,8 @@ hardware_interface::return_type GimArmSystemHardware::perform_command_mode_switc
     return hardware_interface::return_type::ERROR;
   }
 
+  if (!switch_to_mode(target)) {return hardware_interface::return_type::ERROR;}
   claimed_command_interfaces_ = claim;
-  switch_to_mode(target);
   return hardware_interface::return_type::OK;
 }
 
@@ -1064,6 +1152,9 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_activate(
   //    enter_position_mode() cũng chưa gọi được -- chưa đọc nổi encoder, xem
   //    bước 2/3.
   active_mode_ = ControlMode::Position;
+  torque_handoff_active_ = false;
+  torque_query_started_s_ = -1.0;
+  for (auto & sample : holding_torque_) {sample.clear();}
   std::fill(
     last_cmd_seen_.begin(), last_cmd_seen_.end(), std::numeric_limits<double>::quiet_NaN());
   stale_cycles_ = 0;
@@ -1270,12 +1361,31 @@ hardware_interface::return_type GimArmSystemHardware::read(
   can_bus_.receive_all(frames);
 
   for (const auto & frame : frames) {
+    if (frame.can_id & (CAN_RTR_FLAG | CAN_EFF_FLAG | CAN_ERR_FLAG)) {continue;}
     const uint32_t std_id = frame.can_id & CAN_SFF_MASK;
     const uint8_t node_id = (std_id >> 5) & 0x3F;
     const uint8_t cmd_id = std_id & 0x1F;
 
-    if (cmd_id != static_cast<uint8_t>(gim6010::CmdId::GetEncoderEstimates) || frame.can_dlc < 8) {
-      continue;  // chỉ xử lý frame quan tâm ở bước này, bỏ qua Heartbeat/khác
+    if (frame.can_dlc < 8) {continue;}
+    if (cmd_id == static_cast<uint8_t>(gim6010::CmdId::GetTorques)) {
+      if (active_mode_ == ControlMode::Position) {
+        float measured;
+        std::memcpy(&measured, &frame.data[4], 4);
+        for (size_t i = 0; i < can_node_ids_.size(); ++i) {
+          if (can_node_ids_[i] != node_id) {continue;}
+          if (std::isfinite(hw_states_velocity_[i]) && std::abs(hw_states_velocity_[i]) <= 0.1) {
+            holding_torque_[i].add(
+              static_cast<double>(measured) * torque_sign_[i] * torque_gear_ratio_[i],
+              steady_seconds());
+          } else {
+            holding_torque_[i].clear();
+          }
+        }
+      }
+      continue;
+    }
+    if (cmd_id != static_cast<uint8_t>(gim6010::CmdId::GetEncoderEstimates)) {
+      continue;
     }
 
     for (size_t i = 0; i < can_node_ids_.size(); ++i) {

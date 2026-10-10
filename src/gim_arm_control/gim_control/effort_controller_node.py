@@ -37,9 +37,10 @@ WAIT, GRAVITY, APPROACH, TRACK, RETURN, HOLD, ABORT = (
 class EffortControllerNode(Node):
     """State machine và lớp an toàn chung quanh một torque controller."""
 
-    def __init__(self, factory):
+    def __init__(self, factory, *, parameter_overrides=None):
         self.factory = factory
-        super().__init__(f"{factory.algorithm_name}_controller")
+        super().__init__(f"{factory.algorithm_name}_controller",
+                         parameter_overrides=parameter_overrides)
 
         declare = self.declare_parameter
         declare("urdf_file", "")
@@ -507,6 +508,8 @@ class EffortControllerNode(Node):
                 *(last.get("tau_feedback", missing)),
                 *(last.get("tau_raw", missing)),
                 *(last.get("saturated", missing)),
+                *(last.get("tau_feedback", missing)),
+                *(last.get("integral", missing)),
             ])
         elif self.diagnostic_pid:
             last = self.controller.last if event == "CONTROL" else {}
@@ -1019,7 +1022,7 @@ class EffortControllerNode(Node):
                 "solve_time", "solver_iterations", "constraint_violation",
                 "primal_residual", "dual_residual", "solver_rho",
             ])
-            for prefix in ("tau_ff", "tau_feedback", "tau_raw", "saturated"):
+            for prefix in ("tau_ff", "tau_feedback", "tau_raw", "saturated", "tau_fb", "integral"):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
         elif self.diagnostic_pid:
             for prefix in (

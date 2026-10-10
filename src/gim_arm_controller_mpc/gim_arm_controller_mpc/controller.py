@@ -27,9 +27,15 @@ class MpcController:
         admm_rho=10.0, admm_iterations=100, admm_tolerance=1.0e-4,
         feedback_bounds_mode="instantaneous",
         precompute_prediction=False,
+        base_ff_alpha=1.0,
     ):
         self.dyn = dynamics
         self.n = dynamics.nq
+        self.base_ff_alpha = float(base_ff_alpha)
+        if not np.isfinite(self.base_ff_alpha) or self.base_ff_alpha <= 0:
+            raise ValueError('base_ff_alpha phải hữu hạn và > 0')
+        names = list(getattr(dynamics, 'joint_names', []))
+        self.base_index = names.index('base_joint') if 'base_joint' in names else 0
         self.dt = 1.0 / float(control_hz)
         self.np = int(prediction_horizon)
         self.nc = int(control_horizon)
@@ -86,6 +92,11 @@ class MpcController:
         self.warm = np.zeros((self.nc, self.n))
         self.last = {}
 
+    def _feedforward(self, q_ref, qd_ref, qdd_ref):
+        torque = np.asarray(self.dyn.inverse_dynamics(q_ref, qd_ref, qdd_ref), dtype=float).copy()
+        torque[self.base_index] *= self.base_ff_alpha
+        return torque
+
     def prepare_reference(self, q_ref, qd_ref, qdd_ref, reference_times):
         """Reserve total-torque headroom across APPROACH/TRACK/RETURN."""
         q_ref, qd_ref, qdd_ref = (
@@ -98,7 +109,7 @@ class MpcController:
                 or np.any(np.diff(times) <= 0.0)):
             raise ValueError("Tham chiếu MPC phải hữu hạn, N x n; thời gian tăng nghiêm ngặt")
         torques = np.asarray([
-            self.dyn.inverse_dynamics(q, qd, qdd)
+            self._feedforward(q, qd, qdd)
             for q, qd, qdd in zip(q_ref, qd_ref, qdd_ref)])
         if not np.all(np.isfinite(torques)):
             raise ValueError("Feedforward MPC chứa NaN/Inf")
@@ -370,7 +381,7 @@ class MpcController:
         error = q - q_ref
         error_rate = qd - qd_ref
         state = np.concatenate([self.integral, error, error_rate])
-        feedforward = self.dyn.inverse_dynamics(q_ref, qd_ref, qdd_ref)
+        feedforward = self._feedforward(q_ref, qd_ref, qdd_ref)
 
         lower_fb, upper_fb = -self.tau_limit - feedforward, self.tau_limit - feedforward
         if self.feedback_bounds_mode == "trajectory_global":
@@ -515,4 +526,5 @@ class MpcController:
             f"dt={self.dt:g}s, "
             f"slew={self.slew} Nm/s\n"
             f"  tau_limit={self.tau_limit} Nm, bounds={self.feedback_bounds_mode}, "
-            f"prediction_precompute={self.precompute_prediction}")
+            f"prediction_precompute={self.precompute_prediction}, "
+            f"base_ff_alpha={self.base_ff_alpha:g}")

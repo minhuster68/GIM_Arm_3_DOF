@@ -131,6 +131,28 @@ class TestMpcPositionTracking(unittest.TestCase):
         c.reset()
         self.assertIsNotNone(c.feedback_min)
 
+    def test_base_alpha_applies_to_commands_and_reserved_feedback_headroom(self):
+        c = self.controller(base_ff_alpha=2.2)
+        q = self.prepare(c)
+        expected = q.copy()
+        expected[:, 0] *= 2.2
+        np.testing.assert_allclose(c.feedforward_min, expected.min(axis=0))
+        np.testing.assert_allclose(c.feedforward_max, expected.max(axis=0))
+        zero = np.zeros(3)
+        c.compute(q[0], zero, q[0], zero, zero, .01)
+        np.testing.assert_allclose(c.last['tau_ff'], expected[0])
+        for ff in expected:
+            for feedback in (c.feedback_min, c.feedback_max):
+                self.assertTrue(np.all(abs(ff + feedback) <= c.tau_limit + 1e-12))
+        for invalid in (0, -1, float('nan'), float('inf')):
+            with self.assertRaises(ValueError):
+                self.controller(base_ff_alpha=invalid)
+
+    def test_scaled_base_feedforward_over_limit_rejects_reference(self):
+        c = self.controller(base_ff_alpha=10)
+        with self.assertRaisesRegex(ValueError, 'miền phản hồi'):
+            self.prepare(c)
+
     def test_preparation_rejects_feedforward_without_feedback_headroom(self):
         c = self.controller()
         q = np.array([[0.0, 0.0, 0.0], [6.0, 0.0, 0.0]])

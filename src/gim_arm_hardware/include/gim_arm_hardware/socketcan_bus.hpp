@@ -82,7 +82,8 @@ public:
     }
     struct can_frame frame;
     std::memset(&frame, 0, sizeof(frame));
-    frame.can_id = can_id & CAN_SFF_MASK;
+    // Preserve RTR for read-only Get_Torques requests; remain standard-ID only.
+    frame.can_id = can_id & (CAN_SFF_MASK | CAN_RTR_FLAG);
     frame.can_dlc = dlc;
     std::memcpy(frame.data, data, dlc);
     const ssize_t n = write(fd_, &frame, sizeof(frame));
