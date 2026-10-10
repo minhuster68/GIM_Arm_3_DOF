@@ -37,9 +37,10 @@ WAIT, GRAVITY, APPROACH, TRACK, RETURN, HOLD, ABORT = (
 class EffortControllerNode(Node):
     """State machine và lớp an toàn chung quanh một torque controller."""
 
-    def __init__(self, factory):
+    def __init__(self, factory, *, parameter_overrides=None):
         self.factory = factory
-        super().__init__(f"{factory.algorithm_name}_controller")
+        super().__init__(f"{factory.algorithm_name}_controller",
+                         parameter_overrides=parameter_overrides)
 
         declare = self.declare_parameter
         declare("urdf_file", "")
@@ -148,8 +149,11 @@ class EffortControllerNode(Node):
                                and bool(get("log_file").value))
         self.diagnostic_pid = (factory.algorithm_name == "cascade_pid"
                                and bool(get("log_file").value))
+        self.diagnostic_smc = (factory.algorithm_name == "smc"
+                               and bool(get("log_file").value))
         self.diagnostic_control = (
-            self.diagnostic_lqr or self.diagnostic_mpc or self.diagnostic_pid)
+            self.diagnostic_lqr or self.diagnostic_mpc or self.diagnostic_pid
+            or self.diagnostic_smc)
         self.cascade_hold = bool(get("cascade_hold").value)
         if self.cascade_hold and factory.algorithm_name != "cascade_pid":
             raise ValueError("cascade_hold chỉ dùng với cascade PID")
@@ -215,9 +219,10 @@ class EffortControllerNode(Node):
             "HAND_GUIDING dùng gravity + damping: "
             f"Kd_drag={np.round(self.drag_kd, 3)} Nm/(rad/s)")
         if self.controller_hold:
+            ff_state = "q đo, qdot đo, qdd_ref" if factory.algorithm_name == "smc" else "ref"
             self.get_logger().info(
                 f"PREP/HOLD_HOME dùng cùng {factory.algorithm_name} như quỹ đạo; "
-                "tau_cmd = inverse_dynamics(ref) + tau_fb")
+                f"tau_cmd = inverse_dynamics({ff_state}) + tau_fb")
         else:
             self.get_logger().info(
                 "HOLD_HOME dùng gravity-hold PID: "
@@ -507,7 +512,17 @@ class EffortControllerNode(Node):
                 *(last.get("tau_feedback", missing)),
                 *(last.get("tau_raw", missing)),
                 *(last.get("saturated", missing)),
+                *(last.get("tau_feedback", missing)),
+                *(last.get("integral", missing)),
             ])
+        elif self.diagnostic_smc:
+            last = self.controller.last if event == "CONTROL" else {}
+            missing = np.full(self.n, np.nan)
+            for name in ("tau_ff", "tau_fb", "tau_feedback_raw", "tau_raw",
+                         "surface", "boundary", "virtual_acceleration"):
+                row.extend(last.get(name, missing))
+            row.extend(np.asarray(last.get("saturated", missing), dtype=float))
+            row.extend(np.asarray(last.get("slew_limited", missing), dtype=float))
         elif self.diagnostic_pid:
             last = self.controller.last if event == "CONTROL" else {}
             missing = np.full(self.n, np.nan)
@@ -816,11 +831,13 @@ class EffortControllerNode(Node):
             # Trước khi chạy quỹ đạo, giữ mềm ngay sau switch để không còn
             # khoảng trôi. Chỉ cho I tích lũy sau khi người dùng đã thả clutch
             # và chốt một q_hold mới; như vậy không windup lúc effort inactive.
+            started = time.perf_counter()
             self._publish(self._hold_torque(
                 dt, integrate=self.manual_hold_latched))
+            compute_time = time.perf_counter() - started
             if self.controller_hold and bool(self.get_parameter("log_file").value):
                 self._append_tracking_row(
-                    tick_wall_ns, 0.0, timer_dt, float("nan"),
+                    tick_wall_ns, 0.0, timer_dt, compute_time,
                     self.home_q, np.zeros(self.n), self.last_command)
             return
 
@@ -1019,7 +1036,12 @@ class EffortControllerNode(Node):
                 "solve_time", "solver_iterations", "constraint_violation",
                 "primal_residual", "dual_residual", "solver_rho",
             ])
-            for prefix in ("tau_ff", "tau_feedback", "tau_raw", "saturated"):
+            for prefix in ("tau_ff", "tau_feedback", "tau_raw", "saturated", "tau_fb", "integral"):
+                header.extend(f"{prefix}_{name}" for name in self.joint_names)
+        elif self.diagnostic_smc:
+            for prefix in ("tau_ff", "tau_fb", "tau_feedback_raw", "tau_raw",
+                           "surface", "boundary", "virtual_acceleration",
+                           "saturated", "slew_limited"):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
         elif self.diagnostic_pid:
             for prefix in (

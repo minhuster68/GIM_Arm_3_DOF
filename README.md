@@ -1,9 +1,15 @@
 # SMC — chạy phần cứng
 
+**Hướng dẫn tune từng khớp cho người mới:** đọc
+[README_TUNE_SMC.md](README_TUNE_SMC.md). Dùng branch `smc-test` trong
+`/home/mirabo/GIM_Arm_3_DOF`, theo thứ tự elbow → shoulder → base.
+File lưu gain là `src/gim_arm_controller_smc/config/smc_joint_tuning.yaml`.
+Các phần dưới là quy trình quỹ đạo cả tay cũ; chưa dùng khi đang tune từng khớp.
+
 ## Chuẩn bị
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_smc_test
+cd /home/mirabo/GIM_Arm_3_DOF
 git branch --show-current
 source /opt/ros/humble/setup.bash
 colcon build --symlink-install --packages-select gim_arm_description gim_arm_hardware gim_control gim_arm_controller_pid gim_arm_controller_lqr gim_arm_controller_mpc gim_arm_controller_smc
@@ -13,7 +19,7 @@ source install/setup.bash
 ## Terminal 1 — CAN, zero phần mềm, position controller
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_smc_test
+cd /home/mirabo/GIM_Arm_3_DOF
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ip -details link show can0
@@ -34,7 +40,7 @@ gim_arm_effort_controller: inactive
 ## Terminal 2 — tune SMC tương tác
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_smc_test
+cd /home/mirabo/GIM_Arm_3_DOF
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 # Chạy sau Terminal 1; dùng thay cho Terminal 2/3 của bài thử thủ công bên dưới.
@@ -93,7 +99,7 @@ Không kết nối ROS/CAN, không switch controller, không tạo CSV.
 ## Terminal 2 — SMC và quỹ đạo
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_smc_test
+cd /home/mirabo/GIM_Arm_3_DOF
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 # trajectory_shape: circle (vòng tròn), r (chữ R), a (chữ A)
@@ -113,7 +119,7 @@ HOME gần [0, 0, 0]; tay đứng yên.
 ## Terminal 3 — bắt đầu
 
 ```bash
-cd /home/minh/git_gim_ws/GIM_Arm_3_DOF_smc_test
+cd /home/mirabo/GIM_Arm_3_DOF
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ros2 control switch_controllers \

@@ -21,6 +21,7 @@
 
 #include "gim_arm_hardware/gim6010_can_protocol.hpp"
 #include "gim_arm_hardware/socketcan_bus.hpp"
+#include "gim_arm_hardware/torque_handoff.hpp"
 
 namespace gim_arm_hardware
 {
@@ -169,11 +170,11 @@ private:
   ControlMode mode_for_claim(const std::set<std::string> & claim) const;
 
   // Gửi Set_Controller_Mode (0x00B) của một chế độ xuống cả 3 driver.
-  void apply_driver_mode(const ModeSpec & spec);
+  bool apply_driver_mode(const ModeSpec & spec);
 
   // Đổi chế độ: gửi 0x00B -> đặt active_mode_ -> chạy on_enter -> log.
   // Không làm gì nếu đã ở đúng chế độ đó.
-  void switch_to_mode(ControlMode target);
+  bool switch_to_mode(ControlMode target);
 
   // ---- Các chế độ: mỗi chế độ đúng 2 hàm, xem bảng trong mode_spec() ----
   void enter_position_mode();
@@ -383,6 +384,12 @@ private:
   // mô-men. Không dùng hw_commands_ vì controller đang active là
   // gim_arm_effort_controller, nó không ghi vào mảng đó.
   std::vector<double> hold_position_;
+  std::vector<HoldingTorque> holding_torque_;
+  std::vector<double> handoff_torque_joint_;
+  double torque_handoff_duration_s_{1.0};
+  double torque_handoff_started_s_{0.0};
+  double torque_query_started_s_{-1.0};
+  bool torque_handoff_active_{false};
 
   // ---- Feedforward (xem ghi chú pack_set_input_pos trong gim6010_can_protocol.hpp) ----
   // MẶC ĐỊNH TẮT CẢ HAI. Cố ý: build lại plugin KHÔNG được âm thầm đổi hành vi
