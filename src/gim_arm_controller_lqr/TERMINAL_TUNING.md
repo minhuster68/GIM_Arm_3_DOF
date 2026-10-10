@@ -166,6 +166,41 @@ Lặp `save`, `next`, đổi launch sang `torque_joint:=base`, về HOME và tun
 Trong terminal chỉ có một khớp nhận torque; bài circle cả ba khớp cần được
 đánh giá lại với các trọng số đã chọn sau khi hoàn thành thứ tự này.
 
+## Chạy vòng tròn bằng bộ trọng số đã tune
+
+Sau khi `save` khớp base, bộ ba khớp nằm trong `config/lqr_joint_tuning.yaml`.
+Dùng trực tiếp file này; `lqr_hardware_soft.yaml` vẫn là profile ban đầu.
+Thoát terminal từng khớp bằng `quit`, chờ position active rồi dừng launch cũ.
+Đặt/đỡ tay đúng zero và khởi động lại hardware với cả ba khớp torque:
+
+```bash
+ros2 launch gim_control origin_gim_arm_control.launch.py \
+  can_interface:=can0 set_zero_on_startup:=true \
+  zero_method:=software torque_joint:=all
+```
+
+Terminal khác nạp ROS/install và domain 42 như phần Chuẩn bị. Chạy goal HOME
+ở trên và chờ thành công, rồi mở terminal quỹ đạo đầy đủ:
+
+```bash
+python3 tools/tune_lqr.py \
+  --params-file src/gim_arm_controller_lqr/config/lqr_joint_tuning.yaml \
+  --trajectory-shape circle --log-dir results/lqr_circle_trials
+```
+
+Nhập `show`, rồi `test circle`. Terminal này nhận `test circle`, không nhận
+cú pháp `test DEG MOVE HOLD` của terminal từng khớp. Bài chạy một vòng:
+APPROACH 16 s → TRACK 27 s → RETURN 16 s → HOLD 3 s.
+Ba khớp cùng dùng tau_ff + LQR, với Q/R, alpha, tau_scale và slew từ YAML.
+Terminal đọc lựa chọn torque và thời gian bàn giao từ controller_manager;
+gửi torque giữ HOME trước switch, chờ hết bàn giao rồi đứng yên 0.3 s với
+tích phân hoạt động trước khi bắt đầu quỹ đạo. HOME ban đầu được giữ nguyên.
+Nếu không ổn định sau 6 s, bài không chạy và terminal trả về position.
+
+Kết thúc hoặc Ctrl-C trong test: tự trả về position trước khi đóng node,
+ghi CSV và YAML tham số của lượt thử, rồi mở ba đồ thị tracking.
+Log nằm trong `results/lqr_circle_trials/`. Đóng đồ thị để trở lại prompt.
+
 ## Log và ngắt bài thử
 
 Mỗi lượt lưu riêng trong `results/lqr_joint_trials/lqr_<joint>_<timestamp>/`:

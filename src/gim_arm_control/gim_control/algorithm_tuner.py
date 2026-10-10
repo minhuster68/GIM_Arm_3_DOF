@@ -211,6 +211,37 @@ def restore_position(manager):
                     pass
 
 
+def lqr_handoff_duration(admin, manager):
+    """Require all three torque joints and read the actual hardware handoff."""
+    import xml.etree.ElementTree as ET
+    from rcl_interfaces.srv import GetParameters
+
+    client = admin.create_client(GetParameters, '/controller_manager/get_parameters')
+    try:
+        values = manager.call(client, GetParameters.Request(names=['robot_description'])).values
+    finally:
+        admin.destroy_client(client)
+    if len(values) != 1 or not values[0].string_value:
+        raise RuntimeError('Không đọc được robot_description từ controller_manager')
+    control = ET.fromstring(values[0].string_value).find("ros2_control[@name='GimArmSystem']")
+    if control is None:
+        raise RuntimeError('robot_description thiếu GimArmSystem')
+    for name in ('base_joint', 'shoulder_joint', 'elbow_joint'):
+        joint = control.find(f"joint[@name='{name}']")
+        if joint is None:
+            raise RuntimeError(f'robot_description thiếu {name}')
+        enabled = joint.find("param[@name='torque_mode_enable']")
+        # The driver enables torque by default when the parameter is absent.
+        if enabled is not None and (enabled.text or '').strip().lower() != 'true':
+            raise RuntimeError('Bài circle/R/A cần cả ba khớp torque; '
+                               'khởi động lại hardware với torque_joint:=all')
+    value = control.find("hardware/param[@name='torque_handoff_duration_s']")
+    duration = float(value.text) if value is not None else 1.0
+    if not math.isfinite(duration) or not 0 < duration <= 5:
+        raise RuntimeError('torque_handoff_duration_s phải trong (0, 5] giây')
+    return duration
+
+
 def run_ros_trial(algorithm, params_file):
     # Lazy imports: dry-run and parameter editing work without ROS or hardware.
     import numpy as np
@@ -237,6 +268,7 @@ def run_ros_trial(algorithm, params_file):
             executor.spin_once(timeout_sec=0.05)
         if admin.count_publishers(COMMAND_TOPIC):
             raise RuntimeError('Đã có node phát effort; tắt Terminal 2 cũ trước khi tune')
+        handoff_duration = lqr_handoff_duration(admin, manager) if algorithm == 'lqr' else None
         module = importlib.import_module(f'gim_arm_controller_{algorithm}.factory')
         factory = getattr(module, {'lqr': 'LqrFactory', 'mpc': 'MpcFactory', 'smc': 'SmcFactory'}[algorithm])
         node = EffortControllerNode(factory())
@@ -250,12 +282,33 @@ def run_ros_trial(algorithm, params_file):
                 raise RuntimeError('Không READY; kiểm tra joint_states, giới hạn khớp và precompute')
         if np.max(np.abs(node.qd)) > node.start_velocity_limit:
             raise RuntimeError('Tay chưa đứng yên; chưa chuyển effort')
+        if algorithm == 'lqr':
+            deadline = time.monotonic() + 3.0
+            while node.publisher.get_subscription_count() == 0:
+                if time.monotonic() > deadline:
+                    raise RuntimeError('Effort controller chưa nhận topic commands')
+                executor.spin_once(timeout_sec=0.01)
+            prime_until = time.monotonic() + 0.05
+            while time.monotonic() < prime_until:
+                executor.spin_once(timeout_sec=0.01)
+            if node.phase == 'ABORT':
+                raise RuntimeError('LQR ABORT trước khi chuyển torque')
+            node._publish(node._hold_torque(node.dt_nom, integrate=False))
         require_position(manager.states())
         attempted_switch = True  # Set before the request: a timeout is not a cancellation.
         manager.switch(EFFORT, POSITION)
         states = manager.states()
         if states.get(EFFORT) != 'active' or states.get(POSITION) != 'inactive':
             raise RuntimeError('Chưa xác nhận effort active')
+        if algorithm == 'lqr':
+            from gim_control.lqr_joint_trial import RosLqrJointTrial
+            node.manual_hold_latched = True
+            guard = RosLqrJointTrial(Path(params_file).parent, show_plot=False)
+            guard.node = node
+            print(f'Bàn giao torque {handoff_duration:g}s; giữ HOME bằng LQR '
+                  'và chờ ổn định 0.3s trước quỹ đạo.')
+            guard.wait_for_stable_hold(executor, handoff_duration)
+            print('HOME đã ổn định; bắt đầu quỹ đạo.')
         results = node.set_parameters([Parameter('autostart', value=True)])
         if not all(result.successful for result in results):
             raise RuntimeError('Không bật được autostart')

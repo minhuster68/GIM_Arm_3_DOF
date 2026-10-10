@@ -134,6 +134,22 @@ def test_start_requires_exclusive_position_controller(states):
         tuner.require_position(states)
 
 
+@pytest.mark.parametrize('selection', ['all', 'base'])
+def test_full_lqr_checks_runtime_torque_selection_and_handoff(selection):
+    from gim_control.hardware_description import configure_hardware_description
+    description = configure_hardware_description(
+        (ROOT / 'src/gim_arm_description/urdf/gim_arm.urdf').read_text(),
+        torque_joint=selection)
+    admin = SimpleNamespace(create_client=lambda *args: object(), destroy_client=lambda _: None)
+    manager = SimpleNamespace(call=lambda *args: SimpleNamespace(
+        values=[SimpleNamespace(string_value=description)]))
+    if selection == 'all':
+        assert tuner.lqr_handoff_duration(admin, manager) == 1.0
+    else:
+        with pytest.raises(RuntimeError, match='torque_joint:=all'):
+            tuner.lqr_handoff_duration(admin, manager)
+
+
 def test_restore_retries_uncertain_switch_and_waits_for_confirmation():
     calls = []
     class Manager:

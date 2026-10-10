@@ -178,6 +178,62 @@ class TestLqrJointRosTrial(unittest.TestCase):
         self.assertEqual(self.switches, [])
         self.assertIsNone(self.trial.node)
 
+    def run_full_trajectory(self):
+        from gim_control import algorithm_tuner, effort_controller_node
+        from gim_control.reference_trajectory import TimedHold
+        self.description = configure_hardware_description(self.stale_description, torque_joint='all')
+        params = dict(self.parameters, approach_time=0.15, return_time=0.15,
+                      diagnostic_hold=False, diagnostic_segment=False, cache_file='',
+                      log_file=str(Path(self.directory.name) / 'circle.csv'),
+                      urdf_file=str(ROOT / 'src/gim_arm_description/urdf/gim_arm.urdf'))
+        profile = Path(self.directory.name) / 'circle.yaml'
+        profile.write_text(yaml.safe_dump({'lqr_controller': {'ros__parameters': params}}))
+        original = effort_controller_node.EffortControllerNode
+
+        def capture_node(factory):
+            self.trial.node = original(factory)
+            return self.trial.node
+
+        with patch.object(effort_controller_node, 'EffortControllerNode', capture_node), \
+                patch.object(effort_controller_node, 'load_trajectory',
+                             return_value=TimedHold([0.04, 0.06, 0.11], 0.1)):
+            algorithm_tuner.run_ros_trial('lqr', profile)
+        return Path(params['log_file'])
+
+    def test_full_trajectory_waits_for_handoff_and_restores_position(self):
+        self.prestart_velocity = -0.15
+        self.prestart_drift = -0.005
+        self.prestart_duration = 0.15
+        path = self.run_full_trajectory()
+        self.assertTrue(self.commands_before_effort)
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
+        with path.open() as stream:
+            rows = list(csv.DictReader(stream))
+        self.assertTrue({'GRAVITY', 'APPROACH', 'TRACK', 'RETURN', 'HOLD'} <=
+                        {row['phase'] for row in rows})
+        first_move = next(row for row in rows if row['phase'] == 'APPROACH')
+        self.assertGreaterEqual(float(first_move['t_wall']) - self.activation_wall_time, 1.3)
+        self.assertLessEqual(abs(float(first_move['qd_base_joint'])), 0.05)
+        self.assertAlmostEqual(float(first_move['qref_base_joint']), 0.03)
+
+    def test_full_trajectory_unsettled_handoff_never_starts_and_restores_position(self):
+        self.prestart_velocity = -0.15
+        self.prestart_duration = 10.0
+        original = tuner.RosLqrJointTrial.wait_for_stable_hold
+
+        def short_wait(guard, executor, duration):
+            guard.prestart_timeout = 0.25
+            return original(guard, executor, duration)
+
+        with patch.object(tuner.RosLqrJointTrial, 'wait_for_stable_hold', short_wait):
+            with self.assertRaisesRegex(RuntimeError, 'chưa giữ HOME ổn định'):
+                self.run_full_trajectory()
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
+        with (Path(self.directory.name) / 'circle.csv').open() as stream:
+            self.assertEqual({row['phase'] for row in csv.DictReader(stream)}, {'GRAVITY'})
+
     def test_base_handoff_keeps_home_lqr_active_until_transient_velocity_settles(self):
         self.description = configure_hardware_description(self.stale_description, torque_joint='base')
         self.parameters['base_ff_alpha'] = 1.5
