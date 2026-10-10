@@ -224,6 +224,23 @@ class TestMpcPositionTracking(unittest.TestCase):
         self.assertLess(active.last["constraint_violation"], 1e-7)
         np.testing.assert_allclose(ta, ts, atol=5e-3, rtol=1e-2)
 
+    def test_feedback_can_continue_past_first_negative_slew_step(self):
+        for solver in ('active_set', 'slsqp'):
+            with self.subTest(solver=solver):
+                c = self.controller(qp_solver=solver, torque_penalty_scale=10000.0)
+                self.prepare(c)
+                zero = np.zeros(3)
+                applied = []
+                for _ in range(5):
+                    previous = c.previous_feedback.copy()
+                    c.compute(np.array([.3, .2, .3]), zero, zero, zero, zero, .01)
+                    self.assertTrue(c.last['solver_accepted'])
+                    self.assertLess(c.last['constraint_violation'], 1e-7)
+                    self.assertTrue(np.all(abs(c.previous_feedback-previous) <= c.slew*.01+1e-12))
+                    applied.append(c.previous_feedback[0])
+                self.assertLess(applied[1], applied[0] - .025)
+                self.assertLess(applied[-1], -c.slew[0]*.01 - .05)
+
     def test_active_set_solves_ill_conditioned_robot_qp_when_bounds_are_inactive(self):
         from gim_control.arm_dynamics import ArmDynamics
 

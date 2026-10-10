@@ -395,7 +395,9 @@ class MpcController:
         upper = np.tile(upper_fb, self.nc)
         delta = np.tile(self.slew * self.dt, self.nc)
         rate_lower = -delta
-        rate_upper = delta
+        # Keep per-step slew magnitudes independent of the absolute first-move
+        # bounds. Aliasing rate_upper to delta froze feedback at -slew*dt.
+        rate_upper = delta.copy()
         rate_lower[:self.n] += self.previous_feedback
         rate_upper[:self.n] += self.previous_feedback
         rate_constraint = LinearConstraint(
