@@ -46,6 +46,9 @@ def generate_launch_description():
         package="rviz2",
         executable="rviz2",
         output="screen",
+        arguments=["-d", PathJoinSubstitution([
+            FindPackageShare("gim_arm_description"), "rviz", "display.rviz"
+        ])],
     )
 
     return LaunchDescription([

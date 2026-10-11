@@ -4,7 +4,7 @@ project(gim_arm_description)
 find_package(ament_cmake REQUIRED)
 
 install(
-  DIRECTORY meshes urdf launch
+  DIRECTORY meshes urdf launch rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
