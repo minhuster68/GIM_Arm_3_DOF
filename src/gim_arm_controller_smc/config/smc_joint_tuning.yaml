@@ -2,7 +2,7 @@ smc_controller:
   ros__parameters:
     control_hz: 100.0
     tau_scale: 1.0
-    base_ff_alpha: 2.2
+    base_ff_alpha: 2.46
     autostart: false
     use_armature: true
     algorithm_hold: true
@@ -15,22 +15,22 @@ smc_controller:
     joint_state_qos_depth: 1
     command_heartbeat_nm: 1.0e-06
     lambda_gain:
-    - 10.0
-    - 10.0
+    - 15.7
+    - 20.0
     - 18.0
     ks:
-    - 10.0
-    - 20.0
+    - 85.0
+    - 44.0
     - 30.0
     kr:
     - 3.0
-    - 5.0
+    - 4.2
     - 1.0
     phi:
     - 0.2
     - 0.15
     - 0.5
     torque_slew_rate:
-    - 5.0
-    - 40.0
+    - 6.5
+    - 48.0
     - 7.0
