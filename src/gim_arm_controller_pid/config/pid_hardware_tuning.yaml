@@ -1,5 +1,6 @@
 cascade_pid_controller:
   ros__parameters:
+    abort_on_tracking_error: false
     control_hz: 100.0
     tau_scale: 0.35
     base_ff_alpha: 1.0
