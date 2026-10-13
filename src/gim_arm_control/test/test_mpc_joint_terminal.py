@@ -52,8 +52,9 @@ def test_set_four_costs_keeps_rd_and_save_is_explicit(terminal):
 
 
 def test_stage_order_slew_alpha_and_horizons(terminal):
+    other_slew = terminal.parameters['torque_slew_rate'][:2]
     terminal.execute('slew 6')
-    assert terminal.parameters['torque_slew_rate'] == [5, 20, 6]
+    assert terminal.parameters['torque_slew_rate'] == other_slew + [6]
     with pytest.raises(ValueError, match='alpha'):
         terminal.execute('alpha 2.3')
     terminal.execute('next')

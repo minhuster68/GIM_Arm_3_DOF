@@ -109,6 +109,37 @@ Mở lại một khớp bằng `--joint shoulder` hoặc `--joint base`.
 
 ## Log và dừng bài thử
 
+`abort_on_tracking_error` mặc định `false` cho PID/LQR/MPC/SMC theo yêu cầu
+thử nghiệm. Profile `mpc_joint_tuning.yaml` cũng đặt `false`: APPROACH, TRACK, RETURN và
+HOLD không abort chỉ vì vượt `max_transition_error_rad`/`max_track_error_rad`.
+Các giới hạn torque/góc khớp, kiểm tra state cũ và điều kiện trước start vẫn
+hoạt động. Node đang chạy có thể bật lại kiểm tra bằng:
+
+```bash
+ros2 param set /mpc_controller abort_on_tracking_error true
+```
+
+Đặt lại `abort_on_tracking_error: true` trong YAML để khôi phục cho các lần
+khởi động tiếp theo. Sau khi cập nhật source, build lại `gim_control`, mở lại
+node hoặc tuner để dùng công tắc mới.
+
+Khi khớp đứng rồi bật đi dù torque lệnh tăng, có thể ghi thêm torque do
+driver báo ở một terminal khác, trước khi nhập `test`:
+
+```bash
+python3 tools/log_motor_torque.py --can can0 --joint shoulder \
+  --duration 60 --output results/shoulder_motor_torque.csv
+```
+
+Script chỉ gửi yêu cầu đọc `Get_Torques` bằng CAN RTR, mặc định 20 Hz;
+không đổi mode hay gửi torque điều khiển. CSV có timestamp `t_wall` để
+đối chiếu với `tracking.csv`, cả setpoint và torque đo do driver báo.
+Quy đổi sang Nm phía khớp dùng `torque_gear_ratio` và `torque_sign` trong
+URDF (shoulder ×8), không dùng tỉ số encoder tổng 64. Driver torque đo
+là telemetry của driver, không phải cảm biến torque độc lập.
+Đổi `--joint base` để đo base. Ctrl+C hoặc hết `--duration` sẽ đóng CSV;
+script báo lỗi nếu không nhận được mẫu nào. Script Python này không cần build.
+
 Mỗi lượt lưu `results/mpc_joint_trials/mpc_<joint>_<timestamp>/`, gồm
 `tracking.csv`, `parameters.yaml`, `trial.json`, `model.urdf` và ba ảnh PNG.
 CSV có tau_ff, tau_fb/tau_feedback, integral, trạng thái QP, vi phạm ràng
