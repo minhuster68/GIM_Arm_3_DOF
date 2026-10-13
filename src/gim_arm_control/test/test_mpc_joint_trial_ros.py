@@ -171,7 +171,9 @@ class TestMpcJointRosTrial(unittest.TestCase):
         expected_ff[0] *= self.parameters['base_ff_alpha']
         np.testing.assert_allclose(
             [float(track['tau_ff_' + joint]) for joint in tuner.JOINT_NAMES], expected_ff)
-        self.assertTrue(path.with_name('tracking_q3_elbow.png').is_file())
+        for suffix in ('q1_base', 'q2_shoulder', 'q3_elbow'):
+            self.assertTrue(path.with_name(f'tracking_{suffix}.png').is_file())
+            self.assertTrue(path.with_name(f'tracking_{suffix}_velocity.png').is_file())
 
     def test_wrong_hardware_selection_never_activates_effort(self):
         with self.assertRaisesRegex(RuntimeError, 'chưa cô lập'):

@@ -141,7 +141,9 @@ là telemetry của driver, không phải cảm biến torque độc lập.
 script báo lỗi nếu không nhận được mẫu nào. Script Python này không cần build.
 
 Mỗi lượt lưu `results/mpc_joint_trials/mpc_<joint>_<timestamp>/`, gồm
-`tracking.csv`, `parameters.yaml`, `trial.json`, `model.urdf` và ba ảnh PNG.
+`tracking.csv`, `parameters.yaml`, `trial.json`, `model.urdf` và sáu ảnh PNG.
+Mỗi khớp có hai hình riêng: `tracking_qN_*.png` chứa vị trí, sai số vị trí và torque;
+`tracking_qN_*_velocity.png` chứa vận tốc và sai số vận tốc (độ/s).
 CSV có tau_ff, tau_fb/tau_feedback, integral, trạng thái QP, vi phạm ràng
 buộc, thời gian giải và saturation. MPC không chia feedback thành gain
 P/I/D cố định; chart chỉ hiện feedforward và feedback.

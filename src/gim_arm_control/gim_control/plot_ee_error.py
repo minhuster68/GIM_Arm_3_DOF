@@ -132,18 +132,19 @@ def add_phase_boundaries(axes, t, phases):
             color="0.25")
 
 
-def output_paths(output):
-    """Return one PNG path for each joint from a common output prefix."""
+def output_paths(output, velocity=False):
+    """Return separate position or velocity paths for the three joints."""
     if not output:
         raise ValueError("output không được rỗng")
     root, extension = os.path.splitext(output)
     if not extension:
         root, extension = output, ".png"
-    return [f"{root}_{suffix}{extension}" for suffix in JOINT_SUFFIXES]
+    signal_suffix = "_velocity" if velocity else ""
+    return [f"{root}_{suffix}{signal_suffix}{extension}" for suffix in JOINT_SUFFIXES]
 
 
 def plot(log, output, show, max_plot_points):
-    """Create position, position-error and torque panels for each joint."""
+    """Create separate position/torque and velocity figures for each joint."""
     import matplotlib
     if not show:
         matplotlib.use("Agg")
@@ -213,6 +214,45 @@ def plot(log, output, show, max_plot_points):
         figures.append(figure)
         print(f"Đã lưu: {os.path.abspath(path)}")
 
+    qd_deg = np.degrees(log["qd"][sample])
+    qd_ref_deg = np.degrees(log["qd_ref"][sample])
+    velocity_error = qd_deg - qd_ref_deg
+    for index, (title, color, path) in enumerate(zip(
+            JOINT_TITLES, JOINT_COLORS, output_paths(output, velocity=True))):
+        figure, axes = plt.subplots(
+            2, 1, figsize=(13, 7), sharex=True,
+            constrained_layout=True)
+        axes[0].plot(
+            t, qd_deg[:, index], color=color, linewidth=1.1,
+            label="Thực tế")
+        axes[0].plot(
+            t, qd_ref_deg[:, index], color="tab:red", linestyle="--",
+            linewidth=1.1, label="Mong muốn")
+        axes[0].set_ylabel("Vận tốc (độ/s)")
+        axes[0].set_title("Vận tốc khớp")
+        axes[0].legend(loc="best", ncol=2)
+
+        full_error = np.degrees(log["qd"][:, index] - log["qd_ref"][:, index])
+        velocity_rms = float(np.sqrt(np.mean(full_error ** 2)))
+        velocity_max = float(np.max(np.abs(full_error)))
+        axes[1].plot(
+            t, velocity_error[:, index], color=color, linewidth=1.0,
+            label=f"RMS={velocity_rms:.3f}°/s, MAX={velocity_max:.3f}°/s")
+        axes[1].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
+        axes[1].set_ylabel("Sai số vận tốc (độ/s)")
+        axes[1].set_title("e_qdot = vận tốc thực tế - vận tốc mong muốn")
+        axes[1].legend(loc="best")
+
+        for axis in axes:
+            axis.set_xlabel("Thời gian t (s)")
+            axis.tick_params(labelbottom=True)
+            axis.grid(alpha=0.3)
+        add_phase_boundaries(axes, t, phases)
+        figure.suptitle(f"{title} — vận tốc và sai số vận tốc", fontsize=15)
+        figure.savefig(path, dpi=150)
+        figures.append(figure)
+        print(f"Đã lưu: {os.path.abspath(path)}")
+
     if show:
         plt.show()
     for figure in figures:
@@ -223,15 +263,15 @@ def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(
         description=(
-            "Vẽ góc, sai số góc và mô-men của "
+            "Vẽ hình góc/sai số góc/mô-men và hình vận tốc/sai số vận tốc riêng cho "
             "từng khớp từ CSV effort controller."))
     parser.add_argument("csv", help="file CSV truyền bằng launch log_file:=...")
     parser.add_argument(
         "--output", default="",
         help=("prefix PNG đầu ra; mặc định <csv>_joints.png, sau đó thêm "
-              "tên từng khớp"))
+              "tên từng khớp; hình vận tốc thêm _velocity"))
     parser.add_argument("--show", action="store_true",
-                        help="mở ba cửa sổ đồ thị sau khi lưu")
+                        help="mở sáu cửa sổ đồ thị sau khi lưu (hai hình mỗi khớp)")
     parser.add_argument("--max-plot-points", type=int, default=6000,
                         help="giảm mẫu khi vẽ; metrics vẫn dùng toàn bộ mẫu")
     args = parser.parse_args()
