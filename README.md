@@ -130,10 +130,13 @@ ros2 run gim_control plot_joint_tracking results/pid_circle_run01.csv --show
 
 ```text
 RMS e_q [deg], MAX |e_q| [deg], MAX |tau| [Nm].
-3 cửa sổ đồ thị: vị trí, sai số vị trí, mô-men (giữ tau_ff/tau_fb khi có).
+6 cửa sổ đồ thị, mỗi khớp 2 hình riêng: vị trí/sai số vị trí/mô-men và vận tốc/sai số vận tốc.
 results/pid_circle_run01_joints_q1_base.png
 results/pid_circle_run01_joints_q2_shoulder.png
 results/pid_circle_run01_joints_q3_elbow.png
+results/pid_circle_run01_joints_q1_base_velocity.png
+results/pid_circle_run01_joints_q2_shoulder_velocity.png
+results/pid_circle_run01_joints_q3_elbow_velocity.png
 ```
 
 ### Xem trước ba quỹ đạo
