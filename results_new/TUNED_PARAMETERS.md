@@ -2,6 +2,8 @@
 
 Snapshot ngày 2026-10-13, lấy trực tiếp từ từng branch local. Đây là bộ số đang lưu sau các lượt tune; báo cáo kết quả phải gắn với log thực nghiệm tương ứng.
 
+CSV, ảnh và YAML của mỗi thuật toán nằm trong **branch tương ứng**: `pid-test` giữ `results_new/pid/`, `lqr-test` giữ `results_new/lqr/`, `mpc-test` giữ `results_new/mpc/`, `smc-test` giữ `results_new/smc/`. Chuyển branch để xem dữ liệu của thuật toán khác. Bảng tham số tổng hợp này được giữ trên cả bốn branch; xem [README.md](README.md) để tìm các bài chạy đã lưu.
+
 Thứ tự tất cả vector: **base (q1/ID0), shoulder (q2/ID1), elbow (q3/ID2)**. Đơn vị nguồn: rad, rad/s, Nm. Các bản sao `pid/params_tuned.yaml`, `lqr/params_tuned.yaml`, `mpc/params_tuned.yaml`, `smc/params_tuned.yaml` được dùng trực tiếp trong các lệnh chạy.
 
 | Thuật toán | Branch | Commit nguồn | File YAML gốc |
