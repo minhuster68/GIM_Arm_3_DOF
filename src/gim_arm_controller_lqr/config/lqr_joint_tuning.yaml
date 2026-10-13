@@ -1,5 +1,6 @@
 lqr_controller:
   ros__parameters:
+    abort_on_tracking_error: false
     control_hz: 100.0
     tau_scale: 1.0
     base_ff_alpha: 2.2
