@@ -1,5 +1,6 @@
 lqr_controller:
   ros__parameters:
+    abort_on_tracking_error: false
     # Initial hardware profile; tune on the real arm. CAN read/write is 100 Hz.
     control_hz: 100.0
     tau_scale: 0.35

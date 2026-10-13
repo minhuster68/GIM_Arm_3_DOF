@@ -62,6 +62,7 @@ class EffortControllerNode(Node):
         declare("max_track_error_rad", 0.05)
         declare("start_velocity_limit_rad_s", 0.0)
         declare("max_transition_error_rad", 0.10)
+        declare("abort_on_tracking_error", False)
         declare("joint_margin_rad", 0.05)
         declare("state_timeout", 0.25)
         declare("stale_recovery_threshold", 0.03)
@@ -848,7 +849,9 @@ class EffortControllerNode(Node):
             self.max_transition_error
             if self.phase in (APPROACH, RETURN)
             else self.max_track_error)
-        if error > error_limit:
+        # Tracking abort can be restored at runtime without changing other guards.
+        if (bool(self.get_parameter("abort_on_tracking_error").value)
+                and error > error_limit):
             if (self.diagnostic_control
                     and self.phase in (APPROACH, TRACK, RETURN)):
                 previous_tau = (
