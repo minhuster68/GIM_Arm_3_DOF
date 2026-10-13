@@ -1,0 +1,46 @@
+lqr_controller:
+  ros__parameters:
+    abort_on_tracking_error: false
+    control_hz: 100.0
+    tau_scale: 1.0
+    base_ff_alpha: 2.2
+    autostart: false
+    use_armature: true
+    algorithm_hold: true
+    start_velocity_limit_rad_s: 0.05
+    max_track_error_rad: 0.1
+    max_transition_error_rad: 0.1
+    state_timeout: 0.25
+    joint_margin_rad: 0.05
+    joint_state_qos_depth: 1
+    command_heartbeat_nm: 1.0e-06
+    position_tracking_only: false
+    max_int_e:
+    - 0.040824829046386304
+    - 0.05773502691896257
+    - 0.05773502691896257
+    max_e:
+    - 0.025
+    - 0.03333333333333333
+    - 0.022360679774997897
+    max_de:
+    - 1.0
+    - 0.7071067811865475
+    - 1.0
+    max_tau:
+    - 7.155417527999327
+    - 40.0
+    - 7.155417527999327
+    tau_penalty_scale: 512.0
+    integral_limit: 0.05
+    gravity_at_measured: false
+    linearization_step: 1.0e-05
+    require_discrete_stable: true
+    use_discrete_lqr: true
+    recompute_every: 1
+    gain_schedule_mode: trajectory_time
+    gain_schedule_hz: 10.0
+    max_tau_rate_nm_s:
+    - 5.0
+    - 20.0
+    - 5.0
