@@ -1,0 +1,37 @@
+smc_controller:
+  ros__parameters:
+    abort_on_tracking_error: false
+    control_hz: 100.0
+    tau_scale: 1.0
+    base_ff_alpha: 2.46
+    autostart: false
+    use_armature: true
+    algorithm_hold: true
+    controlled_joint: all
+    start_velocity_limit_rad_s: 0.05
+    max_track_error_rad: 0.1
+    max_transition_error_rad: 0.1
+    state_timeout: 0.25
+    joint_margin_rad: 0.05
+    joint_state_qos_depth: 1
+    command_heartbeat_nm: 1.0e-06
+    lambda_gain:
+    - 15.7
+    - 20.0
+    - 18.0
+    ks:
+    - 85.0
+    - 44.0
+    - 30.0
+    kr:
+    - 3.0
+    - 4.2
+    - 1.0
+    phi:
+    - 0.2
+    - 0.15
+    - 0.5
+    torque_slew_rate:
+    - 6.5
+    - 48.0
+    - 7.0
