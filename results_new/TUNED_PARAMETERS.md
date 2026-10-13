@@ -9,7 +9,7 @@ Thứ tự tất cả vector: **base (q1/ID0), shoulder (q2/ID1), elbow (q3/ID2)
 | PID | `pid-test` | `1a4ab5bc5499` | `src/gim_arm_controller_pid/config/pid_hardware_soft.yaml` |
 | LQR | `lqr-test` | `38d8d3287a61` | `src/gim_arm_controller_lqr/config/lqr_joint_tuning.yaml` |
 | MPC | `mpc-test` | `8318f40a54b9` | `src/gim_arm_controller_mpc/config/mpc_joint_tuning.yaml` |
-| SMC | `smc-test` | `263589f27a99` | `src/gim_arm_controller_smc/config/smc_joint_tuning.yaml` |
+| SMC | `smc-test` | `a60481f70563` | `src/gim_arm_controller_smc/config/smc_joint_tuning.yaml` |
 
 ## Thiết lập chạy chung
 
