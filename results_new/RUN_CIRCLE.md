@@ -2,6 +2,8 @@
 
 Thư mục kết quả là `results_new/{pid,lqr,mpc,smc}`. Xem `TUNED_PARAMETERS.md` và các bản sao `params_tuned.yaml` để lấy số báo cáo.
 
+Mỗi branch chỉ chứa thư mục kết quả của thuật toán tương ứng. Vì vậy hãy switch đúng branch trước khi nạp `params_tuned.yaml`, chạy quỹ đạo hoặc xem CSV. Dữ liệu đã chạy được liệt kê trong [README.md](README.md). Các lệnh dưới đây dùng tên log mới để giữ nguyên các bài đã lưu.
+
 Mỗi thuật toán dùng đúng branch riêng. Dừng các node của bài trước rồi mới switch/build. Giữ phiên Terminal 1 (hardware) chạy suốt bài thử, Terminal 2 (thuật toán) để chạy và ghi CSV, Terminal 3 để chuyển mode, bắt đầu và plot.
 
 Khi khởi động hardware với `set_zero_on_startup=true zero_method=software`, đặt và kê tay ở đúng tư thế q=[0,0,0] trước khi chạy: tùy chọn này ghi nhận tư thế hiện tại làm mốc zero. Đây không phải lệnh đưa tay từ vị trí bất kỳ về home.
@@ -57,7 +59,7 @@ ros2 launch gim_control pid_sweep_hardware.launch.py \
   trajectory_shape:=circle \
   approach_time:=16 return_time:=16 \
   params_file:=results_new/pid/params_tuned.yaml \
-  log_file:=results_new/pid/circle_run01.csv
+  log_file:=results_new/pid/circle_run03.csv
 ```
 
 Chờ node chuẩn bị xong và về READY; tay ở home và đứng yên.
@@ -88,10 +90,10 @@ Sau khi switch thành công, Ctrl+C **Terminal 2** để node ghi/đóng CSV. Te
 
 ```bash
 ros2 run gim_control plot_joint_tracking \
-  results_new/pid/circle_run01.csv --show
+  results_new/pid/circle_run03.csv --show
 ```
 
-CSV và 6 hình PNG cùng trong `results_new/pid`. Lần tiếp theo đổi `run01` thành `run02` để giữ kết quả cũ. Đóng đồ thị, kết thúc Terminal 1 sau bài thử rồi mới chuyển branch tiếp theo.
+CSV và 6 hình PNG cùng trong `results_new/pid`. Lần tiếp theo tăng số `run` và chọn tên chưa tồn tại để giữ kết quả cũ. Đóng đồ thị, kết thúc Terminal 1 sau bài thử rồi mới chuyển branch tiếp theo.
 
 ## LQR
 
@@ -132,7 +134,7 @@ ros2 launch gim_control lqr_sweep_hardware.launch.py \
   trajectory_shape:=circle \
   approach_time:=16 return_time:=16 \
   params_file:=results_new/lqr/params_tuned.yaml \
-  log_file:=results_new/lqr/circle_run01.csv
+  log_file:=results_new/lqr/circle_run02.csv
 ```
 
 Chờ node chuẩn bị xong và về READY; tay ở home và đứng yên.
@@ -163,10 +165,10 @@ Sau khi switch thành công, Ctrl+C **Terminal 2** để node ghi/đóng CSV. Te
 
 ```bash
 ros2 run gim_control plot_joint_tracking \
-  results_new/lqr/circle_run01.csv --show
+  results_new/lqr/circle_run02.csv --show
 ```
 
-CSV và 6 hình PNG cùng trong `results_new/lqr`. Lần tiếp theo đổi `run01` thành `run02` để giữ kết quả cũ. Đóng đồ thị, kết thúc Terminal 1 sau bài thử rồi mới chuyển branch tiếp theo.
+CSV và 6 hình PNG cùng trong `results_new/lqr`. Lần tiếp theo tăng số `run` và chọn tên chưa tồn tại để giữ kết quả cũ. Đóng đồ thị, kết thúc Terminal 1 sau bài thử rồi mới chuyển branch tiếp theo.
 
 ## MPC
 
@@ -207,7 +209,7 @@ ros2 launch gim_control mpc_sweep_hardware.launch.py \
   trajectory_shape:=circle \
   approach_time:=16 return_time:=16 \
   params_file:=results_new/mpc/params_tuned.yaml \
-  log_file:=results_new/mpc/circle_run01.csv
+  log_file:=results_new/mpc/circle_run02.csv
 ```
 
 Chờ node chuẩn bị xong và về READY; tay ở home và đứng yên.
@@ -238,10 +240,10 @@ Sau khi switch thành công, Ctrl+C **Terminal 2** để node ghi/đóng CSV. Te
 
 ```bash
 ros2 run gim_control plot_joint_tracking \
-  results_new/mpc/circle_run01.csv --show
+  results_new/mpc/circle_run02.csv --show
 ```
 
-CSV và 6 hình PNG cùng trong `results_new/mpc`. Lần tiếp theo đổi `run01` thành `run02` để giữ kết quả cũ. Đóng đồ thị, kết thúc Terminal 1 sau bài thử rồi mới chuyển branch tiếp theo.
+CSV và 6 hình PNG cùng trong `results_new/mpc`. Lần tiếp theo tăng số `run` và chọn tên chưa tồn tại để giữ kết quả cũ. Đóng đồ thị, kết thúc Terminal 1 sau bài thử rồi mới chuyển branch tiếp theo.
 
 ## SMC
 
@@ -282,7 +284,7 @@ ros2 launch gim_control smc_sweep_hardware.launch.py \
   trajectory_shape:=circle \
   approach_time:=16 return_time:=16 \
   params_file:=results_new/smc/params_tuned.yaml \
-  log_file:=results_new/smc/circle_run01.csv
+  log_file:=results_new/smc/circle_run02.csv
 ```
 
 Chờ node chuẩn bị xong và về READY; tay ở home và đứng yên.
@@ -313,10 +315,10 @@ Sau khi switch thành công, Ctrl+C **Terminal 2** để node ghi/đóng CSV. Te
 
 ```bash
 ros2 run gim_control plot_joint_tracking \
-  results_new/smc/circle_run01.csv --show
+  results_new/smc/circle_run02.csv --show
 ```
 
-CSV và 6 hình PNG cùng trong `results_new/smc`. Lần tiếp theo đổi `run01` thành `run02` để giữ kết quả cũ. Đóng đồ thị, kết thúc Terminal 1 sau bài thử rồi mới chuyển branch tiếp theo.
+CSV và 6 hình PNG cùng trong `results_new/smc`. Lần tiếp theo tăng số `run` và chọn tên chưa tồn tại để giữ kết quả cũ. Đóng đồ thị, kết thúc Terminal 1 sau bài thử rồi mới chuyển branch tiếp theo.
 
 ## Về home khi dừng giữa quỹ đạo
 
