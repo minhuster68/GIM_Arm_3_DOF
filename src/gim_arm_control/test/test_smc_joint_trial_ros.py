@@ -45,6 +45,7 @@ class TestSmcJointRosTrial(unittest.TestCase):
         self.prestart_velocity = 0.0
         self.prestart_drift = 0.0
         self.prestart_duration = 0.0
+        self.prestart_noisy_velocity = False
         self.activation_time = None
         self.commands_before_effort = []
         self.node.create_subscription(
@@ -88,6 +89,11 @@ class TestSmcJointRosTrial(unittest.TestCase):
                 and time.monotonic() - self.activation_time < self.prestart_duration):
             qd[0] = self.prestart_velocity
             q[0] += self.prestart_drift
+        if smc is not None and self.effort_active and smc.phase == 'GRAVITY' \
+                and self.prestart_noisy_velocity:
+            sign = 1 if int((time.monotonic() - self.activation_time) * 100) % 2 else -1
+            qd[2] = 0.12 * sign
+            q[2] += 0.001 * sign
         if smc is not None and self.effort_active and smc.phase in (
                 'APPROACH', 'TRACK', 'RETURN', 'HOLD'):
             q, qd, _ = smc._reference_at_phase(smc.phase_elapsed)
@@ -221,6 +227,14 @@ class TestSmcJointRosTrial(unittest.TestCase):
         path = next(Path(self.directory.name).glob('*/tracking.csv'))
         with path.open() as stream:
             self.assertEqual({row['phase'] for row in csv.DictReader(stream)}, {'GRAVITY'})
+
+    def test_noisy_velocity_with_stable_position_can_start_trajectory(self):
+        self.prestart_noisy_velocity = True
+        self.trial.run(2, 1, 0.15, 0.04, self.parameters)
+        self.assertFalse(self.effort_active)
+        path = next(Path(self.directory.name).glob('*/tracking.csv'))
+        with path.open() as stream:
+            self.assertIn('APPROACH', {row['phase'] for row in csv.DictReader(stream)})
 
     def test_prestart_drift_past_position_limit_returns_to_position(self):
         self.prestart_drift = -0.15

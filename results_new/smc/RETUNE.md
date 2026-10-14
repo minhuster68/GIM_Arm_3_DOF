@@ -3,6 +3,7 @@
 Branch hiện tại: `smc-test`. Không cần đổi branch hoặc tạo worktree.
 
 - File tuner ghi khi `save`: `src/gim_arm_controller_smc/config/smc_joint_tuning.yaml`.
+- Elbow đã chốt lại với slew 6 Nm/s; xem `ELBOW_RETUNE_20261014.md`.
 - Bộ trước khi tune lại: `results_new/smc/params_before_retune_20261013.yaml`.
 - Log và 6 PNG mỗi trial: `results_new/smc/joint_trials/smc_<joint>_<timestamp>/`.
 - Bộ `results_new/smc/params_tuned.yaml` dùng chạy circle chưa được thay đổi trong lúc chuẩn bị này.
@@ -67,7 +68,7 @@ test 3 6 3
 
 Đây là baseline, giữ nguyên bộ đang lưu. Chỉ khớp đang chọn nhận torque; hai khớp kia giữ position. Tuner tự chuyển mode, chạy đi/giữ/về/giữ và trả về position. DEG là góc dịch chuyển từ HOME, MOVE là số giây mỗi chiều, HOLD là số giây giữ mỗi đầu.
 
-Xem trial đầu rồi điều chỉnh từng tham số. `set LAMBDA KS KR PHI` đổi bộ số trong bộ nhớ; `slew VALUE` đổi giới hạn biến thiên feedback torque. Gain chỉ áp dụng ở test tiếp theo. `save` mới ghi YAML. Khi thử nhỏ đã đạt, tăng biên độ, ví dụ `test 5 6 3`, rồi `test 10 6 3`.
+Xem trial đầu rồi điều chỉnh từng tham số. `set LAMBDA KS KR PHI` đổi bộ số trong bộ nhớ; `slew VALUE` đổi giới hạn biến thiên feedback torque. Gain chỉ áp dụng ở test tiếp theo. `save` mới ghi YAML. Khi thử nhỏ đã đạt, tăng biên độ, ví dụ `test 5 6 3`, rồi `test 10 6 3`. Trước **mỗi** lượt thử, đưa tay về 0 bằng action position ở trên để so sánh trong cùng tư thế HOME.
 
 ## Chuyển shoulder rồi base
 
@@ -104,7 +105,7 @@ Trong tuner chạy `show`, `test 3 6 3`. Chỉ ở base có thể dùng `alpha V
 
 | Khớp | lambda | ks | kr | phi | Feedback slew (Nm/s) |
 |---|---:|---:|---:|---:|---:|
-| elbow/ID2 | 18 | 30 | 1 | 0.5 | 7 |
+| elbow/ID2 | 18 | 30 | 1 | 0.5 | 6 |
 | shoulder/ID1 | 20 | 44 | 4.2 | 0.15 | 48 |
 | base/ID0 | 15.7 | 85 | 3 | 0.2 | 6.5 |
 

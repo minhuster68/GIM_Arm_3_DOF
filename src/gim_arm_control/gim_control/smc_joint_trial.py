@@ -5,6 +5,7 @@ Only explicit run() activates effort; importing this module never uses ROS/CAN.
 """
 
 import copy
+from collections import deque
 from datetime import datetime
 import json
 import math
@@ -19,6 +20,21 @@ JOINTS = ('base', 'shoulder', 'elbow')
 JOINT_NAMES = tuple(name + '_joint' for name in JOINTS)
 START_VELOCITY_LIMIT_RAD_S = 0.05
 PRESTART_STABLE_TIME_S = 0.3
+STABLE_POSITION_SPAN_RAD = 0.005
+
+
+def stable_samples(samples):
+    """Reject drift while tolerating short spikes in measured joint velocity."""
+    if (not samples or samples[-1][0] - samples[0][0]
+            < PRESTART_STABLE_TIME_S - 0.02):
+        return False
+    for joint in range(3):
+        positions = [sample[1][joint] for sample in samples]
+        if max(positions) - min(positions) > STABLE_POSITION_SPAN_RAD:
+            return False
+        if abs(sum(sample[2][joint] for sample in samples) / len(samples)) > START_VELOCITY_LIMIT_RAD_S:
+            return False
+    return True
 
 
 def checked_trial(degrees, move, hold):
@@ -75,7 +91,7 @@ class RosSmcJointTrial:
         node = self.node
         handoff_end = time.monotonic() + handoff_duration
         deadline = handoff_end + self.prestart_timeout
-        stable_since = None
+        samples = deque()
         previous_seq = node.state_seq
         last_fresh = time.monotonic()
         position_limit = min(0.02, node.max_transition_error)
@@ -85,11 +101,11 @@ class RosSmcJointTrial:
                 raise RuntimeError('SMC ABORT khi giữ HOME trước quỹ đạo; xem CSV')
             if node.state_seq == previous_seq:
                 if time.monotonic() - last_fresh > 0.05:
-                    stable_since = None
+                    samples.clear()
                 continue
             now = time.monotonic()
             if now - last_fresh > 0.05:
-                stable_since = None
+                samples.clear()
             last_fresh = now
             previous_seq = node.state_seq
             error = max(abs(float(q - home)) for q, home in zip(node.q, node.home_q))
@@ -98,16 +114,17 @@ class RosSmcJointTrial:
                     f'Tay trôi khỏi HOME {math.degrees(error):.2f} độ khi chuyển sang torque; '
                     'trả về position, chưa chạy quỹ đạo')
             if now < handoff_end:
-                stable_since = None
+                samples.clear()
                 continue
-            still = max(abs(float(value)) for value in node.qd) <= START_VELOCITY_LIMIT_RAD_S
-            if still and error <= position_limit:
-                if stable_since is None:
-                    stable_since = time.monotonic()
-                if time.monotonic() - stable_since >= PRESTART_STABLE_TIME_S:
-                    return
-            else:
-                stable_since = None
+            if error > position_limit:
+                samples.clear()
+                continue
+            samples.append((now, node.q.copy(), node.qd.copy()))
+            while samples and now - samples[0][0] > PRESTART_STABLE_TIME_S:
+                samples.popleft()
+            if (now - handoff_end >= PRESTART_STABLE_TIME_S
+                    and stable_samples(samples)):
+                return
         values = ', '.join(
             f'{name}: qd={float(velocity):.3f} rad/s, '
             f'e_HOME={math.degrees(float(q - home)):.2f} độ'
@@ -210,8 +227,17 @@ class RosSmcJointTrial:
                 if time.monotonic() >= deadline:
                     raise RuntimeError('Chưa có joint state mới với đủ góc/vận tốc')
                 executor.spin_once(timeout_sec=0.01)
-            if max(abs(value) for value in state['qd']) > 0.1:
-                raise RuntimeError('Tay đang chuyển động; giữ yên trước test')
+            initial_samples = deque()
+            observe_until = time.monotonic() + PRESTART_STABLE_TIME_S
+            previous_received = None
+            while time.monotonic() < observe_until:
+                executor.spin_once(timeout_sec=0.01)
+                if state.get('received') == previous_received:
+                    continue
+                previous_received = state['received']
+                initial_samples.append((state['received'], list(state['q']), list(state['qd'])))
+            if not stable_samples(initial_samples):
+                raise RuntimeError('Tay đang chuyển động trước test; giữ yên')
 
             stamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y%m%d_%H%M%S_%f')
             directory = self.log_dir / f'smc_{JOINTS[selected]}_{stamp}'
@@ -227,7 +253,9 @@ class RosSmcJointTrial:
                 gravity_scale=[1.0, 1.0, 1.0], controlled_joint=JOINTS[selected],
                 diagnostic_hold=True, diagnostic_segment=False,
                 approach_time=move, return_time=move, diagnostic_hold_time=hold,
-                start_velocity_limit_rad_s=START_VELOCITY_LIMIT_RAD_S,
+                # The tuner checks a full position/velocity window before
+                # autostart; the raw single-sample check rejects encoder spikes.
+                start_velocity_limit_rad_s=0.0,
                 command_heartbeat_nm=1.0e-6)
             # Construct with a hold at the measured pose; update the target
             # after WAIT captures the exact HOME from a fresh state sample.
@@ -275,6 +303,7 @@ class RosSmcJointTrial:
                     'stable_time_s': PRESTART_STABLE_TIME_S,
                     'timeout_s': self.prestart_timeout,
                     'velocity_limit_rad_s': START_VELOCITY_LIMIT_RAD_S,
+                    'position_span_limit_rad': STABLE_POSITION_SPAN_RAD,
                     'position_limit_rad': min(0.02, self.node.max_transition_error),
                 },
             }, indent=2) + '\n')

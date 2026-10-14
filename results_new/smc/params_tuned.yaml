@@ -34,4 +34,4 @@ smc_controller:
     torque_slew_rate:
     - 6.5
     - 48.0
-    - 7.0
+    - 6.0

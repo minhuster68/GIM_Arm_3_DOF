@@ -34,8 +34,9 @@ def test_gains_only_change_selected_joint_and_save_is_explicit(terminal):
 
 
 def test_order_slew_and_base_only_alpha(terminal):
+    before = deepcopy(terminal.parameters['torque_slew_rate'])
     terminal.execute('slew 6')
-    assert terminal.parameters['torque_slew_rate'] == [5, 40, 6]
+    assert terminal.parameters['torque_slew_rate'] == before[:2] + [6]
     with pytest.raises(ValueError, match='alpha'):
         terminal.execute('alpha 2')
     terminal.execute('next')
