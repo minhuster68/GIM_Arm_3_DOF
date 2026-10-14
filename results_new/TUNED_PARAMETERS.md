@@ -1,17 +1,17 @@
 # Tham số đang lưu để chạy so sánh hình tròn
 
-Snapshot ngày 2026-10-13, lấy trực tiếp từ từng branch local. Đây là bộ số đang lưu sau các lượt tune; báo cáo kết quả phải gắn với log thực nghiệm tương ứng.
+Snapshot ban đầu ngày 2026-10-13, lấy trực tiếp từ từng branch local. Mục SMC đã cập nhật elbow và shoulder ngày 2026-10-14; bộ này chưa chạy lại circle. Báo cáo kết quả phải gắn với log thực nghiệm tương ứng.
 
 CSV, ảnh và YAML của mỗi thuật toán nằm trong **branch tương ứng**: `pid-test` giữ `results_new/pid/`, `lqr-test` giữ `results_new/lqr/`, `mpc-test` giữ `results_new/mpc/`, `smc-test` giữ `results_new/smc/`. Chuyển branch để xem dữ liệu của thuật toán khác. Bảng tham số tổng hợp này được giữ trên cả bốn branch; xem [README.md](README.md) để tìm các bài chạy đã lưu.
 
 Thứ tự tất cả vector: **base (q1/ID0), shoulder (q2/ID1), elbow (q3/ID2)**. Đơn vị nguồn: rad, rad/s, Nm. Các bản sao `pid/params_tuned.yaml`, `lqr/params_tuned.yaml`, `mpc/params_tuned.yaml`, `smc/params_tuned.yaml` được dùng trực tiếp trong các lệnh chạy.
 
-| Thuật toán | Branch | Commit nguồn | File YAML gốc |
+| Thuật toán | Branch | Commit snapshot 13/10 | File YAML gốc |
 |---|---|---|---|
 | PID | `pid-test` | `1a4ab5bc5499` | `src/gim_arm_controller_pid/config/pid_hardware_soft.yaml` |
 | LQR | `lqr-test` | `38d8d3287a61` | `src/gim_arm_controller_lqr/config/lqr_joint_tuning.yaml` |
 | MPC | `mpc-test` | `8318f40a54b9` | `src/gim_arm_controller_mpc/config/mpc_joint_tuning.yaml` |
-| SMC | `smc-test` | `a60481f70563` | `src/gim_arm_controller_smc/config/smc_joint_tuning.yaml` |
+| SMC | `smc-test` | `a60481f70563` (trước retune) | `src/gim_arm_controller_smc/config/smc_joint_tuning.yaml` |
 
 ## Thiết lập chạy chung
 
@@ -88,6 +88,6 @@ Thang chuẩn hóa: integral `[0.25, 0.25, 0.25]`, vị trí `[0.05, 0.05, 0.05]
 | ks | `[85, 44, 30]` |
 | kr | `[3, 4.2, 1]` |
 | phi | `[0.2, 0.15, 0.5]` |
-| Torque slew rate | `[6.5, 48, 7]` Nm/s |
+| Torque slew rate | `[6.5, 25, 6]` Nm/s |
 
 `controlled_joint=all`. Các phương trình và cách áp dụng lớp biên lấy từ source smc-test, không lấy package SMC trên các branch khác.

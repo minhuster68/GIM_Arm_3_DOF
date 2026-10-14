@@ -46,6 +46,7 @@ class TestSmcJointRosTrial(unittest.TestCase):
         self.prestart_drift = 0.0
         self.prestart_duration = 0.0
         self.prestart_noisy_velocity = False
+        self.motion_drift_joint = None
         self.activation_time = None
         self.commands_before_effort = []
         self.node.create_subscription(
@@ -97,6 +98,9 @@ class TestSmcJointRosTrial(unittest.TestCase):
         if smc is not None and self.effort_active and smc.phase in (
                 'APPROACH', 'TRACK', 'RETURN', 'HOLD'):
             q, qd, _ = smc._reference_at_phase(smc.phase_elapsed)
+            if smc.phase == 'RETURN' and self.motion_drift_joint is not None:
+                q = q.copy()
+                q[self.motion_drift_joint] += 0.06
         message = JointState()
         message.name = list(tuner.JOINT_NAMES)
         message.position = [float(value) for value in q]
@@ -256,6 +260,20 @@ class TestSmcJointRosTrial(unittest.TestCase):
         with patch.object(EffortControllerNode, '_tick', interrupt_motion):
             with self.assertRaises(KeyboardInterrupt):
                 self.trial.run(2, 1, 0.15, 0.04, self.parameters)
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
+
+    def test_large_tracking_error_during_trial_restores_position(self):
+        self.motion_drift_joint = 2
+        with self.assertRaisesRegex(RuntimeError, 'lệch quỹ đạo'):
+            self.trial.run(2, 1, 0.15, 0.04, self.parameters)
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
+
+    def test_held_joint_drift_during_trial_restores_position(self):
+        self.motion_drift_joint = 0
+        with self.assertRaisesRegex(RuntimeError, 'Khớp cố định base lệch'):
+            self.trial.run(2, 1, 0.15, 0.04, self.parameters)
         self.assertFalse(self.effort_active)
         self.assertEqual(len(self.switches), 2)
         self.assertEqual(list(self.switches[-1].activate_controllers), ['gim_arm_group_controller'])

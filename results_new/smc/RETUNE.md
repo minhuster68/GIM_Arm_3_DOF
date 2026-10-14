@@ -6,7 +6,7 @@ Branch hiện tại: `smc-test`. Không cần đổi branch hoặc tạo worktre
 - Elbow đã chốt lại với slew 6 Nm/s; xem `ELBOW_RETUNE_20261014.md`.
 - Bộ trước khi tune lại: `results_new/smc/params_before_retune_20261013.yaml`.
 - Log và 6 PNG mỗi trial: `results_new/smc/joint_trials/smc_<joint>_<timestamp>/`.
-- Bộ `results_new/smc/params_tuned.yaml` dùng chạy circle chưa được thay đổi trong lúc chuẩn bị này.
+- Bộ `results_new/smc/params_tuned.yaml` đã cập nhật elbow=6 và shoulder=25 Nm/s sau các lượt tune ngày 14/10; chưa chạy lại circle với bộ mới.
 
 Tất cả terminal trong quy trình này dùng `ROS_DOMAIN_ID=0`, giống phiên hardware hiện tại. Chạy Python trực tiếp; script `tools/tune_smc_terminal.sh` của branch đang cố định domain 42.
 
@@ -101,23 +101,20 @@ ros2 launch gim_control origin_gim_arm_control.launch.py \
 
 Trong tuner chạy `show`, `test 3 6 3`. Chỉ ở base có thể dùng `alpha VALUE` để chỉnh riêng feedforward. Kết thúc bằng `save`, `quit`.
 
-## Bộ khởi đầu hiện tại
+## Bộ hiện tại
 
 | Khớp | lambda | ks | kr | phi | Feedback slew (Nm/s) |
 |---|---:|---:|---:|---:|---:|
 | elbow/ID2 | 18 | 30 | 1 | 0.5 | 6 |
-| shoulder/ID1 | 20 | 44 | 4.2 | 0.15 | 48 |
+| shoulder/ID1 | 20 | 44 | 4.2 | 0.15 | 25 |
 | base/ID0 | 15.7 | 85 | 3 | 0.2 | 6.5 |
 
 100 Hz, tau_scale=1, base_ff_alpha=2.46. `abort_on_tracking_error=false` giữ nguyên; các kiểm tra khác của tuner/hardware vẫn hoạt động.
 
+Lưu ý: file tuning trong working tree hiện có thay đổi riêng elbow slew=7 chưa commit, trong khi bộ elbow đã chốt và `params_tuned.yaml` dùng slew=6. Không sao chép nguyên file tuning sang `params_tuned.yaml` trước khi quyết định giá trị elbow. Xem `SHOULDER_RETUNE_20261014.md` cho các lượt thử shoulder, kể cả lượt slew=12 bị mất ổn định.
+
 ## Sau khi chốt cả ba khớp
 
-Đồng bộ bộ mới cho lệnh circle:
-
-```bash
-cp src/gim_arm_controller_smc/config/smc_joint_tuning.yaml \
-  results_new/smc/params_tuned.yaml
-```
+Đối chiếu từng khớp trong file tuning với `results_new/smc/params_tuned.yaml` trước khi cập nhật bộ chạy circle. Hiện shoulder đã đồng bộ ở 25 Nm/s, còn elbow trong file tuning là 7 Nm/s trong khi bộ đã chốt dùng 6 Nm/s.
 
 Chạy circle tiếp theo với tên log mới `results_new/smc/circle_run02.csv`. Bộ dùng cho circle_run01 vẫn được lưu ở `params_before_retune_20261013.yaml`. Khi báo cáo bộ mới, dùng tham số đã lưu của từng trial và bộ YAML mới thay vì bảng số của đợt so sánh trước.

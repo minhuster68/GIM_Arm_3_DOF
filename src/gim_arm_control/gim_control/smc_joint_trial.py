@@ -21,6 +21,8 @@ JOINT_NAMES = tuple(name + '_joint' for name in JOINTS)
 START_VELOCITY_LIMIT_RAD_S = 0.05
 PRESTART_STABLE_TIME_S = 0.3
 STABLE_POSITION_SPAN_RAD = 0.005
+MAX_TUNING_ERROR_RAD = math.radians(2.0)
+MAX_HELD_DRIFT_RAD = math.radians(1.0)
 
 
 def stable_samples(samples):
@@ -73,6 +75,26 @@ def trial_target(start, selected, degrees, move, lower, upper, velocity):
     if 1.875 * abs(math.radians(degrees)) / move > velocity[selected]:
         raise ValueError('Quỹ đạo vượt vận tốc URDF; tăng MOVE')
     return target
+
+
+def check_trial_drift(node, selected):
+    """Stop a joint trial before a divergent response reaches a joint limit."""
+    if node.phase not in ('APPROACH', 'TRACK', 'RETURN') or node.q is None:
+        return
+    reference, _, _ = node._reference_at_phase(node.phase_elapsed)
+    error = abs(float(node.q[selected] - reference[selected]))
+    if error > MAX_TUNING_ERROR_RAD:
+        raise RuntimeError(
+            f'Test {JOINTS[selected]} lệch quỹ đạo {math.degrees(error):.2f} độ; '
+            'trả về position')
+    for index in range(3):
+        if index == selected:
+            continue
+        drift = abs(float(node.q[index] - node.home_q[index]))
+        if drift > MAX_HELD_DRIFT_RAD:
+            raise RuntimeError(
+                f'Khớp cố định {JOINTS[index]} lệch {math.degrees(drift):.2f} độ; '
+                'trả về position')
 
 
 class RosSmcJointTrial:
@@ -339,6 +361,7 @@ class RosSmcJointTrial:
                 if time.monotonic() >= deadline:
                     raise RuntimeError('Bài thử chưa hoàn thành trong thời gian chờ')
                 executor.spin_once(timeout_sec=0.01)
+                check_trial_drift(self.node, selected)
             if self.node.phase == 'ABORT':
                 raise RuntimeError('SMC ABORT; xem CSV và lỗi trong log')
             stop_hold = self.node.phase_elapsed + hold
