@@ -24,6 +24,7 @@ GAIN_KEYS = dict(kp='position_kp', ki='position_ki', kd='position_kd')
 START_VELOCITY_LIMIT_RAD_S = 0.05
 PRESTART_STABLE_TIME_S = 0.3
 PRESTART_TIMEOUT_S = 3.0
+LOCKED_JOINT_DRIFT_LIMIT_RAD = math.radians(1.0)
 HELP = """PID một vòng trên PC: tau = tau_ff(URDF) + tau_p + tau_i + tau_d.
 Thứ tự: khâu 3 elbow -> khâu 2 shoulder -> khâu 1 base.
   show                   Xem Kp/Ki/Kd, alpha của base và YAML đang dùng
@@ -245,6 +246,16 @@ class RosPositionTrial:
             if not call(switching, request, 8.0).ok:
                 raise RuntimeError('Không chuyển được controller')
 
+        def check_locked_joint_hold():
+            for index, name in enumerate(JOINT_NAMES):
+                if index == selected:
+                    continue
+                drift = float(self.pid.q[index] - self.pid.home_q[index])
+                if abs(drift) > LOCKED_JOINT_DRIFT_LIMIT_RAD:
+                    raise RuntimeError(
+                        f'{name} trôi {math.degrees(drift):+.2f} độ khi đang '
+                        'giữ position; dừng test và trả về position')
+
         active_effort = False
         path = None
         try:
@@ -328,6 +339,7 @@ class RosPositionTrial:
                     'velocity_limit_rad_s': START_VELOCITY_LIMIT_RAD_S,
                     'position_limit_rad': min(0.02, self.pid.max_transition_error),
                 },
+                'locked_joint_drift_limit_rad': LOCKED_JOINT_DRIFT_LIMIT_RAD,
             }, indent=2) + '\n')
             print(f'Test {JOINTS[selected]}: đi thêm {degrees:g} độ, '
                   f'đi/về {move:g}s, giữ {hold:g}s; tau_ff + tau_fb.')
@@ -363,6 +375,7 @@ class RosPositionTrial:
                 if time.monotonic() >= deadline:
                     raise RuntimeError('Bài thử chưa hoàn thành trong thời gian chờ')
                 executor.spin_once(timeout_sec=0.01)
+                check_locked_joint_hold()
             if self.pid.phase == 'ABORT':
                 raise RuntimeError('PID ABORT; xem CSV và lỗi trong log')
             stop_hold = self.pid.phase_elapsed + hold
@@ -370,6 +383,7 @@ class RosPositionTrial:
                 if self.pid.phase == 'ABORT' or time.monotonic() >= deadline:
                     raise RuntimeError('Bài thử dừng trong pha HOLD_HOME')
                 executor.spin_once(timeout_sec=0.01)
+                check_locked_joint_hold()
         finally:
             try:
                 if active_effort:

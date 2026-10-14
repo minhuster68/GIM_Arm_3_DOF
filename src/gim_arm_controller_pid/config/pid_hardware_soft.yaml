@@ -12,16 +12,16 @@ cascade_pid_controller:
     cascade_hold: true
     position_kp:
     - 30.0
-    - 22.0
-    - 2.5
+    - 55.0
+    - 14.0
     position_ki:
     - 2.5
-    - 3.0
-    - 0.6
+    - 1.0
+    - 0.8
     position_kd:
     - 0.1
-    - 10.0
-    - 0.5
+    - 4.0
+    - 0.3
     position_integral_limit:
     - 0.3
     - 0.3
