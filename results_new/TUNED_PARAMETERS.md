@@ -1,6 +1,6 @@
 # Tham số đang lưu để chạy so sánh hình tròn
 
-Snapshot ban đầu ngày 2026-10-13, lấy trực tiếp từ từng branch local. Mục SMC đã cập nhật elbow và shoulder ngày 2026-10-14; bộ này chưa chạy lại circle. Báo cáo kết quả phải gắn với log thực nghiệm tương ứng.
+Snapshot ban đầu ngày 2026-10-13, lấy trực tiếp từ từng branch local. Mục SMC đã cập nhật cả ba khớp ngày 2026-10-14; bộ này chưa chạy lại circle. Báo cáo kết quả phải gắn với log thực nghiệm tương ứng.
 
 CSV, ảnh và YAML của mỗi thuật toán nằm trong **branch tương ứng**: `pid-test` giữ `results_new/pid/`, `lqr-test` giữ `results_new/lqr/`, `mpc-test` giữ `results_new/mpc/`, `smc-test` giữ `results_new/smc/`. Chuyển branch để xem dữ liệu của thuật toán khác. Bảng tham số tổng hợp này được giữ trên cả bốn branch; xem [README.md](README.md) để tìm các bài chạy đã lưu.
 
@@ -85,9 +85,9 @@ Thang chuẩn hóa: integral `[0.25, 0.25, 0.25]`, vị trí `[0.05, 0.05, 0.05]
 | Tham số | Vector base, shoulder, elbow |
 |---|---|
 | lambda_gain | `[15.7, 20, 18]` |
-| ks | `[85, 44, 30]` |
+| ks | `[65, 44, 30]` |
 | kr | `[3, 4.2, 1]` |
 | phi | `[0.2, 0.15, 0.5]` |
-| Torque slew rate | `[6.5, 25, 6]` Nm/s |
+| Torque slew rate | `[10, 25, 6]` Nm/s |
 
 `controlled_joint=all`. Các phương trình và cách áp dụng lớp biên lấy từ source smc-test, không lấy package SMC trên các branch khác.

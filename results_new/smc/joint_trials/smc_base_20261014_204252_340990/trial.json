@@ -1,0 +1,26 @@
+{
+  "joint": "base",
+  "home_rad": [
+    0.0005930318793010009,
+    2.2353388251201284e-05,
+    0.00041326850572032114
+  ],
+  "target_rad": [
+    0.3496588822781669,
+    2.2353388251201284e-05,
+    0.00041326850572032114
+  ],
+  "move_s": 8.0,
+  "hold_s": 3.0,
+  "tau_ff": "inverse_dynamics(runtime URDF, measured q, measured qd, qdd_ref); base component multiplied by base_ff_alpha",
+  "base_ff_alpha": 2.46,
+  "tau_fb": "M(measured q) @ (-lambda*ed - ks*s - kr*sat(s/phi)); only selected joint acceleration is active; feedback torque slew-limited",
+  "prestart_hold": {
+    "hardware_handoff_duration_s": 1.0,
+    "stable_time_s": 0.3,
+    "timeout_s": 6.0,
+    "velocity_limit_rad_s": 0.05,
+    "position_span_limit_rad": 0.005,
+    "position_limit_rad": 0.02
+  }
+}

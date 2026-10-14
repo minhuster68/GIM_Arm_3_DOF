@@ -6,7 +6,7 @@ Branch hiện tại: `smc-test`. Không cần đổi branch hoặc tạo worktre
 - Elbow đã chốt lại với slew 6 Nm/s; xem `ELBOW_RETUNE_20261014.md`.
 - Bộ trước khi tune lại: `results_new/smc/params_before_retune_20261013.yaml`.
 - Log và 6 PNG mỗi trial: `results_new/smc/joint_trials/smc_<joint>_<timestamp>/`.
-- Bộ `results_new/smc/params_tuned.yaml` đã cập nhật elbow=6 và shoulder=25 Nm/s sau các lượt tune ngày 14/10; chưa chạy lại circle với bộ mới.
+- Bộ `results_new/smc/params_tuned.yaml` đã cập nhật cả ba khớp sau các lượt tune ngày 14/10; chưa chạy lại circle với bộ mới.
 
 Tất cả terminal trong quy trình này dùng `ROS_DOMAIN_ID=0`, giống phiên hardware hiện tại. Chạy Python trực tiếp; script `tools/tune_smc_terminal.sh` của branch đang cố định domain 42.
 
@@ -107,11 +107,11 @@ Trong tuner chạy `show`, `test 3 6 3`. Chỉ ở base có thể dùng `alpha V
 |---|---:|---:|---:|---:|---:|
 | elbow/ID2 | 18 | 30 | 1 | 0.5 | 6 |
 | shoulder/ID1 | 20 | 44 | 4.2 | 0.15 | 25 |
-| base/ID0 | 15.7 | 85 | 3 | 0.2 | 6.5 |
+| base/ID0 | 15.7 | 65 | 3 | 0.2 | 10 |
 
 100 Hz, tau_scale=1, base_ff_alpha=2.46. `abort_on_tracking_error=false` giữ nguyên; các kiểm tra khác của tuner/hardware vẫn hoạt động.
 
-Lưu ý: file tuning trong working tree hiện có thay đổi riêng elbow slew=7 chưa commit, trong khi bộ elbow đã chốt và `params_tuned.yaml` dùng slew=6. Không sao chép nguyên file tuning sang `params_tuned.yaml` trước khi quyết định giá trị elbow. Xem `SHOULDER_RETUNE_20261014.md` cho các lượt thử shoulder, kể cả lượt slew=12 bị mất ổn định.
+Lưu ý: file tuning trong working tree hiện có thay đổi riêng shoulder slew=48 và elbow slew=7 chưa commit, trong khi `params_tuned.yaml` dùng shoulder=25 và elbow=6. Không sao chép nguyên file tuning sang `params_tuned.yaml`. Xem `SHOULDER_RETUNE_20261014.md` và `BASE_RETUNE_20261014.md` cho các lượt thử, kể cả các lượt bị ngắt.
 
 ## Sau khi chốt cả ba khớp
 
