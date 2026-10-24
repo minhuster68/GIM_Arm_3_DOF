@@ -33,6 +33,7 @@ class MpcFactory(ControllerFactory):
         node.declare_parameter("precompute_prediction", False)
         node.declare_parameter("torque_penalty_scale", 1.0)
         node.declare_parameter("base_ff_alpha", 1.0)
+        node.declare_parameter("feedback_model_mode", "coupled")
 
     def build(self, node, dynamics, tau_limit, control_hz):
         n = dynamics.nq
@@ -95,4 +96,5 @@ class MpcFactory(ControllerFactory):
             precompute_prediction=bool(
                 node.get_parameter("precompute_prediction").value),
             base_ff_alpha=float(node.get_parameter("base_ff_alpha").value),
+            feedback_model_mode=str(node.get_parameter("feedback_model_mode").value),
         )

@@ -28,9 +28,13 @@ class MpcController:
         feedback_bounds_mode="instantaneous",
         precompute_prediction=False,
         base_ff_alpha=1.0,
+        feedback_model_mode="coupled",
     ):
         self.dyn = dynamics
         self.n = dynamics.nq
+        self.feedback_model_mode = str(feedback_model_mode)
+        if self.feedback_model_mode not in ("coupled", "independent"):
+            raise ValueError('feedback_model_mode phải là coupled hoặc independent')
         self.base_ff_alpha = float(base_ff_alpha)
         if not np.isfinite(self.base_ff_alpha) or self.base_ff_alpha <= 0:
             raise ValueError('base_ff_alpha phải hữu hạn và > 0')
@@ -144,7 +148,16 @@ class MpcController:
         zero.
         """
         n, step = self.n, self.fd_step
-        inverse_mass = np.linalg.inv(self.dyn.mass_matrix(q_ref))
+        mass = self.dyn.mass_matrix(q_ref)
+        if self.feedback_model_mode == "independent":
+            # Approximate error dynamics only. Reference feedforward continues
+            # to use the full robot inverse dynamics, including cross terms.
+            diagonal = np.diag(mass)
+            if np.any(~np.isfinite(diagonal)) or np.any(diagonal <= 0.):
+                raise ValueError('M_ii cần hữu hạn và dương cho MPC independent')
+            inverse_mass = np.diag(1.0 / diagonal)
+        else:
+            inverse_mass = np.linalg.inv(mass)
         stiffness = np.empty((n, n))
         damping = np.empty((n, n))
         for index in range(n):
@@ -163,6 +176,10 @@ class MpcController:
                 self.dyn.inverse_dynamics(q_ref, v_plus, qdd_ref)
                 - self.dyn.inverse_dynamics(q_ref, v_minus, qdd_ref)
             ) / (2.0 * step)
+
+        if self.feedback_model_mode == "independent":
+            stiffness = np.diag(np.diag(stiffness))
+            damping = np.diag(np.diag(damping))
 
         zero = np.zeros((n, n))
         eye = np.eye(n)
@@ -230,16 +247,17 @@ class MpcController:
     def _quadratic_gradient(flat_u, hessian, gradient):
         return hessian @ flat_u + gradient
 
-    def _project_feasible(self, proposed, lower, upper, delta):
+    def _project_feasible(self, proposed, lower, upper, delta, previous=None):
         """Project a sequence onto box and slew constraints, in time order."""
-        proposed = np.asarray(proposed, dtype=float).reshape(self.nc, self.n)
+        previous = self.previous_feedback if previous is None else previous
+        n_input = len(previous)
+        proposed = np.asarray(proposed, dtype=float).reshape(self.nc, n_input)
         sequence = np.empty_like(proposed)
-        previous = self.previous_feedback
         for step in range(self.nc):
-            lo = np.maximum(lower[step*self.n:(step+1)*self.n],
-                            previous - delta[step*self.n:(step+1)*self.n])
-            hi = np.minimum(upper[step*self.n:(step+1)*self.n],
-                            previous + delta[step*self.n:(step+1)*self.n])
+            lo = np.maximum(lower[step*n_input:(step+1)*n_input],
+                            previous - delta[step*n_input:(step+1)*n_input])
+            hi = np.minimum(upper[step*n_input:(step+1)*n_input],
+                            previous + delta[step*n_input:(step+1)*n_input])
             # A very fast feedforward jump can make total-torque and slew
             # constraints incompatible.  Bounds win because they protect the
             # actuator; the feasibility test below will reject this seed.
@@ -247,24 +265,25 @@ class MpcController:
                 np.maximum(proposed[step], lo), hi)
             sequence[step] = np.clip(
                 sequence[step],
-                lower[step*self.n:(step+1)*self.n],
-                upper[step*self.n:(step+1)*self.n])
+                lower[step*n_input:(step+1)*n_input],
+                upper[step*n_input:(step+1)*n_input])
             previous = sequence[step]
         return sequence.ravel()
 
     def _solve_admm(self, hessian, gradient, warm_start,
-                    constraint_lower, constraint_upper):
+                    constraint_lower, constraint_upper, constraint_matrix=None):
         """Solve the small convex QP with an OSQP-style splitting method.
 
-        The constraint matrix is constant, so each tick only factors one
-        30-by-30 positive-definite matrix.  A final causal projection makes
+        Each problem factors a positive-definite matrix of its decision size
+        (Nc*n for coupled, Nc for one independent joint). A causal projection makes
         the returned torque sequence strictly feasible even when ADMM stops
         at its iteration limit.
         """
-        matrix = self._constraint_matrix
+        matrix = self._constraint_matrix if constraint_matrix is None else constraint_matrix
+        gram = self._constraint_gram if constraint_matrix is None else matrix.T @ matrix
         rho = self.admm_rho
         factor = cho_factor(
-            hessian + rho * self._constraint_gram,
+            hessian + rho * gram,
             lower=True, check_finite=False)
         x = warm_start.copy()
         z = np.clip(matrix @ x, constraint_lower, constraint_upper)
@@ -299,15 +318,15 @@ class MpcController:
                 if rho != old_rho:
                     dual *= old_rho / rho
                     factor = cho_factor(
-                        hessian + rho * self._constraint_gram,
+                        hessian + rho * gram,
                         lower=True, check_finite=False)
         return x, iterations, primal_residual, dual_residual, rho
 
     def _constraint_violation(self, flat_u, lower, upper,
-                              rate_lower, rate_upper):
+                              rate_lower, rate_upper, difference=None):
         if flat_u is None or not np.all(np.isfinite(flat_u)):
             return np.inf
-        rate = self._difference @ flat_u
+        rate = (self._difference if difference is None else difference) @ flat_u
         return float(max(
             np.max(np.maximum(lower - flat_u, 0.0)),
             np.max(np.maximum(flat_u - upper, 0.0)),
@@ -315,7 +334,8 @@ class MpcController:
             np.max(np.maximum(rate - rate_upper, 0.0)),
         ))
 
-    def _solve_active_set(self, hessian, gradient, warm_start, lower, upper):
+    def _solve_active_set(self, hessian, gradient, warm_start, lower, upper,
+                          constraint_matrix=None):
         """Primal feasible active-set QP, solving a small dense KKT system.
 
         Torque/rate constraints are linear. A feasible shifted sequence is
@@ -324,7 +344,7 @@ class MpcController:
         at stationary points. This avoids ADMM's slow convergence along the
         low-curvature directions of the position-only cost.
         """
-        base = self._constraint_matrix
+        base = self._constraint_matrix if constraint_matrix is None else constraint_matrix
         matrix = np.vstack([base, -base])
         bounds = np.concatenate([upper, -lower])
         x = warm_start.copy()
@@ -373,55 +393,22 @@ class MpcController:
                 add(blocker)
         return x, self.max_iterations, False
 
-    def compute(self, q, qd, q_ref, qd_ref, qdd_ref, dt):
-        q = np.asarray(q, dtype=float)
-        qd = np.asarray(qd, dtype=float)
-        q_ref = np.asarray(q_ref, dtype=float)
-        qd_ref = np.asarray(qd_ref, dtype=float)
-        error = q - q_ref
-        error_rate = qd - qd_ref
-        state = np.concatenate([self.integral, error, error_rate])
-        feedforward = self._feedforward(q_ref, qd_ref, qdd_ref)
-
-        lower_fb, upper_fb = -self.tau_limit - feedforward, self.tau_limit - feedforward
-        if self.feedback_bounds_mode == "trajectory_global":
-            if self.feedback_min is None:
-                raise RuntimeError("Chưa chuẩn bị giới hạn phản hồi cho toàn quỹ đạo MPC")
-            # Intersect the prepared envelope with the current hard limits:
-            # APPROACH can start away from the home used to prepare it.
-            lower_fb = np.maximum(lower_fb, self.feedback_min)
-            upper_fb = np.minimum(upper_fb, self.feedback_max)
-        lower = np.tile(lower_fb, self.nc)
-        upper = np.tile(upper_fb, self.nc)
-        delta = np.tile(self.slew * self.dt, self.nc)
-        rate_lower = -delta
-        # Keep per-step slew magnitudes independent of the absolute first-move
-        # bounds. Aliasing rate_upper to delta froze feedback at -slew*dt.
-        rate_upper = delta.copy()
-        rate_lower[:self.n] += self.previous_feedback
-        rate_upper[:self.n] += self.previous_feedback
-        rate_constraint = LinearConstraint(
-            self._difference, rate_lower, rate_upper)
-        if self.prediction_schedule is not None:
-            times, matrices = self.prediction_schedule
-            index = int(np.clip(np.searchsorted(times, self.reference_time), 0, len(times)-1))
-            if index > 0 and abs(times[index-1]-self.reference_time) < abs(times[index]-self.reference_time):
-                index -= 1
-            hessian, state_gradient = matrices[index]
-            gradient = state_gradient @ state + self._previous_gradient @ self.previous_feedback
-        else:
-            ad, bd = self._linearize(q_ref, qd_ref, qdd_ref)
-            hessian, gradient = self._qp_terms(state, ad, bd)
-        warm_start = self._project_feasible(
-            self.warm, lower, upper, delta)
-
-        started = time.perf_counter()
+    def _solve_problem(self, hessian, gradient, warm, lower, upper, delta,
+                       previous, difference):
+        """Solve/accept/fallback within this problem only (one joint or all)."""
+        n_input = len(previous)
+        matrix = np.vstack([np.eye(len(gradient)), difference])
+        rate_lower, rate_upper = -delta.copy(), delta.copy()
+        rate_lower[:n_input] += previous
+        rate_upper[:n_input] += previous
+        rate_constraint = LinearConstraint(difference, rate_lower, rate_upper)
+        warm_start = self._project_feasible(warm, lower, upper, delta, previous)
         if self.qp_solver == "active_set":
             raw_candidate, iterations, solver_success = self._solve_active_set(
                 hessian, gradient, warm_start,
                 np.concatenate([lower, rate_lower]),
-                np.concatenate([upper, rate_upper]))
-            candidate = self._project_feasible(raw_candidate, lower, upper, delta)
+                np.concatenate([upper, rate_upper]), constraint_matrix=matrix)
+            candidate = self._project_feasible(raw_candidate, lower, upper, delta, previous)
             solver_status = 0 if solver_success else 1
             solver_message = "Active-set optimal" if solver_success else "Active-set iteration limit"
             primal_residual = dual_residual = final_rho = float("nan")
@@ -432,9 +419,9 @@ class MpcController:
              final_rho) = (
                 self._solve_admm(
                     hessian, gradient, warm_start,
-                    constraint_lower, constraint_upper))
+                    constraint_lower, constraint_upper, constraint_matrix=matrix))
             candidate = self._project_feasible(
-                raw_candidate, lower, upper, delta)
+                raw_candidate, lower, upper, delta, previous)
             solver_success = (
                 max(primal_residual, dual_residual)
                 <= self.admm_tolerance)
@@ -464,9 +451,8 @@ class MpcController:
             solver_message = str(result.message)
             primal_residual = dual_residual = float("nan")
             final_rho = float("nan")
-        solve_time = time.perf_counter() - started
         violation = self._constraint_violation(
-            candidate, lower, upper, rate_lower, rate_upper)
+            candidate, lower, upper, rate_lower, rate_upper, difference)
         candidate_cost = (
             self._quadratic_cost(candidate, hessian, gradient)
             if candidate is not None and np.all(np.isfinite(candidate))
@@ -476,16 +462,89 @@ class MpcController:
         accepted = (
             violation <= 1.0e-7
             and candidate_cost <= warm_cost + cost_tolerance)
-        if accepted:
-            sequence = candidate.reshape(self.nc, self.n)
-            feedback = sequence[0]
-            self.warm[:-1] = sequence[1:]
-            self.warm[-1] = sequence[-1]
+        chosen = candidate if accepted else warm_start
+        return chosen.reshape(self.nc, n_input), {
+            "solver_success": bool(solver_success),
+            "solver_accepted": bool(accepted),
+            "solver_status": solver_status,
+            "solver_message": solver_message,
+            "constraint_violation": violation,
+            "primal_residual": primal_residual,
+            "dual_residual": dual_residual,
+            "solver_rho": final_rho,
+            "iterations": iterations,
+        }
+
+    def compute(self, q, qd, q_ref, qd_ref, qdd_ref, dt):
+        q = np.asarray(q, dtype=float)
+        qd = np.asarray(qd, dtype=float)
+        q_ref = np.asarray(q_ref, dtype=float)
+        qd_ref = np.asarray(qd_ref, dtype=float)
+        error = q - q_ref
+        error_rate = qd - qd_ref
+        state = np.concatenate([self.integral, error, error_rate])
+        feedforward = self._feedforward(q_ref, qd_ref, qdd_ref)
+
+        lower_fb, upper_fb = -self.tau_limit - feedforward, self.tau_limit - feedforward
+        if self.feedback_bounds_mode == "trajectory_global":
+            if self.feedback_min is None:
+                raise RuntimeError("Chưa chuẩn bị giới hạn phản hồi cho toàn quỹ đạo MPC")
+            # Intersect the prepared envelope with the current hard limits:
+            # APPROACH can start away from the home used to prepare it.
+            lower_fb = np.maximum(lower_fb, self.feedback_min)
+            upper_fb = np.minimum(upper_fb, self.feedback_max)
+        lower = np.tile(lower_fb, self.nc)
+        upper = np.tile(upper_fb, self.nc)
+        delta = np.tile(self.slew * self.dt, self.nc)
+        if self.prediction_schedule is not None:
+            times, matrices = self.prediction_schedule
+            index = int(np.clip(np.searchsorted(times, self.reference_time), 0, len(times)-1))
+            if index > 0 and abs(times[index-1]-self.reference_time) < abs(times[index]-self.reference_time):
+                index -= 1
+            hessian, state_gradient = matrices[index]
+            gradient = state_gradient @ state + self._previous_gradient @ self.previous_feedback
         else:
-            sequence = warm_start.reshape(self.nc, self.n)
-            feedback = sequence[0]
-            self.warm[:-1] = sequence[1:]
-            self.warm[-1] = sequence[-1]
+            ad, bd = self._linearize(q_ref, qd_ref, qdd_ref)
+            hessian, gradient = self._qp_terms(state, ad, bd)
+        started = time.perf_counter()
+        if self.feedback_model_mode == "independent":
+            # A/B and Q/R/Rd make the condensed cost separable by joint.
+            # Separate solves also isolate iteration limits, adaptive ADMM rho,
+            # acceptance and warm-start fallback, not merely the model terms.
+            sequence = np.empty((self.nc, self.n))
+            reports = []
+            difference = np.eye(self.nc) - np.eye(self.nc, k=-1)
+            for joint in range(self.n):
+                idx = np.arange(self.nc) * self.n + joint
+                local, report = self._solve_problem(
+                    hessian[np.ix_(idx, idx)], gradient[idx], self.warm[:, joint],
+                    lower[idx], upper[idx], delta[idx],
+                    self.previous_feedback[joint:joint+1], difference)
+                sequence[:, joint] = local[:, 0]
+                reports.append(report)
+            diagnostics = {
+                "solver_success": all(r["solver_success"] for r in reports),
+                "solver_accepted": all(r["solver_accepted"] for r in reports),
+                "solver_status": next((r["solver_status"] for r in reports
+                                       if not r["solver_success"]), 0),
+                "solver_message": "independent: " + "; ".join(
+                    f"joint{j}: {r['solver_message']}" for j, r in enumerate(reports)),
+                "constraint_violation": max(r["constraint_violation"] for r in reports),
+                "iterations": sum(r["iterations"] for r in reports),
+            }
+            for key in ("primal_residual", "dual_residual", "solver_rho"):
+                finite = [r[key] for r in reports if np.isfinite(r[key])]
+                diagnostics[key] = max(finite) if finite else float("nan")
+            diagnostics["solver_accepted_joints"] = np.array([
+                r["solver_accepted"] for r in reports])
+        else:
+            sequence, diagnostics = self._solve_problem(
+                hessian, gradient, self.warm, lower, upper, delta,
+                self.previous_feedback, self._difference)
+        solve_time = time.perf_counter() - started
+        feedback = sequence[0]
+        self.warm[:-1] = sequence[1:]
+        self.warm[-1] = sequence[-1]
 
         tau_raw = feedforward + feedback
         tau = np.clip(tau_raw, -self.tau_limit, self.tau_limit)
@@ -506,16 +565,8 @@ class MpcController:
             "tau_raw": tau_raw,
             "tau": tau,
             "saturated": saturated,
-            "solver_success": solver_success,
-            "solver_accepted": bool(accepted),
-            "solver_status": solver_status,
-            "solver_message": solver_message,
-            "constraint_violation": violation,
-            "primal_residual": primal_residual,
-            "dual_residual": dual_residual,
-            "solver_rho": final_rho,
+            **diagnostics,
             "solve_time": solve_time,
-            "iterations": iterations,
         }
         return tau
 
@@ -529,4 +580,6 @@ class MpcController:
             f"slew={self.slew} Nm/s\n"
             f"  tau_limit={self.tau_limit} Nm, bounds={self.feedback_bounds_mode}, "
             f"prediction_precompute={self.precompute_prediction}, "
-            f"base_ff_alpha={self.base_ff_alpha:g}")
+            f"base_ff_alpha={self.base_ff_alpha:g}\n"
+            f"  feedback_model_mode={self.feedback_model_mode}; "
+            "tau_ff=full inverse_dynamics(reference)")
