@@ -49,6 +49,8 @@ def validate_joint_profile(params):
         raise ValueError('Cần trajectory_global và precompute_prediction=true')
     if positive(params['tau_scale']) > 1:
         raise ValueError('tau_scale phải trong (0, 1]')
+    if params.get('feedback_model_mode', 'coupled') not in ('coupled', 'independent'):
+        raise ValueError('feedback_model_mode phải là coupled hoặc independent')
     positive(params.get('base_ff_alpha', 1.0))
     penalty = positive(params['torque_penalty_scale'])
     for field, scale in zip(FIELDS, SCALES):
@@ -62,11 +64,12 @@ def validate_joint_profile(params):
 
 
 class MpcJointTerminal:
-    def __init__(self, params_file, joint='elbow', log_dir='results/mpc_joint_trials',
+    def __init__(self, params_file, joint='elbow', log_dir='results_new/mpc/joint_trials',
                  show_plot=True, dry_run=False, interface='can0', prestart_timeout=6.0):
         self.session = TuningSession('mpc', params_file)
         validate_joint_profile(self.parameters)
         self.parameters.setdefault('base_ff_alpha', 1.0)
+        self.parameters.setdefault('feedback_model_mode', 'coupled')
         self.selected = JOINTS.index(joint)
         self.dry_run, self.interface = dry_run, interface
         self.trial = RosMpcJointTrial(log_dir, show_plot, prestart_timeout)
@@ -104,6 +107,7 @@ class MpcJointTerminal:
         print(f'Khâu {self.selected + 1}/{JOINTS[self.selected]} | ' +
               ', '.join(f'{name.upper()}={value:g}' for name, value in zip(COSTS, self.costs())))
         p = self.parameters
+        print(f'feedback_model_mode={p["feedback_model_mode"]}')
         print(f'alpha base={p["base_ff_alpha"]:g}, tau_scale={p["tau_scale"]:g}, '
               f'slew={p["torque_slew_rate"][self.selected]:g} Nm/s, '
               f'Np={p["prediction_horizon"]}, Nc={p["control_horizon"]}')
@@ -190,8 +194,8 @@ def main(root, argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--joint', choices=JOINTS, default='elbow')
     parser.add_argument('--params-file', type=Path, default=Path(root) /
-                        'src/gim_arm_controller_mpc/config/mpc_joint_tuning.yaml')
-    parser.add_argument('--log-dir', default='results/mpc_joint_trials')
+                        'src/gim_arm_controller_mpc/config/mpc_circle_independent_feedback.yaml')
+    parser.add_argument('--log-dir', default='results_new/mpc/joint_trials')
     parser.add_argument('--interface', '--can', default='can0')
     parser.add_argument('--prestart-timeout', type=positive, default=6.0)
     parser.add_argument('--no-show', action='store_true')

@@ -5,6 +5,7 @@ Only explicit run() activates effort; importing this module never uses ROS/CAN.
 """
 
 import copy
+from collections import deque
 from datetime import datetime
 import json
 import math
@@ -19,6 +20,41 @@ JOINTS = ('base', 'shoulder', 'elbow')
 JOINT_NAMES = tuple(name + '_joint' for name in JOINTS)
 START_VELOCITY_LIMIT_RAD_S = 0.05
 PRESTART_STABLE_TIME_S = 0.3
+
+
+def stationary_window(samples, selected, limit=START_VELOCITY_LIMIT_RAD_S):
+    """Check fresh position excursion and mean velocity; keep selected raw gate.
+
+    Held position joints can report alternating velocity spikes at rest. This
+    check is only for starting a trial and never filters MPC feedback.
+    Samples are (monotonic receipt time, three positions, three velocities).
+    """
+    if len(samples) < 2:
+        return False
+    span = samples[-1][0] - samples[0][0]
+    if span < PRESTART_STABLE_TIME_S or span > 0.5:
+        return False
+    if any(not 0 < b[0] - a[0] <= 0.05 for a, b in zip(samples, list(samples)[1:])):
+        return False
+    if any(not math.isfinite(v) for _, q, qd in samples for v in (*q, *qd)):
+        return False
+    if any(abs(sample[2][selected]) > limit for sample in samples):
+        return False
+    for joint in range(3):
+        positions = [sample[1][joint] for sample in samples]
+        if max(positions) - min(positions) > limit * span:
+            return False
+        mean_velocity = sum((b[0] - a[0]) * (a[2][joint] + b[2][joint]) / 2
+                            for a, b in zip(samples, list(samples)[1:])) / span
+        if abs(mean_velocity) > limit:
+            return False
+    return True
+
+
+def append_stationary_sample(samples, now, q, qd):
+    samples.append((now, tuple(q), tuple(qd)))
+    while len(samples) > 2 and now - samples[1][0] >= PRESTART_STABLE_TIME_S:
+        samples.popleft()
 
 
 def checked_trial(degrees, move, hold):
@@ -75,7 +111,7 @@ class RosMpcJointTrial:
         node = self.node
         handoff_end = time.monotonic() + handoff_duration
         deadline = handoff_end + self.prestart_timeout
-        stable_since = None
+        samples = deque()
         previous_seq = node.state_seq
         last_fresh = time.monotonic()
         position_limit = min(0.02, node.max_transition_error)
@@ -85,11 +121,11 @@ class RosMpcJointTrial:
                 raise RuntimeError('MPC ABORT khi giữ HOME trước quỹ đạo; xem CSV')
             if node.state_seq == previous_seq:
                 if time.monotonic() - last_fresh > 0.05:
-                    stable_since = None
+                    samples.clear()
                 continue
             now = time.monotonic()
             if now - last_fresh > 0.05:
-                stable_since = None
+                samples.clear()
             last_fresh = now
             previous_seq = node.state_seq
             error = max(abs(float(q - home)) for q, home in zip(node.q, node.home_q))
@@ -98,16 +134,15 @@ class RosMpcJointTrial:
                     f'Tay trôi khỏi HOME {math.degrees(error):.2f} độ khi chuyển sang torque; '
                     'trả về position, chưa chạy quỹ đạo')
             if now < handoff_end:
-                stable_since = None
+                samples.clear()
                 continue
-            still = max(abs(float(value)) for value in node.qd) <= START_VELOCITY_LIMIT_RAD_S
-            if still and error <= position_limit:
-                if stable_since is None:
-                    stable_since = time.monotonic()
-                if time.monotonic() - stable_since >= PRESTART_STABLE_TIME_S:
-                    return
-            else:
-                stable_since = None
+            if error > position_limit:
+                samples.clear()
+                continue
+            append_stationary_sample(samples, now, node.q, node.qd)
+            if stationary_window(samples, self.selected):
+                node.stationarity_samples = samples.copy()
+                return
         values = ', '.join(
             f'{name}: qd={float(velocity):.3f} rad/s, '
             f'e_HOME={math.degrees(float(q - home)):.2f} độ'
@@ -129,7 +164,14 @@ class RosMpcJointTrial:
         from gim_control.plot_ee_error import load_log, plot, print_metrics
         from gim_control.reference_trajectory import TimedHold
 
+        class JointTrialNode(EffortControllerNode):
+            def _start_velocity_is_safe(node):
+                samples = getattr(node, 'stationarity_samples', deque()).copy()
+                append_stationary_sample(samples, time.monotonic(), node.q, node.qd)
+                return stationary_window(samples, selected, node.start_velocity_limit)
+
         self.node = None
+        self.selected = selected
         if rclpy.ok():
             raise RuntimeError('Terminal cần một ROS context riêng, không chạy trong node khác')
         rclpy.init(args=[])
@@ -141,6 +183,7 @@ class RosMpcJointTrial:
         description_client = probe.create_client(
             GetParameters, '/controller_manager/get_parameters')
         state = {}
+        preflight_samples = deque()
 
         def on_state(message):
             try:
@@ -150,7 +193,9 @@ class RosMpcJointTrial:
             except (ValueError, IndexError):
                 return
             if all(math.isfinite(value) for value in q + qd):
-                state.update(q=q, qd=qd, received=time.monotonic())
+                received = time.monotonic()
+                state.update(q=q, qd=qd, received=received)
+                append_stationary_sample(preflight_samples, received, q, qd)
 
         probe.create_subscription(JointState, '/joint_states', on_state, qos_profile_sensor_data)
 
@@ -206,12 +251,11 @@ class RosMpcJointTrial:
             if probe.count_publishers('/gim_arm_effort_controller/commands'):
                 raise RuntimeError('Một node khác đang phát effort; dừng node MPC cũ trước test')
             deadline = time.monotonic() + 3.0
-            while not state or time.monotonic() - state['received'] > 0.25:
+            while (not state or time.monotonic() - state['received'] > 0.05
+                   or not stationary_window(preflight_samples, selected)):
                 if time.monotonic() >= deadline:
-                    raise RuntimeError('Chưa có joint state mới với đủ góc/vận tốc')
+                    raise RuntimeError('Chưa có cửa sổ joint state mới, đứng yên đủ 0.3s trước test')
                 executor.spin_once(timeout_sec=0.01)
-            if max(abs(value) for value in state['qd']) > 0.1:
-                raise RuntimeError('Tay đang chuyển động; giữ yên trước test')
 
             stamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y%m%d_%H%M%S_%f')
             directory = self.log_dir / f'mpc_{JOINTS[selected]}_{stamp}'
@@ -233,7 +277,7 @@ class RosMpcJointTrial:
             # after WAIT captures the exact HOME from a fresh state sample.
             for index in range(3):
                 config[f'diagnostic_q{index + 1}_deg'] = math.degrees(state['q'][index])
-            self.node = EffortControllerNode(
+            self.node = JointTrialNode(
                 MpcFactory(),
                 parameter_overrides=[Parameter(name, value=value) for name, value in config.items()])
             executor.add_node(self.node)
@@ -271,12 +315,14 @@ class RosMpcJointTrial:
                 'tau_ff': 'inverse_dynamics(runtime URDF, q_ref, qd_ref, qdd_ref); '
                           'base component multiplied by base_ff_alpha',
                 'base_ff_alpha': self.node.controller.base_ff_alpha,
+                'feedback_model_mode': self.node.controller.feedback_model_mode,
                 'tau_fb': 'first input of constrained MPC QP for [integral(e), e, qd-qd_ref]',
                 'prestart_hold': {
                     'hardware_handoff_duration_s': handoff_duration,
                     'stable_time_s': PRESTART_STABLE_TIME_S,
                     'timeout_s': self.prestart_timeout,
                     'velocity_limit_rad_s': START_VELOCITY_LIMIT_RAD_S,
+                    'stationarity_check': 'position excursion and time-mean velocity over 0.3s; selected raw velocity gate',
                     'position_limit_rad': min(0.02, self.node.max_transition_error),
                 },
             }, indent=2) + '\n')

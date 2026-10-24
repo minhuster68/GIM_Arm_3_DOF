@@ -87,3 +87,31 @@ def test_dry_run_never_connects_to_ros_or_saves(terminal, monkeypatch):
     terminal.execute('test 3 6 3')
     terminal.execute('save')
     assert terminal.session.params_file.read_text() == before
+
+
+def test_independent_mode_survives_edits_save_and_trial(tmp_path, monkeypatch, capsys):
+    path = tmp_path / 'independent.yaml'
+    source = ROOT / 'src/gim_arm_controller_mpc/config/mpc_circle_independent_feedback.yaml'
+    path.write_text(source.read_text())
+    terminal = MpcJointTerminal(path)
+    terminal.execute('show')
+    assert 'feedback_model_mode=independent' in capsys.readouterr().out
+    terminal.execute('set 500 256 0.04 0.037636 0.36')
+    terminal.execute('save')
+    restored = MpcJointTerminal(path)
+    assert restored.parameters['feedback_model_mode'] == 'independent'
+    received = []
+    monkeypatch.setattr(restored.trial, 'run', lambda *args: received.append(args[-1]))
+    restored.execute('test 3 6 2')
+    assert received[0]['feedback_model_mode'] == 'independent'
+    assert restored.costs() == pytest.approx((500, 256, .04, .037636, .36))
+
+
+def test_bad_feedback_mode_is_rejected_before_opening_ros(tmp_path):
+    source = ROOT / 'src/gim_arm_controller_mpc/config/mpc_circle_independent_feedback.yaml'
+    document = yaml.safe_load(source.read_text())
+    document['mpc_controller']['ros__parameters']['feedback_model_mode'] = 'typo'
+    path = tmp_path / 'bad.yaml'
+    path.write_text(yaml.safe_dump(document))
+    with pytest.raises(ValueError, match='feedback_model_mode'):
+        MpcJointTerminal(path)

@@ -656,6 +656,11 @@ class EffortControllerNode(Node):
                 f"Kết thúc phục hồi /joint_states; tiếp tục {self.phase} "
                 f"tại t={self.phase_elapsed:.3f}s")
 
+    def _start_velocity_is_safe(self):
+        """Default start gate; joint tuners may validate a fresh sample window."""
+        return (self.start_velocity_limit <= 0
+                or np.max(np.abs(self.qd)) <= self.start_velocity_limit)
+
     def _tick(self):
         tick_wall_ns = time.time_ns()
         now = self.get_clock().now()
@@ -736,8 +741,7 @@ class EffortControllerNode(Node):
                     self.autostart_block_warned = True
                 self._publish(self._drag_torque())
                 return
-            if (self.start_velocity_limit > 0
-                    and np.max(np.abs(self.qd)) > self.start_velocity_limit):
+            if not self._start_velocity_is_safe():
                 self._abort(
                     "tay chưa đứng yên trước quỹ đạo: "
                     f"qd={np.round(self.qd, 3)} rad/s, "

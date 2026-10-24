@@ -1,6 +1,8 @@
+# Elbow/id2 and shoulder/id1 retuned on real hardware 2026-10-24, independent feedback.
+# Effective elbow: QE=400, QI=4096, QV=0.04, R=0.037636, RD=0.72, slew=6.5.
+# Effective shoulder: QE=4000, QI=16000, QV=0.5, R=0.0005880625, RD=0.1, slew=50.
 mpc_controller:
   ros__parameters:
-    # Approximate per-joint error models + independent QPs; full reference FF.
     feedback_model_mode: independent
     control_hz: 100.0
     tau_scale: 1.0
@@ -12,7 +14,6 @@ mpc_controller:
     start_velocity_limit_rad_s: 0.05
     max_track_error_rad: 0.1
     max_transition_error_rad: 0.1
-    # Tạm bỏ abort theo sai số bám; bật lại bằng true khi kết thúc thử nghiệm.
     abort_on_tracking_error: false
     state_timeout: 0.25
     joint_margin_rad: 0.05
@@ -21,15 +22,15 @@ mpc_controller:
     control_horizon: 10
     q_integral:
     - 4.0
-    - 7.905694150420948
-    - 4.0
+    - 31.622776601683793
+    - 16.0
     q_position:
     - 0.8660254037844388
-    - 2.23606797749979
+    - 3.1622776601683795
     - 1.0
     q_velocity:
     - 0.044721359549995794
-    - 0.223606797749979
+    - 0.07071067811865477
     - 0.020000000000000004
     r_input:
     - 0.0097
@@ -37,8 +38,8 @@ mpc_controller:
     - 0.0097
     r_rate:
     - 0.03
-    - 0.0894427190999916
-    - 0.03
+    - 0.12649110640673517
+    - 0.04242640687119285
     output_scale_integral:
     - 0.25
     - 0.25

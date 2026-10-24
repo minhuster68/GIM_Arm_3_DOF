@@ -1,8 +1,90 @@
 # MPC phản hồi độc lập — 2026-10-24
 
-Thay đổi thuộc branch `mpc-test`. Đây là chế độ thử, chưa kiểm chứng trên tay thật.
+Thay đổi thuộc branch `mpc-test`. Đã chạy vòng tròn ban đầu và đang retune từng
+khớp trên tay thật; chưa kiểm chứng vòng tròn với bộ retune mới nhất.
 Profile mới: `src/gim_arm_controller_mpc/config/mpc_circle_independent_feedback.yaml`.
-Profile MPC cũ và `results_new/mpc/params_tuned.yaml` giữ nguyên để so sánh.
+Profile MPC coupled cũ còn trong source; file kết quả cũ có thể đã được dọn.
+
+Elbow/id2 đã retune trên tay thật ngày 2026-10-24 với QE=400, QI=4096,
+QV=0.04, R=0.037636, RD=0.72, slew=6.5 Nm/s. Đã lưu vào profile independent
+ở trên và kiểm chứng các bài 10°,20°,30°,40°; chưa chạy vòng tròn với bộ mới.
+Chi tiết tại `results_new/mpc/elbow_independent_retune/README.md`.
+Shoulder/id1 đã retune cùng ngày: QE=4000, QI=16000, QV=0.5,
+R=0.0005880625, RD=0.1, slew=50 Nm/s. Hoàn thành các bài 3°,10°,20°,30°,40°.
+Chi tiết tại `results_new/mpc/shoulder_independent_retune/README.md`, gồm cả một
+dao động 3.33° lúc handoff cần tiếp tục theo dõi. Đã lưu chung profile trên;
+base còn giữ bộ trước.
+
+Tuner MPC kiểm tra đứng yên theo cửa sổ 0.3s của vị trí/vận tốc để giảm báo
+nhầm do vận tốc khớp đang giữ position nhiễu. Vẫn kiểm tra vận tốc tức thời
+khớp đang tune, trôi HOME, dữ liệu mới và giới hạn URDF. Không lọc tín hiệu
+phản hồi MPC; gate của runner vòng tròn vẫn giữ cách kiểm tra cũ.
+
+## Tune lại từng khớp
+
+Terminal hiện mặc định đọc `mpc_circle_independent_feedback.yaml`, in rõ
+`feedback_model_mode=independent` và lưu kết quả ở `results_new/mpc/joint_trials`.
+Lệnh `save` ghi đúng file này, nên bộ sau tune cũng chính là bộ chạy vòng tròn.
+Không cần chỉnh mode trước mỗi bài. Profile coupled cũ chỉ được dùng nếu
+truyền đường dẫn đó một cách tường minh.
+
+Thứ tự elbow/id2 -> shoulder/id1 -> base/id0. Dừng node vòng tròn sau khi đã
+trả position. Đổi launch phần cứng sang `torque_joint:=elbow` ở đúng HOME cơ khí,
+rồi mở terminal khác:
+
+```bash
+cd ~/GIM_Arm_3_DOF
+bash tools/tune_mpc_terminal.sh \
+  --joint elbow \
+  --params-file src/gim_arm_controller_mpc/config/mpc_circle_independent_feedback.yaml \
+  --log-dir results_new/mpc/joint_trials \
+  --prestart-timeout 12
+```
+
+Tuner tự source ROS/install và đặt domain 42. Prompt hỗ trợ:
+
+```text
+show
+test 3 6 2
+```
+
+Bài trên đi thêm 3° từ HOME, 6 giây mỗi chiều, giữ 2 giây mỗi đầu. Tuner tự
+switch và trả position khi xong; hai khớp còn lại giữ position. Chỉ tăng biên độ
+sau khi đọc kết quả và kiểm tra HOME. Đổi khớp cần restart hardware với đúng
+torque_joint; không dùng launch all để tune độc lập từng khớp.
+
+Trọng số thực ban đầu của elbow trước đợt retune (sau chuẩn hóa của factory):
+
+```text
+QE=400  QI=256  QV=0.04  R=0.037636  RD=0.36
+slew=6.5 Nm/s, Np=40, Nc=10
+```
+
+Đây là mốc, chưa phải bộ retune mới. Terminal nhận trọng số thực:
+
+```text
+set QE QI QV R RD
+qe VALUE
+qi VALUE
+qv VALUE
+r VALUE
+rd VALUE
+slew VALUE
+save
+```
+
+QE tăng ưu tiên vị trí; QI tăng ưu tiên loại sai lệch tích lũy; QV tăng phạt
+sai số vận tốc nhưng có thể nhạy hơn với nhiễu vận tốc. R tăng làm phản hồi
+tiết chế hơn; RD tăng làm thay đổi torque đắt hơn, có thể giảm rung nhưng tăng
+trễ. Slew là ràng buộc cứng, khác RD. Giữ horizon và alpha cố định trong các
+lượt đầu để đánh giá thay đổi từng trọng số. Sau tune từng khớp cần chạy lại
+vòng tròn vì các tư thế và tương tác cơ khí khác bài độc lập.
+
+Lượt vòng tròn independent ban đầu đã hoàn thành: RMS TRACK
+[base, shoulder, elbow]=[0.912,0.600,0.718] độ; vấn đề lớn nhất là base ở RETURN
+với RMS/MAX 4.249/11.270 độ. Mọi tick CONTROL trong chuyển động chấp nhận nghiệm;
+không coi sai số bám này là solver thất bại. Báo cáo nằm tại
+`results_new/mpc/independent_baseline_run01_analysis`.
 
 ## Cấu trúc
 

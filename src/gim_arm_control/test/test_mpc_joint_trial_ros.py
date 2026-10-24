@@ -45,6 +45,8 @@ class TestMpcJointRosTrial(unittest.TestCase):
         self.prestart_velocity = 0.0
         self.prestart_drift = 0.0
         self.prestart_duration = 0.0
+        self.held_velocity_noise = 0.0
+        self.state_counter = 0
         self.activation_time = None
         self.commands_before_effort = []
         self.node.create_subscription(
@@ -83,6 +85,8 @@ class TestMpcJointRosTrial(unittest.TestCase):
 
     def publish_state(self):
         q, qd = np.array([0.03, 0.05, 0.1]), np.zeros(3)
+        self.state_counter += 1
+        qd[0] = self.held_velocity_noise * (-1)**self.state_counter
         mpc = self.trial.node
         if (mpc is not None and self.effort_active and mpc.phase == 'GRAVITY'
                 and time.monotonic() - self.activation_time < self.prestart_duration):
@@ -132,6 +136,7 @@ class TestMpcJointRosTrial(unittest.TestCase):
         return response
 
     def test_trial_adds_urdf_feedforward_runs_mpc_and_holds_two_measured_references(self):
+        self.parameters['feedback_model_mode'] = 'independent'
         self.trial.run(2, 1, 0.15, 0.04, self.parameters)
         self.assertEqual(self.description_requests, 1)
         self.assertEqual(self.stale_description_requests, 0)
@@ -140,6 +145,8 @@ class TestMpcJointRosTrial(unittest.TestCase):
         self.assertEqual(list(self.switches[0].activate_controllers), ['gim_arm_effort_controller'])
         self.assertEqual(list(self.switches[1].activate_controllers), ['gim_arm_group_controller'])
         path = next(Path(self.directory.name).glob('*/tracking.csv'))
+        metadata = json.loads(path.with_name('trial.json').read_text())
+        self.assertEqual(metadata['feedback_model_mode'], 'independent')
         with path.open() as stream:
             rows = list(csv.DictReader(stream))
         self.assertTrue({'APPROACH', 'TRACK', 'RETURN', 'HOLD'} <= {row['phase'] for row in rows})
@@ -180,6 +187,16 @@ class TestMpcJointRosTrial(unittest.TestCase):
             self.trial.run(1, 1, 0.15, 0.04, self.parameters)
         self.assertEqual(self.switches, [])
         self.assertIsNone(self.trial.node)
+
+    def test_held_position_joint_velocity_noise_uses_window_at_actual_path_start(self):
+        self.held_velocity_noise = 0.3
+        self.parameters['feedback_model_mode'] = 'independent'
+        self.trial.run(2, 1, 0.15, 0.04, self.parameters)
+        self.assertFalse(self.effort_active)
+        with next(Path(self.directory.name).glob('*/tracking.csv')).open() as stream:
+            rows = list(csv.DictReader(stream))
+        self.assertTrue(any(row['phase'] == 'APPROACH' for row in rows))
+        self.assertFalse(any(row['phase'] == 'ABORT' for row in rows))
 
     def test_base_handoff_keeps_home_mpc_active_until_transient_velocity_settles(self):
         self.description = configure_hardware_description(self.stale_description, torque_joint='base')
