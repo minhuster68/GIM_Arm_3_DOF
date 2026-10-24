@@ -12,6 +12,7 @@ namespace
 {
 using gim_arm_hardware::HoldingTorque;
 using gim_arm_hardware::blend_handoff_torque;
+using gim_arm_hardware::handoff_seed_from_feedback;
 using gim_arm_hardware::start_torque_with_hold;
 using gim6010::CmdId;
 
@@ -59,6 +60,13 @@ TEST(TorqueHandoff, ShoulderUsesExternalGearAndOnlyItsCanNode)
   ASSERT_TRUE(start_torque_with_hold(bus, 1, 8.0 / 8.0));
   EXPECT_FLOAT_EQ(bus.torque, 1.0F);
   for (const auto & frame : bus.frames) {EXPECT_EQ(frame.can_id >> 5, 1u);}
+}
+
+TEST(TorqueHandoff, OptionalFeedbackSignOnlyChangesTheHandoffSeed)
+{
+  EXPECT_DOUBLE_EQ(handoff_seed_from_feedback(-3.855, 1.0, 40.0), -3.855);
+  EXPECT_DOUBLE_EQ(handoff_seed_from_feedback(-3.855, -1.0, 40.0), 3.855);
+  EXPECT_DOUBLE_EQ(handoff_seed_from_feedback(-50.0, -1.0, 40.0), 40.0);
 }
 
 TEST(TorqueHandoff, ReportsCanFailureAndRejectsInvalidSeedBeforeModeChange)

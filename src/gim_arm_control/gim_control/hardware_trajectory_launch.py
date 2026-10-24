@@ -3,6 +3,7 @@
 import math
 import os
 
+import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
@@ -13,7 +14,7 @@ from launch_ros.actions import Node
 ALGORITHMS = {
     'lqr': ('gim_arm_controller_lqr', 'lqr_node', 'lqr_hardware_soft.yaml'),
     'mpc': ('gim_arm_controller_mpc', 'mpc_node', 'mpc_hardware_soft.yaml'),
-    'smc': ('gim_arm_controller_smc', 'smc_node', 'smc_hardware_soft.yaml'),
+    'smc': ('gim_arm_controller_smc', 'smc_node', 'smc_circle_from_terminal_tuning.yaml'),
 }
 
 
@@ -33,6 +34,14 @@ def _launch_setup(context):
                    else os.path.join(get_package_share_directory(package), 'config', config))
     if not os.path.isfile(params_file):
         raise ValueError(f'Không tìm thấy params_file: {params_file}')
+    if algorithm == 'smc':
+        with open(params_file, encoding='utf-8') as stream:
+            profile = yaml.safe_load(stream) or {}
+        params = profile.get('smc_controller', {}).get('ros__parameters', {})
+        if params.get('controlled_joint', 'all') != 'all':
+            raise ValueError(
+                'Quỹ đạo SMC cần controlled_joint: all; '
+                f'file {params_file} đang dành cho tune một khớp')
     configured_log = get('log_file') or f'results/{algorithm}_{shape}_run01.csv'
     log_file = os.path.abspath(os.path.expanduser(configured_log))
     os.makedirs(os.path.dirname(log_file), exist_ok=True)

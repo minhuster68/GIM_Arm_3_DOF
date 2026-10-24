@@ -38,6 +38,23 @@ FIELDS = {
         'kr': (3, False, False), 'phi': (3, True, False),
     },
 }
+STA_FIELDS = {
+    'lambda_gain': (3, True, False), 'k1': (3, True, False),
+    'k2': (3, True, False), 'z_limit': (3, True, False),
+}
+
+
+def tuning_fields(algorithm, params):
+    if algorithm != 'smc':
+        return FIELDS[algorithm]
+    variant = params.get('smc_variant', 'saturation')
+    if variant == 'super_twisting':
+        return STA_FIELDS
+    if variant == 'saturation':
+        return FIELDS['smc']
+    raise ValueError('smc_variant phải là saturation hoặc super_twisting')
+
+
 HELP = """show                         bộ số hiện tại (vector: base shoulder elbow)
 set PARAM VALUE [VALUE VALUE] chỉnh tham số; áp dụng khi test tiếp theo
 shape circle|r|a              chọn quỹ đạo
@@ -81,17 +98,37 @@ class TuningSession:
     def params(self):
         return self.document[f'{self.algorithm}_controller']['ros__parameters']
 
+    @property
+    def fields(self):
+        return tuning_fields(self.algorithm, self.params)
+
     def reset(self):
         document = yaml.safe_load(self.params_file.read_text())
         self.validate(document)
         self.document = document
 
     def validate(self, document):
+        """Validate and canonicalize tuned numbers to their ROS types."""
         try:
             params = document[f'{self.algorithm}_controller']['ros__parameters']
-            for name in FIELDS[self.algorithm]:
-                self.parse_value(name, params[name] if isinstance(params[name], list)
-                                 else [params[name]])
+            fields = tuning_fields(self.algorithm, params)
+            parsed = {name: self.parse_value(
+                name, params[name] if isinstance(params[name], list) else [params[name]],
+                fields=fields) for name in fields}
+            # YAML `1` is an integer, but the shared ROS node declares a double.
+            # Keep the numerical limit while making load/save/test type-correct.
+            if 'tau_scale' in params:
+                scale = float(params['tau_scale'])
+                if not math.isfinite(scale) or not 0 < scale <= 1:
+                    raise ValueError('tau_scale phải nằm trong (0, 1]')
+                parsed['tau_scale'] = scale
+            if self.algorithm == 'smc' and params.get('smc_variant') == 'super_twisting':
+                # Optional filter vectors must retain ROS double-array types
+                # even if the YAML uses integer spelling for a PSD/variance.
+                for name in ('velocity_kalman_jerk_psd', 'velocity_kalman_measurement_variance'):
+                    if name in params:
+                        parsed[name] = self.parse_value(
+                            name, params[name], fields={name: (3, True, False)})
             if self.algorithm == 'lqr' and params.get('position_tracking_only') is not True:
                 raise ValueError('position_tracking_only phải là true')
             if self.algorithm == 'mpc':
@@ -99,13 +136,15 @@ class TuningSession:
                     raise ValueError('q_velocity phải là [0, 0, 0]')
                 if params['control_horizon'] > params['prediction_horizon']:
                     raise ValueError('control_horizon phải <= prediction_horizon')
+            params.update(parsed)
         except (KeyError, TypeError) as error:
             raise ValueError('YAML thiếu tham số của ' + self.algorithm) from error
 
-    def parse_value(self, name, words):
-        if name not in FIELDS[self.algorithm]:
-            raise ValueError('Tham số được chỉnh: ' + ', '.join(FIELDS[self.algorithm]))
-        length, positive, integer = FIELDS[self.algorithm][name]
+    def parse_value(self, name, words, *, fields=None):
+        fields = self.fields if fields is None else fields
+        if name not in fields:
+            raise ValueError('Tham số được chỉnh: ' + ', '.join(fields))
+        length, positive, integer = fields[name]
         if len(words) != length:
             raise ValueError(f'{name}: cần {length} giá trị')
         values = [float(word) for word in words]
@@ -138,7 +177,7 @@ class TuningSession:
 
     def show(self):
         print(f'{self.algorithm.upper()} | shape={self.shape} | YAML={self.params_file}')
-        for name in FIELDS[self.algorithm]:
+        for name in self.fields:
             print(f'  {name}: {self.params[name]}')
 
     def save(self, path=None):
@@ -240,8 +279,10 @@ def run_ros_trial(algorithm, params_file):
         factory = getattr(module, {'lqr': 'LqrFactory', 'mpc': 'MpcFactory', 'smc': 'SmcFactory'}[algorithm])
         node = EffortControllerNode(factory())
         executor.add_node(node)
-        if algorithm == 'smc' and np.any(node.controller.sampled_spectral_radius() >= 1.0):
-            raise RuntimeError('Bộ gain SMC không đạt kiểm tra ổn định ZOH ở 100 Hz')
+        if algorithm == 'smc':
+            radii = node.controller.sampled_spectral_radius()
+            if radii is not None and np.any(radii >= 1.0):
+                raise RuntimeError('Bộ gain SMC không đạt kiểm tra ổn định ZOH ở 100 Hz')
         deadline = time.monotonic() + 180.0
         while node.phase != 'GRAVITY':
             executor.spin_once(timeout_sec=0.01)

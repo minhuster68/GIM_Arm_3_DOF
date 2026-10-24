@@ -36,7 +36,9 @@ def load_log(path):
             "qd_ref": [],
             "tau": [],
         }
-        optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i', 'saturated')
+        optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i',
+                                         'tau_raw', 'saturated', 'qd_filtered',
+                                         'tau_lambda', 'tau_k1', 'tau_k2', 'tau_slew')
                     if all(f'{prefix}_{name}' in reader.fieldnames for name in JOINT_NAMES)]
         columns.update({prefix: [] for prefix in optional})
         for row in reader:
@@ -193,12 +195,38 @@ def plot(log, output, show, max_plot_points):
         axes[2].plot(
             t, tau[:, index], color="tab:purple", linewidth=1.0,
             label=f"MAX |tau|={torque_peak:.3f} Nm")
-        if 'tau_fb' in log:
-            for prefix, color in (('tau_ff', 'tab:green'), ('tau_fb', 'tab:orange'),
-                                  ('tau_p', 'tab:red'), ('tau_i', 'tab:brown')):
-                if prefix in log:
-                    axes[2].plot(t, log[prefix][sample, index], color=color,
-                                 linewidth=0.8, linestyle='--', label=prefix)
+        sta_components = ('tau_lambda', 'tau_k1', 'tau_k2')
+        has_sta_components = all(
+            prefix in log and np.any(np.isfinite(log[prefix][:, index]))
+            for prefix in sta_components)
+        series = [('tau_ff', 'tab:green', 'tau_ff')]
+        if has_sta_components:
+            series.extend([
+                ('tau_lambda', 'tab:red', 'tau_lambda (-lambda*de)'),
+                ('tau_k1', 'tab:orange', 'tau_k1'),
+                ('tau_k2', 'tab:blue', 'tau_k2 (từ z)'),
+            ])
+            if ('tau_slew' in log and np.any(
+                    np.isfinite(log['tau_slew'][:, index])
+                    & (np.abs(log['tau_slew'][:, index]) > 1e-9))):
+                series.append(('tau_slew', 'tab:brown', 'tau_slew (hiệu chỉnh giới hạn)'))
+        else:
+            # Old logs and saturation SMC do not have a finite STA split.
+            series.extend([('tau_fb', 'tab:orange', 'tau_fb'),
+                           ('tau_p', 'tab:red', 'tau_p'), ('tau_i', 'tab:brown', 'tau_i')])
+        for prefix, color, label in series:
+            if prefix in log:
+                axes[2].plot(t, log[prefix][sample, index], color=color,
+                             linewidth=0.8, linestyle='--', label=label)
+        if 'tau_raw' in log:
+            # The node may scale gravity and clip torque after the controller
+            # records tau_ff, tau_fb and tau_raw. Show that final correction so
+            # the plotted terms sum to the actual commanded torque.
+            tau_post = log['tau'][:, index] - log['tau_raw'][:, index]
+            if np.any(np.isfinite(tau_post)) and np.nanmax(np.abs(tau_post)) > 1e-6:
+                axes[2].plot(t, tau_post[sample], color='tab:gray',
+                             linewidth=0.9, linestyle=':',
+                             label='tau_post (gravity_scale/kẹp)')
         axes[2].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
         axes[2].set_ylabel("Mô-men (Nm)")
         axes[2].set_title("Mô-men điều khiển đầu ra")
@@ -242,6 +270,19 @@ def plot(log, output, show, max_plot_points):
         axes[1].set_ylabel("Sai số vận tốc (độ/s)")
         axes[1].set_title("e_qdot = vận tốc thực tế - vận tốc mong muốn")
         axes[1].legend(loc="best")
+
+        if 'qd_filtered' in log:
+            estimate = log['qd_filtered'][:, index]
+            valid = np.isfinite(estimate)
+            if np.any(valid) and np.any(np.abs(estimate[valid] - log['qd'][valid, index]) > 1e-9):
+                filtered_deg = np.degrees(estimate)
+                filtered_error = filtered_deg - np.degrees(log['qd_ref'][:, index])
+                axes[0].plot(t, filtered_deg[sample], color='tab:cyan', linewidth=1.2,
+                             label='Sau lọc (đưa vào điều khiển)')
+                axes[1].plot(t, filtered_error[sample], color='tab:cyan', linewidth=1.0,
+                             label='Sai số vận tốc sau lọc')
+                axes[0].legend(loc='best', ncol=2)
+                axes[1].legend(loc='best')
 
         for axis in axes:
             axis.set_xlabel("Thời gian t (s)")

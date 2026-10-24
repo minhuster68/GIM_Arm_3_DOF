@@ -61,6 +61,7 @@ class EffortControllerNode(Node):
         declare("tau_scale", 0.35)
         declare("max_track_error_rad", 0.05)
         declare("start_velocity_limit_rad_s", 0.0)
+        declare("max_hold_error_rad", 0.0)
         declare("max_transition_error_rad", 0.10)
         declare("abort_on_tracking_error", False)
         declare("joint_margin_rad", 0.05)
@@ -104,6 +105,9 @@ class EffortControllerNode(Node):
         self.start_velocity_limit = float(get("start_velocity_limit_rad_s").value)
         if not np.isfinite(self.start_velocity_limit) or self.start_velocity_limit < 0:
             raise ValueError("start_velocity_limit_rad_s phải hữu hạn và >= 0")
+        self.max_hold_error = float(get("max_hold_error_rad").value)
+        if not np.isfinite(self.max_hold_error) or self.max_hold_error < 0:
+            raise ValueError("max_hold_error_rad phải hữu hạn và >= 0")
         self.max_transition_error = float(
             get("max_transition_error_rad").value)
         self.joint_margin = float(get("joint_margin_rad").value)
@@ -220,7 +224,7 @@ class EffortControllerNode(Node):
             "HAND_GUIDING dùng gravity + damping: "
             f"Kd_drag={np.round(self.drag_kd, 3)} Nm/(rad/s)")
         if self.controller_hold:
-            ff_state = "q đo, qdot đo, qdd_ref" if factory.algorithm_name == "smc" else "ref"
+            ff_state = "q_ref, qdot_ref, qdd_ref" if factory.algorithm_name == "smc" else "ref"
             self.get_logger().info(
                 f"PREP/HOLD_HOME dùng cùng {factory.algorithm_name} như quỹ đạo; "
                 f"tau_cmd = inverse_dynamics({ff_state}) + tau_fb")
@@ -519,11 +523,17 @@ class EffortControllerNode(Node):
         elif self.diagnostic_smc:
             last = self.controller.last if event == "CONTROL" else {}
             missing = np.full(self.n, np.nan)
-            for name in ("tau_ff", "tau_fb", "tau_feedback_raw", "tau_raw",
+            for name in ("tau_ff", "tau_fb", "tau_feedback_raw",
+                         "tau_feedback_self", "tau_feedback_cross", "tau_raw",
                          "surface", "boundary", "virtual_acceleration"):
                 row.extend(last.get(name, missing))
             row.extend(np.asarray(last.get("saturated", missing), dtype=float))
             row.extend(np.asarray(last.get("slew_limited", missing), dtype=float))
+            row.extend(last.get("integral", missing))
+            row.extend(np.asarray(last.get("integral_blocked", missing), dtype=float))
+            row.extend(last.get("qd_filtered", missing))
+            for name in ("tau_lambda", "tau_k1", "tau_k2", "tau_slew"):
+                row.extend(last.get(name, missing))
         elif self.diagnostic_pid:
             last = self.controller.last if event == "CONTROL" else {}
             missing = np.full(self.n, np.nan)
@@ -736,6 +746,14 @@ class EffortControllerNode(Node):
                 or np.any(self.q > self.dynamics.q_max - self.joint_margin)):
             self._abort(f"gần giới hạn khớp: q={np.round(self.q, 3)}")
 
+        if (self.phase == GRAVITY and self.controller_hold
+                and self.max_hold_error > 0
+                and np.max(np.abs(self.q - self.home_q)) > self.max_hold_error):
+            self._abort(
+                f"trôi khỏi HOME trước quỹ đạo: "
+                f"q-home={np.round(self.q - self.home_q, 3)} rad")
+            return
+
         if (
             self.phase == GRAVITY
             and bool(self.get_parameter("autostart").value)
@@ -876,6 +894,7 @@ class EffortControllerNode(Node):
         set_reference_time = getattr(self.controller, "set_reference_time", None)
         if callable(set_reference_time):
             set_reference_time(self._gain_schedule_time(elapsed))
+        self._set_velocity_sample_time()
         tau = np.asarray(self.controller.compute(
             self.q, self.qd, q_ref, qd_ref, qdd_ref, dt), dtype=float)
         compute_time = time.perf_counter() - started
@@ -927,6 +946,14 @@ class EffortControllerNode(Node):
         return np.clip(
             gravity + damping, -self.tau_limit, self.tau_limit)
 
+    def _set_velocity_sample_time(self):
+        setter = getattr(self.controller, 'set_velocity_sample_time', None)
+        if callable(setter):
+            stamp = self.state_header_ns
+            if stamp <= 0 and self.state_stamp is not None:
+                stamp = self.state_stamp.nanoseconds
+            setter(stamp)
+
     def _hold_torque(self, dt, integrate):
         if self.controller_hold:
             if not integrate:
@@ -935,6 +962,7 @@ class EffortControllerNode(Node):
             set_reference_time = getattr(self.controller, "set_reference_time", None)
             if callable(set_reference_time):
                 set_reference_time(self._gain_schedule_time(0.0))
+            self._set_velocity_sample_time()
             tau = self.controller.compute(
                 self.q, self.qd, self.home_q, zero, zero, dt)
             scale = self._gravity_scale()
@@ -1042,9 +1070,11 @@ class EffortControllerNode(Node):
             for prefix in ("tau_ff", "tau_feedback", "tau_raw", "saturated", "tau_fb", "integral"):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
         elif self.diagnostic_smc:
-            for prefix in ("tau_ff", "tau_fb", "tau_feedback_raw", "tau_raw",
+            for prefix in ("tau_ff", "tau_fb", "tau_feedback_raw",
+                           "tau_feedback_self", "tau_feedback_cross", "tau_raw",
                            "surface", "boundary", "virtual_acceleration",
-                           "saturated", "slew_limited"):
+                           "saturated", "slew_limited", "integral", "integral_blocked",
+                           "qd_filtered", "tau_lambda", "tau_k1", "tau_k2", "tau_slew"):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
         elif self.diagnostic_pid:
             for prefix in (

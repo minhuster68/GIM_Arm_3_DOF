@@ -32,6 +32,22 @@ def test_software_zero_is_explicit_and_invalid_method_is_rejected():
         configure_hardware_description(source, zero_method='invalid')
 
 
+def test_optional_shoulder_handoff_sign_only_changes_its_runtime_urdf():
+    path = Path(__file__).resolve().parents[2] / 'gim_arm_description/urdf/gim_arm.urdf'
+    source = path.read_text()
+    original = ET.fromstring(configure_hardware_description(source))
+    trial = ET.fromstring(configure_hardware_description(
+        source, torque_joint='all', handoff_shoulder_sign='-1'))
+    control = trial.find("ros2_control[@name='GimArmSystem']")
+    shoulder = control.find("joint[@name='shoulder_joint']")
+    sign = shoulder.find("param[@name='torque_handoff_feedback_sign']")
+    assert sign.text == '-1'
+    shoulder.remove(sign)
+    assert ET.tostring(trial) == ET.tostring(original)
+    with pytest.raises(ValueError, match='handoff_shoulder_sign'):
+        configure_hardware_description(source, handoff_shoulder_sign='0')
+
+
 @pytest.mark.parametrize('selected', ('base', 'shoulder', 'elbow', 'shoulder_elbow'))
 def test_isolated_torque_preserves_calibration_and_locks_other_joints(selected):
     path = Path(__file__).resolve().parents[2] / 'gim_arm_description/urdf/gim_arm.urdf'

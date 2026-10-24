@@ -114,10 +114,10 @@ def generate_launch_description():
                 "100 Hz Gazebo bring-up profile")),
         DeclareLaunchArgument(
             "smc_profile", default_value="gazebo_safe",
-            choices=["matlab_reference", "gazebo_safe"],
+            choices=["matlab_reference", "gazebo_safe", "super_twisting"],
             description=(
                 "SMC only: original continuous-time MATLAB gains or the "
-                "validated 100 Hz Gazebo profile")),
+                "validated saturation profile or MATLAB super-twisting at 1 kHz")),
         DeclareLaunchArgument(
             "lqr_recompute_every",
             default_value=PythonExpression([
@@ -148,17 +148,19 @@ def generate_launch_description():
         DeclareLaunchArgument("autostart", default_value="false"),
         DeclareLaunchArgument("tau_scale", default_value=PythonExpression([
             "'1.0' if '", algorithm,
-            "' == 'mpc' else ('0.50' if ('", algorithm,
+            "' == 'mpc' or ('", algorithm, "' == 'smc' and '", smc_profile,
+            "' == 'super_twisting') else ('0.50' if ('", algorithm,
             "' == 'pid' and '", pid_profile,
             "' == 'gazebo_smooth') or ('", algorithm,
             "' == 'smc' and '", smc_profile,
             "' == 'gazebo_safe') else '0.35')",
         ])),
         DeclareLaunchArgument("control_hz", default_value=PythonExpression([
-            "'2000.0' if '", algorithm, "' == 'pid' and '", pid_profile,
+            "'1000.0' if '", algorithm, "' == 'smc' and '", smc_profile,
+            "' == 'super_twisting' else ('2000.0' if '", algorithm, "' == 'pid' and '", pid_profile,
             "' == 'gazebo_smooth' else ('200.0' if '", algorithm,
             "' == 'lqr' and '", lqr_profile,
-            "' == 'safe_100hz' else '100.0')",
+            "' == 'safe_100hz' else '100.0'))",
         ])),
         DeclareLaunchArgument("max_track_error_rad", default_value="0.05"),
         DeclareLaunchArgument(
@@ -220,8 +222,9 @@ def generate_launch_description():
             ])
         if name == "smc":
             config_file = PythonExpression([
-                "'smc_gazebo_safe.yaml' if '", smc_profile,
-                "' == 'gazebo_safe' else 'smc.yaml'",
+                "'smc_super_twisting_gazebo.yaml' if '", smc_profile,
+                "' == 'super_twisting' else ('smc_gazebo_safe.yaml' if '", smc_profile,
+                "' == 'gazebo_safe' else 'smc.yaml')",
             ])
         parameter_overrides = [common_overrides]
         if name == "lqr":

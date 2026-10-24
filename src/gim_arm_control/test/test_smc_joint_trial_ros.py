@@ -68,7 +68,7 @@ class TestSmcJointRosTrial(unittest.TestCase):
         self.thread = threading.Thread(target=self.spin_mock_arm, daemon=True)
         self.thread.start()
         self.parameters = yaml.safe_load((
-            ROOT / 'src/gim_arm_controller_smc/config/smc_joint_tuning.yaml').read_text())[
+            ROOT / 'src/gim_arm_controller_smc/config/smc_circle_from_terminal_tuning.yaml').read_text())[
                 'smc_controller']['ros__parameters']
 
     def tearDown(self):
@@ -170,8 +170,8 @@ class TestSmcJointRosTrial(unittest.TestCase):
         dynamics = ArmDynamics(str(path.with_name('model.urdf')))
         track = next(row for row in rows if row['phase'] == 'TRACK' and row['event'] == 'CONTROL')
         expected_ff = dynamics.inverse_dynamics(
-            [float(track['q_' + joint]) for joint in tuner.JOINT_NAMES],
-            np.zeros(3), np.zeros(3))
+            [float(track['qref_' + joint]) for joint in tuner.JOINT_NAMES],
+            [float(track['qdref_' + joint]) for joint in tuner.JOINT_NAMES], np.zeros(3))
         expected_ff[0] *= self.parameters['base_ff_alpha']
         np.testing.assert_allclose(
             [float(track['tau_ff_' + joint]) for joint in tuner.JOINT_NAMES], expected_ff)
@@ -182,6 +182,84 @@ class TestSmcJointRosTrial(unittest.TestCase):
             self.trial.run(1, 1, 0.15, 0.04, self.parameters)
         self.assertEqual(self.switches, [])
         self.assertIsNone(self.trial.node)
+
+    def test_missing_can_feedback_never_requests_torque_mode(self):
+        self.trial.can_interface = 'mock_can'
+        self.trial.prestart_timeout = 0.1
+        with patch('gim_control.can_handoff_monitor.CanHandoffMonitor') as monitor:
+            monitor.return_value.feedback_ready.return_value = False
+            with self.assertRaisesRegex(RuntimeError, 'Chưa đủ mẫu torque giữ'):
+                self.trial.run(2, 1, .15, .04, self.parameters)
+            monitor.return_value.close.assert_called_once()
+        self.assertFalse(self.effort_active)
+        self.assertEqual(self.switches, [])
+
+    def test_ros_switch_without_can_mode_returns_position_before_trajectory(self):
+        self.trial.can_interface = 'mock_can'
+        with patch('gim_control.can_handoff_monitor.CanHandoffMonitor') as monitor:
+            monitor.return_value.feedback_ready.return_value = True
+            monitor.return_value.switch_seen.return_value = False
+            with self.assertRaisesRegex(RuntimeError, 'ROS báo switch'):
+                self.trial.run(2, 1, .15, .04, self.parameters)
+            monitor.return_value.close.assert_called_once()
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
+        path = next(Path(self.directory.name).glob('*/tracking.csv'))
+        with path.open() as stream:
+            self.assertEqual({row['phase'] for row in csv.DictReader(stream)}, {'GRAVITY'})
+
+    def test_sta_profile_runs_selected_joint_and_restores_position(self):
+        from gim_control.smc_joint_tuner import SmcJointTerminal
+        profile = Path(self.directory.name) / 'sta.yaml'
+        original = (ROOT /
+            'src/gim_arm_controller_smc/config/smc_circle_from_terminal_tuning.yaml').read_text()
+        profile.write_text(original)
+        terminal = SmcJointTerminal(profile, show_plot=False)
+        terminal.trial = self.trial
+        terminal.execute('set 4.5 3.5 1.2')
+        terminal.execute('test 1 0.15 0.04')
+        self.assertEqual(profile.read_text(), original)
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
+        path = next(Path(self.directory.name).glob('*/tracking.csv'))
+        metadata = json.loads(path.with_name('trial.json').read_text())
+        self.assertEqual(metadata['smc_variant'], 'super_twisting')
+        self.assertIn('q_ref, qd_ref, qdd_ref', metadata['tau_ff'])
+        self.assertIn('sqrt(abs(s))*sign(s) + z', metadata['tau_fb'])
+        saved = yaml.safe_load(path.with_name('parameters.yaml').read_text())[
+            'smc_controller']['ros__parameters']
+        self.assertEqual(saved['lambda_gain'][2], 4.5)
+        self.assertEqual(saved['k1'][2], 3.5)
+        self.assertEqual(saved['k2'][2], 1.2)
+        with path.open() as stream:
+            rows = list(csv.DictReader(stream))
+        self.assertTrue({'APPROACH', 'TRACK', 'RETURN', 'HOLD'} <= {row['phase'] for row in rows})
+        for row in rows:
+            self.assertNotIn(None, row)
+            if row['event'] == 'CONTROL':
+                self.assertEqual(float(row['integral_base_joint']), 0.)
+                self.assertEqual(float(row['integral_shoulder_joint']), 0.)
+                self.assertIn(float(row['boundary_elbow_joint']), (-1., 0., 1.))
+
+    def test_sta_shoulder_accepts_integer_tau_scale_from_direct_caller(self):
+        self.description = configure_hardware_description(
+            self.stale_description, torque_joint='shoulder')
+        source = ROOT / 'src/gim_arm_controller_smc/config/smc_circle_from_terminal_tuning.yaml'
+        params = yaml.safe_load(source.read_text())['smc_controller']['ros__parameters']
+        params['tau_scale'] = 1
+        self.trial.run(1, 1, .15, .04, params)
+        self.assertIs(type(params['tau_scale']), int)  # Caller remains unchanged.
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
+        path = next(Path(self.directory.name).glob('*/tracking.csv'))
+        saved = yaml.safe_load(path.with_name('parameters.yaml').read_text())[
+            'smc_controller']['ros__parameters']
+        self.assertEqual(saved['controlled_joint'], 'shoulder')
+        self.assertIs(type(saved['tau_scale']), float)
+        self.assertEqual(saved['tau_scale'], 1.0)
+        with path.open() as stream:
+            rows = list(csv.DictReader(stream))
+        self.assertTrue({'APPROACH','TRACK','RETURN','HOLD'} <= {row['phase'] for row in rows})
 
     def test_base_handoff_keeps_home_smc_active_until_transient_velocity_settles(self):
         self.description = configure_hardware_description(self.stale_description, torque_joint='base')
@@ -208,8 +286,8 @@ class TestSmcJointRosTrial(unittest.TestCase):
             if row['event'] != 'CONTROL' or row['phase'] not in ('GRAVITY', 'TRACK', 'HOLD'):
                 continue
             expected_ff = dynamics.inverse_dynamics(
-                [float(row['q_' + joint]) for joint in tuner.JOINT_NAMES],
-                [float(row['qd_' + joint]) for joint in tuner.JOINT_NAMES],
+                [float(row['qref_' + joint]) for joint in tuner.JOINT_NAMES],
+                [float(row['qdref_' + joint]) for joint in tuner.JOINT_NAMES],
                 np.zeros(3))
             expected_ff[0] *= 1.5
             np.testing.assert_allclose(

@@ -385,6 +385,9 @@ private:
   // gim_arm_effort_controller, nó không ghi vào mảng đó.
   std::vector<double> hold_position_;
   std::vector<HoldingTorque> holding_torque_;
+  // ±1 applied only to measured position-mode torque before it seeds the
+  // handoff. Default +1 preserves existing behavior on every joint.
+  std::vector<double> torque_handoff_feedback_sign_;
   std::vector<double> handoff_torque_joint_;
   double torque_handoff_duration_s_{1.0};
   double torque_handoff_started_s_{0.0};

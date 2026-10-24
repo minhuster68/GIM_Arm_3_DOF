@@ -100,13 +100,14 @@ def check_trial_drift(node, selected):
 class RosSmcJointTrial:
     """Run the existing effort SMC runner, with only one hardware torque joint."""
 
-    def __init__(self, log_dir, show_plot=True, prestart_timeout=6.0):
+    def __init__(self, log_dir, show_plot=True, prestart_timeout=6.0, can_interface=None):
         self.log_dir = Path(log_dir)
         self.show_plot = show_plot
         self.prestart_timeout = float(prestart_timeout)
         if not math.isfinite(self.prestart_timeout) or self.prestart_timeout <= 0:
             raise ValueError('prestart_timeout phải hữu hạn và > 0')
         self.node = None
+        self.can_interface = can_interface
 
     def wait_for_stable_hold(self, executor, handoff_duration=0.0):
         """Keep the original HOME under SMC before starting the trajectory."""
@@ -224,6 +225,7 @@ class RosSmcJointTrial:
                 raise RuntimeError('Không chuyển được controller')
 
         active_effort = False
+        handoff_monitor = None
         path = None
         try:
             controllers = call(listing, ListControllers.Request())
@@ -237,6 +239,10 @@ class RosSmcJointTrial:
                 raise RuntimeError('Chưa đọc được robot_description từ /controller_manager')
             description = descriptions[0].string_value
             check_torque_selection(description, selected)
+            if self.can_interface is not None:
+                from gim_control.can_handoff_monitor import CanHandoffMonitor
+                handoff_monitor = CanHandoffMonitor(
+                    self.can_interface, description, JOINT_NAMES[selected])
             handoff_param = ET.fromstring(description).find(
                 "ros2_control/hardware/param[@name='torque_handoff_duration_s']")
             handoff_duration = float(handoff_param.text) if handoff_param is not None else 1.0
@@ -268,6 +274,9 @@ class RosSmcJointTrial:
             urdf = directory / 'model.urdf'
             urdf.write_text(description)
             config = copy.deepcopy(parameters)
+            # Also accept YAML integer spelling from callers outside the tuner.
+            if 'tau_scale' in config:
+                config['tau_scale'] = float(config['tau_scale'])
             config.update(
                 urdf_file=str(urdf.resolve()), log_file=str(path.resolve()),
                 command_topic='/gim_arm_effort_controller/commands',
@@ -315,10 +324,13 @@ class RosSmcJointTrial:
             (directory / 'trial.json').write_text(json.dumps({
                 'joint': JOINTS[selected], 'home_rad': self.node.home_q.tolist(),
                 'target_rad': target, 'move_s': move, 'hold_s': hold,
-                'tau_ff': 'inverse_dynamics(runtime URDF, measured q, measured qd, qdd_ref); '
+                'tau_ff': 'inverse_dynamics(runtime URDF, q_ref, qd_ref, qdd_ref); '
                           'base component multiplied by base_ff_alpha',
                 'base_ff_alpha': self.node.controller.base_ff_alpha,
-                'tau_fb': 'M(measured q) @ (-lambda*ed - ks*s - kr*sat(s/phi)); '
+                'smc_variant': config.get('smc_variant', 'saturation'),
+                'tau_fb': ('M(measured q) @ (-lambda*ed - k1*sqrt(abs(s))*sign(s) + z); '
+                           if config.get('smc_variant') == 'super_twisting' else
+                           'M(measured q) @ (-lambda*ed - ks*s - kr*sat(s/phi)); ') +
                           'only selected joint acceleration is active; feedback torque slew-limited',
                 'prestart_hold': {
                     'hardware_handoff_duration_s': handoff_duration,
@@ -344,11 +356,33 @@ class RosSmcJointTrial:
                 executor.spin_once(timeout_sec=0.01)
             if self.node.phase == 'ABORT':
                 raise RuntimeError('SMC ABORT trước khi chuyển sang torque; xem CSV')
+            if handoff_monitor is not None:
+                print('Chờ ít nhất 3 mẫu Get_Torques mới, vận tốc driver phù hợp bàn giao...')
+                handoff_monitor.discard_pending()
+                deadline = time.monotonic() + self.prestart_timeout
+                while not handoff_monitor.feedback_ready():
+                    executor.spin_once(timeout_sec=0.005)
+                    handoff_monitor.poll()
+                    if self.node.phase == 'ABORT' or time.monotonic() >= deadline:
+                        raise RuntimeError(
+                            'Chưa đủ mẫu torque giữ hợp lệ trên CAN; vẫn giữ position, '
+                            'chưa chuyển mode và chưa chạy quỹ đạo')
+                handoff_monitor.begin_switch()
             self.node._publish(self.node._hold_torque(self.node.dt_nom, integrate=False))
             # A failed/timed-out activation may still have changed the manager;
             # mark the cleanup obligation before requesting the switch.
             active_effort = True
             switch(True)
+            if handoff_monitor is not None:
+                deadline = time.monotonic() + 0.5
+                while not handoff_monitor.switch_seen():
+                    executor.spin_once(timeout_sec=0.005)
+                    handoff_monitor.poll()
+                    if self.node.phase == 'ABORT' or time.monotonic() >= deadline:
+                        raise RuntimeError(
+                            'ROS báo switch nhưng chưa thấy mode torque và lệnh torque '
+                            'trên CAN; trả về position, không chạy quỹ đạo')
+                print('CAN đã thấy mode torque và lệnh torque cho khớp đang tune.')
             # Keep the SMC holding the original HOME throughout the handoff.
             self.node.manual_hold_latched = True
             print(f'Bàn giao torque trong {handoff_duration:g}s, rồi giữ HOME '
@@ -381,6 +415,8 @@ class RosSmcJointTrial:
                         switch=lambda activate, deactivate: switch(False)))
                     print('Đã trả về position; hai khớp cố định giữ bằng motor.')
             finally:
+                if handoff_monitor is not None:
+                    handoff_monitor.close()
                 if self.node is not None:
                     self.node.dump()
                     executor.remove_node(self.node)

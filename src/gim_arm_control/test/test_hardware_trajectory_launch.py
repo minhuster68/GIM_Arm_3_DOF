@@ -25,7 +25,10 @@ def test_profiles_and_shapes_route_without_changing_gains(tmp_path, monkeypatch,
     params = yaml.safe_load(Path(path).read_text())[f'{algorithm}_controller']['ros__parameters']
     assert node['package'] == f'gim_arm_controller_{algorithm}'
     assert params['control_hz'] == 100.0
-    assert params['tau_scale'] == 0.35
+    assert params['tau_scale'] == (1.0 if algorithm == 'smc' else 0.35)
+    if algorithm == 'smc':
+        assert Path(path).name == 'smc_circle_from_terminal_tuning.yaml'
+        assert params['feedback_offdiag_scale'] == [0., 0., 0.]
     assert params['algorithm_hold']
     assert overrides['trajectory_shape'] == shape
     assert overrides['algorithm_hold'] and not overrides['cascade_hold']
@@ -53,4 +56,18 @@ def test_invalid_launch_options_are_rejected(tmp_path, options):
         'return_time': '16', 'log_file': str(tmp_path / 'test.csv'), **options,
     })
     with pytest.raises(ValueError):
+        hardware._launch_setup(context)
+
+
+def test_smc_circle_rejects_single_joint_profile(tmp_path):
+    params_file = tmp_path / 'single_joint.yaml'
+    params_file.write_text(
+        'smc_controller:\n  ros__parameters:\n    controlled_joint: elbow\n')
+    context = LaunchContext()
+    context.launch_configurations.update({
+        'algorithm': 'smc', 'trajectory_shape': 'circle',
+        'params_file': str(params_file), 'approach_time': '16',
+        'return_time': '16', 'log_file': str(tmp_path / 'run.csv'),
+    })
+    with pytest.raises(ValueError, match='controlled_joint: all'):
         hardware._launch_setup(context)

@@ -47,6 +47,7 @@ def _launch_setup(context):
             "pause": "true",
             "verbose": LaunchConfiguration("verbose"),
             "world": world_path,
+            "params_file": os.path.join(control_share, "config", "gazebo_clock.yaml"),
         }.items(),
     )
 

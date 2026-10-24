@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 def configure_hardware_description(
         urdf_xml, can_interface='can0', set_zero_on_startup=False, zero_method='can',
-        torque_joint='all'):
+        torque_joint='all', handoff_shoulder_sign='default'):
     """Configure startup and selected torque joints without changing source URDF."""
     if zero_method not in ('can', 'software'):
         raise ValueError('zero_method phải là can hoặc software')
@@ -18,6 +18,8 @@ def configure_hardware_description(
     }
     if torque_joint != 'all' and torque_joint not in torque_selections:
         raise ValueError('torque_joint phải là all, base, shoulder, elbow hoặc shoulder_elbow')
+    if handoff_shoulder_sign not in ('default', '-1', '1'):
+        raise ValueError('handoff_shoulder_sign phải là default, -1 hoặc 1')
     root = ET.fromstring(urdf_xml)
     hardware = root.find("ros2_control[@name='GimArmSystem']/hardware")
     if hardware is None:
@@ -40,4 +42,14 @@ def configure_hardware_description(
             if param is None:
                 param = ET.SubElement(joints[name], 'param', {'name': 'torque_mode_enable'})
             param.text = str(name in torque_selections[torque_joint]).lower()
+    if handoff_shoulder_sign != 'default':
+        shoulder = root.find("ros2_control[@name='GimArmSystem']/"
+                             "joint[@name='shoulder_joint']")
+        if shoulder is None:
+            raise ValueError('GimArmSystem thiếu shoulder_joint')
+        param = shoulder.find("param[@name='torque_handoff_feedback_sign']")
+        if param is None:
+            param = ET.SubElement(shoulder, 'param', {
+                'name': 'torque_handoff_feedback_sign'})
+        param.text = handoff_shoulder_sign
     return ET.tostring(root, encoding='unicode')

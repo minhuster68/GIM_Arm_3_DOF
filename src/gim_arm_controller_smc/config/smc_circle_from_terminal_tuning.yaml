@@ -1,0 +1,71 @@
+# Bộ SMC phần cứng đã chốt ngày 2026-10-24; phản hồi độc lập từng khớp.
+# tau_ff giữ nghịch động lực học đầy đủ theo tham chiếu; tau_fb_i = M_ii(q) * a_fb_i.
+# Thứ tự mọi vector: [base/id0, shoulder/id1, elbow/id2].
+# Base kiểm chứng độc lập -10 đến +40 độ: lambda=48, k1=10, k2=4, alpha=2.46.
+# Elbow kiểm chứng độc lập tới 40 độ với tau_ff theo tham chiếu: lambda=12.
+# Shoulder kiểm chứng độc lập 10–40 độ: lambda=32, k1=12, k2=3.
+# Đã chạy đủ vòng tròn ba khớp: circle_independent_fb_run01.csv.
+# Elbow k1=3.5 là giá trị của lượt vòng tròn đã chốt, thay cho bản tune riêng 4.5.
+smc_controller:
+  ros__parameters:
+    smc_variant: super_twisting
+    control_hz: 100.0
+    velocity_kalman_enabled:
+    - false
+    - false
+    - true
+    velocity_kalman_jerk_psd:
+    - 1.0
+    - 1.0
+    - 1.0
+    velocity_kalman_measurement_variance:
+    - 0.0004
+    - 0.0004
+    - 0.0004
+    velocity_lpf_hz:
+    - 0.0
+    - 0.0
+    - 0.0
+    use_sim_time: false
+    autostart: false
+    use_armature: true
+    algorithm_hold: true
+    controlled_joint: all
+    # Bỏ đóng góp sai số khớp khác vào torque phản hồi từng khớp.
+    feedback_offdiag_scale: [0.0, 0.0, 0.0]
+    tau_scale: 1.0
+    base_ff_alpha: 2.46
+    gravity_scale:
+    - 1.0
+    - 1.0
+    - 1.0
+    lambda_gain:
+    - 48.0
+    - 32.0
+    - 12.0
+    k1:
+    - 10.0
+    - 12.0
+    - 3.5
+    k2:
+    - 4.0
+    - 3.0
+    - 4.0
+    z_limit:
+    - 20.0
+    - 40.0
+    - 30.0
+    torque_slew_rate:
+    - 6.0
+    - 16.0
+    - 1.5
+    abort_on_tracking_error: false
+    max_track_error_rad: 0.1
+    max_transition_error_rad: 0.1
+    start_velocity_limit_rad_s: 0.05
+    state_timeout: 0.25
+    joint_margin_rad: 0.05
+    joint_state_qos_depth: 1
+    command_heartbeat_nm: 1.0e-06
+    # 0: tắt ngắt do lệch HOME trong giai đoạn chờ trước quỹ đạo.
+    max_hold_error_rad: 0.0

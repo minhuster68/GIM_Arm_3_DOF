@@ -31,7 +31,9 @@ def _launch_setup(context):
             can_interface=LaunchConfiguration('can_interface').perform(context),
             set_zero_on_startup=zero_option == 'true',
             zero_method=LaunchConfiguration('zero_method').perform(context),
-            torque_joint=LaunchConfiguration('torque_joint').perform(context)),
+            torque_joint=LaunchConfiguration('torque_joint').perform(context),
+            handoff_shoulder_sign=LaunchConfiguration(
+                'handoff_shoulder_sign').perform(context)),
         value_type=str)}
 
     control_node = Node(
@@ -86,5 +88,11 @@ def generate_launch_description():
             choices=['all', 'base', 'shoulder', 'elbow', 'shoulder_elbow'],
             description='Selected joints use torque mode; others hold position. '
                         'all preserves URDF joint configuration.'),
+        DeclareLaunchArgument(
+            'handoff_shoulder_sign', default_value='default',
+            choices=['default', '-1', '1'],
+            description='Experimental sign for shoulder GetTorques feedback '
+                        'used only as the position-to-torque handoff seed; '
+                        'default preserves current behavior.'),
         OpaqueFunction(function=_launch_setup),
     ])

@@ -56,6 +56,14 @@ inline double blend_handoff_torque(
   return std::clamp((1.0 - blend) * holding + blend * requested, -limit, limit);
 }
 
+// GetTorques in position mode may use the opposite sign convention from
+// SetInputTorque on an individual motor. This factor affects only the seed
+// during position -> torque handoff, never normal effort commands.
+inline double handoff_seed_from_feedback(double measured_joint, double feedback_sign, double limit)
+{
+  return std::clamp(feedback_sign * measured_joint, -limit, limit);
+}
+
 // Mode and matching first torque are queued consecutively for this motor.
 // Do not wait for the next ros2_control write cycle after changing its mode.
 template<class Bus>

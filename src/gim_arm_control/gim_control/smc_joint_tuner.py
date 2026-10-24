@@ -26,6 +26,7 @@ Ctrl-C trong test: trả về position trước khi đóng node torque và ghi l
 Đóng cửa sổ đồ thị để quay lại prompt. save trước next/quit nếu muốn giữ gain.
 """
 FIELDS = ('lambda_gain', 'ks', 'kr', 'phi')
+STA_FIELDS = ('lambda_gain', 'k1', 'k2')
 
 
 def positive(value):
@@ -38,6 +39,8 @@ def positive(value):
 def validate_joint_profile(params, selected):
     if float(params['control_hz']) != 100.0:
         raise ValueError('Tune phần cứng dùng control_hz=100')
+    if params.get('use_sim_time', False):
+        raise ValueError('Tune phần cứng cần use_sim_time=false')
     if positive(params['tau_scale']) > 1:
         raise ValueError('tau_scale phải trong (0, 1]')
     positive(params['base_ff_alpha'])
@@ -50,6 +53,22 @@ def validate_joint_profile(params, selected):
 
 
 def ideal_radii(params, selected):
+    if params.get('smc_variant', 'saturation') == 'super_twisting':
+        from gim_control.controller_api import vector_parameter
+        from gim_arm_controller_smc.velocity_kalman import VelocityKalman2
+        node = SimpleNamespace(get_parameter=lambda name: SimpleNamespace(value=params[name]))
+        for name in (*STA_FIELDS, 'z_limit'):
+            vector_parameter(node, name, 3, positive=True)
+        kalman = VelocityKalman2(
+            3, params.get('velocity_kalman_enabled'), params.get('velocity_kalman_jerk_psd'),
+            params.get('velocity_kalman_measurement_variance'))
+        if any(enabled and hz > 0 for enabled, hz in zip(
+                kalman.enabled, params.get('velocity_lpf_hz', [0., 0., 0.]))):
+            raise ValueError('Không bật LPF và Kalman cùng một khớp')
+        # The saturation boundary-layer ZOH test does not apply to STA.
+        return None
+    if params.get('smc_variant', 'saturation') != 'saturation':
+        raise ValueError('smc_variant phải là saturation hoặc super_twisting')
     from gim_arm_controller_smc.controller import SmcController
     controller = SmcController(
         SimpleNamespace(nq=3, joint_names=JOINT_NAMES, tau_max=[5, 40, 5]),
@@ -63,17 +82,34 @@ def ideal_radii(params, selected):
 
 
 class SmcJointTerminal:
-    def __init__(self, params_file, joint='elbow', log_dir='results/smc_joint_trials',
+    def __init__(self, params_file, joint='elbow', log_dir='results_new/smc/joint_trials',
                  show_plot=True, dry_run=False, interface='can0', prestart_timeout=6.0):
         self.session = TuningSession('smc', params_file)
         self.selected = JOINTS.index(joint)
         validate_joint_profile(self.parameters, self.selected)
         self.dry_run, self.interface = dry_run, interface
-        self.trial = RosSmcJointTrial(log_dir, show_plot, prestart_timeout)
+        self.trial = RosSmcJointTrial(
+            log_dir, show_plot, prestart_timeout, can_interface=interface)
 
     @property
     def parameters(self):
         return self.session.params
+
+    @property
+    def is_sta(self):
+        return self.parameters.get('smc_variant', 'saturation') == 'super_twisting'
+
+    @property
+    def fields(self):
+        return STA_FIELDS if self.is_sta else FIELDS
+
+    def help_text(self):
+        if not self.is_sta:
+            return HELP
+        return HELP.replace('SMC từng khớp:', 'SMC super-twisting từng khớp:').replace(
+            'set LAMBDA KS KR PHI', 'set LAMBDA K1 K2').replace(
+            'lambda / ks / kr / phi VALUE',
+            'lambda / k1 / k2 VALUE\n  zlimit VALUE            Giới hạn trạng thái z [rad/s²]')
 
     def replace(self, params):
         document = deepcopy(self.session.document)
@@ -83,8 +119,11 @@ class SmcJointTerminal:
         self.session.document = document
 
     def set_gains(self, *values):
+        if len(values) != len(self.fields):
+            raise ValueError('set ' + ' '.join(
+                'LAMBDA' if name == 'lambda_gain' else name.upper() for name in self.fields))
         params = deepcopy(self.parameters)
-        for name, value in zip(FIELDS, values):
+        for name, value in zip(self.fields, values):
             vector = list(params[name])
             vector[self.selected] = float(value)
             params[name] = self.session.parse_value(name, vector)
@@ -92,12 +131,22 @@ class SmcJointTerminal:
 
     def show(self):
         params, index = self.parameters, self.selected
-        print(f'Khớp {JOINTS[index]}/id{index}: ' + ', '.join(
-            f'{name}={params[name][index]:g}' for name in FIELDS))
-        rho = validate_joint_profile(params, index)[index]
+        variant = 'super-twisting' if self.is_sta else 'saturation'
+        print(f'SMC {variant} | Khớp {JOINTS[index]}/id{index}: ' + ', '.join(
+            f'{name}={params[name][index]:g}' for name in self.fields))
+        radii = validate_joint_profile(params, index)
+        stability = ('ZOH lớp biên không áp dụng cho STA' if radii is None else
+                     f'rho_ZOH_ideal={radii[index]:.4f}')
         print(f'100 Hz; tau_scale={params["tau_scale"]:g}; '
               f'feedback slew={params["torque_slew_rate"][index]:g} Nm/s; '
-              f'base alpha={params["base_ff_alpha"]:g}; rho_ZOH_ideal={rho:.4f}')
+              f'base alpha={params["base_ff_alpha"]:g}; {stability}')
+        if self.is_sta:
+            print(f'z_limit={params["z_limit"][index]:g} rad/s²; '
+                  'z reset về 0 khi bắt đầu lượt test mới')
+            if params.get('velocity_kalman_enabled', [False] * 3)[index]:
+                print('Kalman [v, a]: '
+                      f'jerk PSD={params.get("velocity_kalman_jerk_psd", [1.] * 3)[index]:g}; '
+                      f'R={params.get("velocity_kalman_measurement_variance", [.0004] * 3)[index]:g}')
         print(f'YAML lưu bằng save: {self.session.params_file}')
 
     def stage(self):
@@ -117,26 +166,28 @@ class SmcJointTerminal:
         if command in ('quit', 'exit') and not args:
             return False
         if command == 'help' and not args:
-            print(HELP)
+            print(self.help_text())
         elif command == 'show' and not args:
             self.show()
-        elif command == 'set' and len(args) == 4:
+        elif command == 'set':
             self.set_gains(*args)
             self.show()
-        elif command in ('lambda', 'lambda_gain', 'ks', 'kr', 'phi') and len(args) == 1:
+        elif (command == 'lambda' or command in self.fields) and len(args) == 1:
             name = 'lambda_gain' if command == 'lambda' else command
-            values = [self.parameters[field][self.selected] for field in FIELDS]
-            values[FIELDS.index(name)] = args[0]
+            values = [self.parameters[field][self.selected] for field in self.fields]
+            values[self.fields.index(name)] = args[0]
             self.set_gains(*values)
             self.show()
-        elif command in ('slew', 'alpha') and len(args) == 1:
+        elif (command in ('slew', 'alpha') or
+              (self.is_sta and command in ('zlimit', 'z_limit'))) and len(args) == 1:
             params = deepcopy(self.parameters)
             if command == 'alpha':
                 if self.selected != 0:
                     raise ValueError('alpha chỉ chỉnh khi đang chọn base')
                 params['base_ff_alpha'] = positive(args[0])
             else:
-                params['torque_slew_rate'][self.selected] = positive(args[0])
+                name = 'z_limit' if command in ('zlimit', 'z_limit') else 'torque_slew_rate'
+                params[name][self.selected] = positive(args[0])
             self.replace(params)
             self.show()
         elif command == 'reset' and not args:
@@ -173,7 +224,7 @@ class SmcJointTerminal:
         return True
 
     def run(self):
-        print(HELP)
+        print(self.help_text())
         self.stage()
         while True:
             try:
@@ -191,8 +242,8 @@ def main(root, argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--joint', choices=JOINTS, default='elbow')
     parser.add_argument('--params-file', type=Path, default=Path(root) /
-                        'src/gim_arm_controller_smc/config/smc_joint_tuning.yaml')
-    parser.add_argument('--log-dir', default='results/smc_joint_trials')
+                        'src/gim_arm_controller_smc/config/smc_circle_from_terminal_tuning.yaml')
+    parser.add_argument('--log-dir', default='results_new/smc/joint_trials')
     parser.add_argument('--interface', '--can', default='can0')
     parser.add_argument('--prestart-timeout', type=positive, default=6.0)
     parser.add_argument('--no-show', action='store_true')

@@ -1,0 +1,21 @@
+smc_controller:
+  ros__parameters:
+    # setup_sta.m / sta_core.m, matlab-sim main c50c596 (2026-10-16).
+    # TsSTA=0.001 s; retain z[k] for output, then forward Euler z[k+1].
+    smc_variant: super_twisting
+    control_hz: 1000.0
+    use_sim_time: true
+    use_armature: false
+    tau_scale: 1.0
+    autostart: false
+    algorithm_hold: true
+    base_ff_alpha: 1.0
+    controlled_joint: all
+    hold_kd: [0.1, 0.3, 0.1]
+    lambda_gain: [15.0, 85.0, 155.0]
+    k1: [15.0, 30.0, 25.0]
+    k2: [30.0, 100.0, 80.0]
+    # Bounds on z in acceleration units; conditional integration also
+    # prevents growth into total torque saturation / feedback slew limits.
+    z_limit: [100.0, 500.0, 500.0]
+    torque_slew_rate: [0.0, 0.0, 0.0]

@@ -1,0 +1,6 @@
+gazebo:
+  ros__parameters:
+    # Gazebo Classic defaults to a 10 Hz /clock. With use_sim_time this
+    # batches 1 kHz controller timers into 100 ms bursts. Publish once per
+    # physics step so each timer observes fresh simulated state.
+    publish_rate: 2000.0

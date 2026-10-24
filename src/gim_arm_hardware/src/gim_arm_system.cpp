@@ -164,8 +164,9 @@ bool GimArmSystemHardware::switch_to_mode(ControlMode target)
           info_.joints[i].name.c_str());
         return false;
       }
-      handoff_torque_joint_[i] = std::clamp(
-        holding_torque_[i].mean(), -max_torque_joint_nm_[i], max_torque_joint_nm_[i]);
+      handoff_torque_joint_[i] = handoff_seed_from_feedback(
+        holding_torque_[i].mean(), torque_handoff_feedback_sign_[i],
+        max_torque_joint_nm_[i]);
     }
     torque_handoff_started_s_ = now;
     torque_handoff_active_ = true;
@@ -197,8 +198,10 @@ bool GimArmSystemHardware::switch_to_mode(ControlMode target)
       if (torque_mode_enable_[i]) {
         RCLCPP_INFO(
           rclcpp::get_logger("GimArmSystemHardware"),
-          "Torque handoff '%s': %.3f Nm phía khớp -> PC PID trong %.2fs (trần %.3f Nm).",
-          info_.joints[i].name.c_str(), handoff_torque_joint_[i],
+          "Torque handoff '%s': feedback %.3f x sign %+.0f -> seed %.3f Nm phía khớp "
+          "-> PC PID trong %.2fs (trần %.3f Nm).",
+          info_.joints[i].name.c_str(), holding_torque_[i].mean(),
+          torque_handoff_feedback_sign_[i], handoff_torque_joint_[i],
           torque_handoff_duration_s_, max_torque_joint_nm_[i]);
       }
     }
@@ -657,12 +660,25 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   // torque_mode_enable: khớp nào ĐƯỢC PHÉP vào chế độ mô-men. Mặc định true.
   // Dùng để CÔ LẬP từng khớp khi dò dấu/hệ số -- xem ghi chú trong .hpp.
   torque_mode_enable_.assign(n_joints, true);
+  torque_handoff_feedback_sign_.assign(n_joints, 1.0);
   hold_position_.assign(n_joints, std::numeric_limits<double>::quiet_NaN());
   for (size_t i = 0; i < n_joints; ++i) {
     const auto it = info_.joints[i].parameters.find("torque_mode_enable");
     if (it != info_.joints[i].parameters.end()) {
       const std::string v = it->second;
       torque_mode_enable_[i] = !(v == "false" || v == "False" || v == "0");
+    }
+    const auto sign_it = info_.joints[i].parameters.find("torque_handoff_feedback_sign");
+    if (sign_it != info_.joints[i].parameters.end()) {
+      const double value = std::stod(sign_it->second);
+      if (!std::isfinite(value) || (value != -1.0 && value != 1.0)) {
+        RCLCPP_ERROR(
+          rclcpp::get_logger("GimArmSystemHardware"),
+          "Khớp '%s': torque_handoff_feedback_sign phải là +1 hoặc -1.",
+          info_.joints[i].name.c_str());
+        return hardware_interface::CallbackReturn::ERROR;
+      }
+      torque_handoff_feedback_sign_[i] = value;
     }
   }
 
