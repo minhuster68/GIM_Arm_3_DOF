@@ -9,15 +9,13 @@ from pathlib import Path
 import numpy as np
 import rclpy
 
-from gim_arm_controller_lqr.factory import LqrFactory
 from gim_arm_controller_mpc.factory import MpcFactory
-from gim_arm_controller_smc.factory import SmcFactory
 from gim_control.effort_controller_node import EffortControllerNode
 from gim_control.reference_trajectory import Quintic
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FACTORIES = {'lqr': LqrFactory, 'mpc': MpcFactory, 'smc': SmcFactory}
+FACTORIES = {'mpc': MpcFactory}
 
 
 def check_case(algorithm, shape):
@@ -90,7 +88,7 @@ def check_case(algorithm, shape):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--algorithm', choices=tuple(FACTORIES), default='lqr')
+    parser.add_argument('--algorithm', choices=tuple(FACTORIES), default='mpc')
     parser.add_argument('--trajectory-shape', choices=('circle', 'r', 'a'), default='circle')
     parser.add_argument('--all', action='store_true')
     parser.add_argument('--ros-domain-id', type=int, default=82)

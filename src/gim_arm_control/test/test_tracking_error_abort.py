@@ -40,7 +40,7 @@ class DummyFactory:
         return DummyController()
 
 
-@pytest.fixture(params=['cascade_pid', 'lqr', 'mpc', 'smc'])
+@pytest.fixture(params=['mpc'])
 def arm(request):
     root = Path(__file__).resolve().parents[3]
     rclpy.init(args=[])

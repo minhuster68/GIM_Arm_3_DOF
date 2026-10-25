@@ -11,7 +11,7 @@ from gim_control import algorithm_tuner as tuner
 ROOT = Path(__file__).resolve().parents[3]
 
 
-@pytest.fixture(params=['lqr', 'mpc', 'smc'])
+@pytest.fixture(params=['mpc'])
 def session(request, tmp_path):
     algorithm = request.param
     source = ROOT / f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml'
@@ -83,11 +83,7 @@ def test_horizon_validation_is_transactional(tmp_path):
         assert session.document == before
 
 
-@pytest.mark.parametrize('algorithm,field,value', [
-    ('lqr', 'position_tracking_only', True), ('lqr', 'max_de', [1, 0, 1]),
-    ('mpc', 'q_velocity', [-1.0, 0.0, 0.0]),
-    ('mpc', 'q_velocity', [float('nan'), 1.0, 1.0]),
-    ('mpc', 'output_scale_velocity', [0.1, 0.0, 0.1])])
+@pytest.mark.parametrize('algorithm,field,value', [('mpc', 'q_velocity', [-1.0, 0.0, 0.0]), ('mpc', 'q_velocity', [float('nan'), 1.0, 1.0]), ('mpc', 'output_scale_velocity', [0.1, 0.0, 0.1])])
 def test_reject_invalid_velocity_cost_from_custom_yaml(tmp_path, algorithm, field, value):
     source = ROOT / f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml'
     document = yaml.safe_load(source.read_text())
@@ -162,7 +158,7 @@ def test_ros_trial_restores_before_dump_and_destroy(tmp_path, monkeypatch, failu
     events = []
     class FakeNode(rclpy.node.Node):
         def __init__(self, factory):
-            super().__init__('smc_controller')
+            super().__init__('mpc_controller')
             self.phase = 'ABORT' if failure == 'not_ready' else 'GRAVITY'
             self.qd = [0.0, 0.0, 0.0]
             self.start_velocity_limit = 0.05
@@ -203,12 +199,12 @@ def test_ros_trial_restores_before_dump_and_destroy(tmp_path, monkeypatch, failu
     monkeypatch.setattr(rclpy.node.Node, 'count_publishers', lambda *args: 0)
     monkeypatch.setattr(effort_controller_node, 'EffortControllerNode', FakeNode)
     path = tmp_path / 'params.yaml'
-    path.write_text('smc_controller:\n  ros__parameters: {}\n')
+    path.write_text('mpc_controller:\n  ros__parameters: {}\n')
     if failure == 'none':
-        tuner.run_ros_trial('smc', path)
+        tuner.run_ros_trial('mpc', path)
     else:
         with pytest.raises(KeyboardInterrupt if failure == 'interrupt' else RuntimeError):
-            tuner.run_ros_trial('smc', path)
+            tuner.run_ros_trial('mpc', path)
     if failure == 'not_ready':
         assert tuner.EFFORT not in events
     else:
