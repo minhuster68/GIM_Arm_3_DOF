@@ -126,64 +126,49 @@ cuối sau ESO, clip/slew và heartbeat. Không lấy `tau_ff` hoặc torque ch�
 để giả là torque thật. Đây vẫn là lệnh gửi, không đo dòng thực của motor;
 độ trễ/tracking của driver và sai mô hình vẫn cần kiểm chứng trên phần cứng.
 
-## Build và chạy (bắt đầu bằng PID)
-
-Lưu thay đổi của bạn trước khi switch branch; không reset/clean để ép switch.
-Sau khi đổi branch, build lại đúng thuật toán và source lại install trong
-**mỗi terminal**, kể cả terminal đã source trước lần build.
+## Build
 
 ```bash
 cd ~/GIM_Arm_3_DOF
-git switch pid-eso-test
 source /opt/ros/humble/setup.bash
-colcon build --symlink-install --packages-select gim_control gim_arm_controller_pid
+colcon build --symlink-install --packages-select gim_control gim_arm_controller_mpc
 source install/setup.bash
 export ROS_DOMAIN_ID=42 ROS_LOCALHOST_ONLY=1
 ```
 
-Nếu chưa launch phần cứng, đặt/đỡ tay đúng HOME trước khi đặt software zero:
+## Chạy vòng tròn
+
+Chỉ giữ một launch phần cứng với `torque_joint:=all` và một node thuật toán.
+Khi position controller đang giữ HOME, chạy:
 
 ```bash
-ros2 launch gim_control origin_gim_arm_control.launch.py \
-  can_interface:=can0 set_zero_on_startup:=true zero_method:=software torque_joint:=all
-```
-
-Chỉ giữ một node thuật toán chạy; khi position controller đang giữ HOME:
-
-```bash
-ros2 launch gim_control pid_sweep_hardware.launch.py \
+ros2 launch gim_control mpc_sweep_hardware.launch.py \
   trajectory_shape:=circle approach_time:=16 return_time:=16 \
-  params_file:=src/gim_arm_controller_pid/config/pid_eso_hardware.yaml \
-  log_file:=results_new/pid/eso/circle_run01.csv
+  params_file:=src/gim_arm_controller_mpc/config/mpc_eso_hardware.yaml \
+  log_file:=results_new/mpc/eso/circle_run01.csv
 ```
 
-Chờ READY_PID, chuyển controller thành công rồi bật autostart:
+Sau READY, chuyển controller thành công rồi bắt đầu:
 
 ```bash
 ros2 control switch_controllers --strict --activate-asap \
   --deactivate gim_arm_group_controller --activate gim_arm_effort_controller
-ros2 param set /cascade_pid_controller autostart true
+ros2 param set /mpc_controller autostart true
 ```
 
-Kết thúc chạy: chuyển về position trước khi Ctrl-C node thuật toán:
+Kết thúc: chuyển về position trước khi Ctrl+C node thuật toán để đóng log.
 
 ```bash
 ros2 control switch_controllers --strict --activate-asap \
   --deactivate gim_arm_effort_controller --activate gim_arm_group_controller
 ```
 
-Ba thuật toán còn lại: switch branch tương ứng, build `gim_control` và package
-tương ứng, dùng launch `lqr_sweep_hardware.launch.py`, `mpc_sweep_hardware.launch.py`
-hoặc `smc_sweep_hardware.launch.py`; params_file là YAML ESO ở bảng đầu.
-Tên node cho lệnh autostart là `/lqr_controller`, `/mpc_controller`, `/smc_controller`.
-Lưu log lần lượt dưới `results_new/lqr/eso`, `results_new/mpc/eso`, `results_new/smc/eso`.
-ESO không tự switch controller hoặc khởi động quỹ đạo.
 
 ## Log và đồ thị
 
 ```bash
-ros2 run gim_control plot_joint_tracking results_new/pid/eso/circle_run01.csv --show
-ros2 run gim_control plot_eso results_new/pid/eso/circle_run01.csv --show
+ros2 run gim_control plot_joint_tracking results_new/mpc/eso/circle_run01.csv --show
+ros2 run gim_control plot_eso results_new/mpc/eso/circle_run01.csv --show
 ```
 
 Plot ESO tách riêng ba PNG, mỗi khớp có q_hat/góc đo, v_hat/vận tốc driver/Kalman,

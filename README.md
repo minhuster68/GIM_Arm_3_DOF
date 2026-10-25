@@ -1,3 +1,5 @@
+> Branch `mpc-eso-test` chỉ chứa controller MPC + ESO. Xem [cấu trúc và lệnh chạy](BRANCH_LAYOUT.md).
+
 # MPC — chạy phần cứng
 
 ## Chuẩn bị

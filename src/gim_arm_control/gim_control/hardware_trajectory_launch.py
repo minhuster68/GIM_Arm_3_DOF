@@ -10,11 +10,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
-ALGORITHMS = {
-    'lqr': ('gim_arm_controller_lqr', 'lqr_node', 'lqr_hardware_soft.yaml'),
-    'mpc': ('gim_arm_controller_mpc', 'mpc_node', 'mpc_hardware_soft.yaml'),
-    'smc': ('gim_arm_controller_smc', 'smc_node', 'smc_hardware_soft.yaml'),
-}
+ALGORITHMS = {'mpc': ('gim_arm_controller_mpc', 'mpc_node', 'mpc_hardware_soft.yaml')}
 
 
 def _launch_setup(context):
@@ -23,7 +19,7 @@ def _launch_setup(context):
 
     algorithm, shape = get('algorithm'), get('trajectory_shape')
     if algorithm not in ALGORITHMS or shape not in ('circle', 'r', 'a'):
-        raise ValueError('algorithm phải là lqr/mpc/smc; trajectory_shape phải là circle/r/a')
+        raise ValueError('branch này chỉ hỗ trợ mpc; trajectory_shape phải là circle/r/a')
     durations = {name: float(get(name)) for name in ('approach_time', 'return_time')}
     if any(not math.isfinite(value) or value <= 0 for value in durations.values()):
         raise ValueError('approach_time/return_time phải hữu hạn và > 0')
