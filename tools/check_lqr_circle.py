@@ -25,6 +25,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def build_controller(parameters, dynamics):
     values = deepcopy(parameters)
+    if values.get('eso_enabled', False):
+        raise ValueError('Audit này chỉ mô hình hóa LQR/Kalman, chưa mô hình hóa ESO; '
+                         'không được dùng để kết luận LQR+ESO đã ổn định')
     if not values.get('require_discrete_stable'):
         raise ValueError('Validation requires require_discrete_stable=true')
     if values.get('isolated_joint_index', -1) != -1:
