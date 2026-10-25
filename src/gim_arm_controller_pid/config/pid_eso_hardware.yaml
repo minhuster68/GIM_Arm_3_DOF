@@ -1,0 +1,64 @@
+# Experimental ESO: MATLAB branch eso; existing PID/Kalman parameters unchanged.
+cascade_pid_controller:
+  ros__parameters:
+    abort_on_tracking_error: false
+    control_hz: 100.0
+    velocity_filter_type: kalman2
+    velocity_kalman_measurement_std:
+    - 0.03
+    - 0.01
+    - 0.04
+    velocity_kalman_jerk_std:
+    - 180.0
+    - 60.0
+    - 240.0
+    velocity_kalman_reset_gap_s: 0.05
+    tau_scale: 1.0
+    base_ff_alpha: 2.0
+    autostart: false
+    gravity_scale:
+    - 1.0
+    - 1.0
+    - 1.0
+    cascade_hold: true
+    position_kp:
+    - 30.0
+    - 55.0
+    - 14.0
+    position_ki:
+    - 2.5
+    - 1.0
+    - 0.8
+    position_kd:
+    - 0.1
+    - 4.0
+    - 0.3
+    position_integral_limit:
+    - 0.3
+    - 0.3
+    - 0.3
+    max_transition_error_rad: 0.1
+    max_track_error_rad: 0.1
+    state_timeout: 0.25
+    joint_margin_rad: 0.05
+    command_heartbeat_nm: 1.0e-06
+    eso_enabled: true
+    eso_bandwidth_rad_s:
+    - 15.0
+    - 15.0
+    - 15.0
+    eso_compensation_gain:
+    - 1.0
+    - 1.0
+    - 1.0
+    eso_compensation_limit_nm:
+    - 0.5
+    - 2.0
+    - 0.3
+    eso_compensation_rate_nm_s:
+    - 0.5
+    - 2.0
+    - 0.3
+    eso_warmup_s: 1.5
+    eso_ramp_s: 2.0
+    eso_reset_gap_s: 0.05

@@ -1,0 +1,64 @@
+{
+  "repository": "https://github.com/minhuster68/matlab-sim",
+  "branch": "eso",
+  "commit": "96207e1a184398f12043e126ee62ed7662ce76e0",
+  "extraction": "MATLAB Function scripts decoded from SLX XML; MATLAB not executed",
+  "models": {
+    "PID": {
+      "setup_sha256": "9227ef39f851fc539c69b18994c32ae8c777ba8aaaec6d9687fe00ee9e81a66a",
+      "extracted_scripts_sha256": {
+        "function [x_new, v_hat, d_hat] = ESO_update( ...": "8ad24711643d64287da8ce847c5f670135309487d6a301ab54933efe0d690a71",
+        "function tau_hat = Disturbance_torque(M, d_hat)": "6f4955e0b0f0d856f9506079a223ca7100b2362feee8f5219315f31ab7e8b2d5",
+        "function a_nom = Nominal_acceleration(M, tau, c, g)": "fdb87fa48b512bd2766e1f3251137eb2348e1e5cb98103a8de3066a9e8d916f2"
+      },
+      "matlab_TsESO_s": 0.001,
+      "bandwidth_rad_s": [
+        15.0,
+        15.0,
+        15.0
+      ]
+    },
+    "LQR": {
+      "setup_sha256": "ebb73d3931030cc08eb0270a2531961baf18489fee8b08876c0edbc4b5d6e9a2",
+      "extracted_scripts_sha256": {
+        "function [x_new, v_hat, d_hat] = ESO_update( ...": "8ad24711643d64287da8ce847c5f670135309487d6a301ab54933efe0d690a71",
+        "function tau_hat = Disturbance_torque(M, d_hat)": "6f4955e0b0f0d856f9506079a223ca7100b2362feee8f5219315f31ab7e8b2d5",
+        "function a_nom = Nominal_acceleration(M, tau, c, g)": "fdb87fa48b512bd2766e1f3251137eb2348e1e5cb98103a8de3066a9e8d916f2"
+      },
+      "matlab_TsESO_s": 0.001,
+      "bandwidth_rad_s": [
+        15.0,
+        15.0,
+        15.0
+      ]
+    },
+    "MPC": {
+      "setup_sha256": "7a239891197d682b86b488ba3375bcb2085bbd0aaabb62b2a78f0bdb5a709623",
+      "extracted_scripts_sha256": {
+        "function a_nom = Nominal_acceleration(M, tau, c, g)": "fdb87fa48b512bd2766e1f3251137eb2348e1e5cb98103a8de3066a9e8d916f2",
+        "function [x_new, v_hat, d_hat] = ESO_update( ...": "8ad24711643d64287da8ce847c5f670135309487d6a301ab54933efe0d690a71",
+        "function tau_hat = Disturbance_torque(M, d_hat)": "6f4955e0b0f0d856f9506079a223ca7100b2362feee8f5219315f31ab7e8b2d5"
+      },
+      "matlab_TsESO_s": 0.01,
+      "bandwidth_rad_s": [
+        15.0,
+        15.0,
+        15.0
+      ]
+    },
+    "SMC": {
+      "setup_sha256": "d730eb582199616daff37da282a305a9488a608e3ab8a58671747db341b6fc2f",
+      "extracted_scripts_sha256": {
+        "function a_nom = Nominal_acceleration(M, tau, c, g)": "fdb87fa48b512bd2766e1f3251137eb2348e1e5cb98103a8de3066a9e8d916f2",
+        "function tau_hat = Disturbance_torque(M, d_hat)": "6f4955e0b0f0d856f9506079a223ca7100b2362feee8f5219315f31ab7e8b2d5",
+        "function [x_new, v_hat, d_hat] = ESO_update( ...": "8ad24711643d64287da8ce847c5f670135309487d6a301ab54933efe0d690a71"
+      },
+      "matlab_TsESO_s": 0.001,
+      "bandwidth_rad_s": [
+        15.0,
+        15.0,
+        15.0
+      ]
+    }
+  }
+}
