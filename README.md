@@ -1,49 +1,155 @@
-# PID + ESO — branch `pid-eso-test`
+> Branch `pid-eso-test` chỉ chứa controller PID + ESO. Xem [cấu trúc và lệnh chạy](BRANCH_LAYOUT.md).
 
-Branch này chỉ chứa package thuật toán `src/gim_arm_controller_pid`.
-Các thuật toán còn lại nằm trong branch tương ứng; không cần build chúng.
+# GIM Arm 3 DOF — nhánh pid-test
 
-Giữ chung `gim_control` (runner ROS, động lực học URDF, quỹ đạo, plotting),
-`gim_arm_hardware`, `gim_arm_description` và các package mô phỏng/MoveIt của robot.
-Các file trong `results_new` và bộ tham số đã tune được giữ nguyên.
+PID trên nhánh này dùng một vòng bám vị trí với feedforward nghịch động lực
+học, tham khảo source nhánh `sim_gazebo2`.
 
-## Build
-
-```bash
-cd ~/GIM_Arm_3_DOF
-source /opt/ros/humble/setup.bash
-colcon build --symlink-install --packages-select gim_control gim_arm_controller_pid
-source install/setup.bash
-export ROS_DOMAIN_ID=42 ROS_LOCALHOST_ONLY=1
+```text
+e = q_ref - q
+tau = inverse_dynamics(q_ref, qd_ref, qdd_ref) + Kp*e + Ki*integral(e) + Kd*(qd_ref-qd)
 ```
 
-## Chạy vòng tròn
+Vận tốc phục vụ thành phần D và feedforward; không có vòng PI vận tốc bên
+trong. Gain hiện tại là baseline, chưa tune lại từng khớp.
 
-Chỉ giữ một launch phần cứng với `torque_joint:=all` và một node thuật toán.
-Khi position controller đang giữ HOME, chạy:
+- [Luật điều khiển và hướng dẫn chung](src/README.md).
+- [Thử và tune từng khớp](src/gim_arm_controller_pid/README.md).
+- [Terminal tune lần lượt khâu 3 → 2 → 1](src/gim_arm_controller_pid/TERMINAL_TUNING.md).
+- [Gain phần cứng](src/gim_arm_controller_pid/config/pid_hardware_soft.yaml).
+- [Gain Gazebo](src/gim_arm_controller_pid/config/pid_gazebo_smooth.yaml).
+
+## Chạy quỹ đạo phần cứng
+
+### Chuẩn bị
 
 ```bash
+cd /home/mirabo/GIM_Arm_3_DOF
+git branch --show-current
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install --packages-select gim_arm_description gim_arm_hardware gim_control gim_arm_controller_pid
+source install/setup.bash
+```
+
+### Terminal 1 — CAN, zero phần mềm, position controller
+
+```bash
+cd /home/mirabo/GIM_Arm_3_DOF
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ip -details link show can0
+## Đặt và kê đỡ tay ở đúng tư thế zero trước khi chụp mốc phần mềm.
+ros2 launch gim_control origin_gim_arm_control.launch.py \
+  can_interface:=can0 set_zero_on_startup:=true zero_method:=software \
+  torque_joint:=all
+```
+
+#### Output mong muốn
+
+```text
+joint_state_broadcaster: active
+gim_arm_group_controller: active
+gim_arm_effort_controller: inactive
+```
+
+### Terminal 2 — PID và quỹ đạo
+
+```bash
+cd /home/mirabo/GIM_Arm_3_DOF
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+## trajectory_shape: circle (vòng tròn), r (chữ R), a (chữ A)
 ros2 launch gim_control pid_sweep_hardware.launch.py \
   trajectory_shape:=circle approach_time:=16 return_time:=16 \
-  params_file:=src/gim_arm_controller_pid/config/pid_eso_hardware.yaml \
-  log_file:=results_new/pid/eso/circle_run01.csv
+  params_file:=src/gim_arm_controller_pid/config/pid_hardware_soft.yaml \
+  log_file:=results/pid_circle_run01.csv
 ```
 
-Sau READY, chuyển controller thành công rồi bắt đầu:
+#### Output mong muốn
+
+```text
+WAIT -> READY_PID
+HOME gần [0, 0, 0]; tay đứng yên.
+```
+
+### Terminal 3 — bắt đầu
 
 ```bash
-ros2 control switch_controllers --strict --activate-asap \
-  --deactivate gim_arm_group_controller --activate gim_arm_effort_controller
+cd /home/mirabo/GIM_Arm_3_DOF
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 control switch_controllers \
+  --strict --activate-asap \
+  --deactivate gim_arm_group_controller \
+  --activate gim_arm_effort_controller
 ros2 param set /cascade_pid_controller autostart true
 ```
 
-Kết thúc: chuyển về position trước khi Ctrl+C node thuật toán để đóng log.
+#### Output mong muốn — Terminal 2
 
-```bash
-ros2 control switch_controllers --strict --activate-asap \
-  --deactivate gim_arm_effort_controller --activate gim_arm_group_controller
+```text
+GRAVITY -> APPROACH (16s)
+APPROACH -> TRACK
+TRACK -> RETURN (16s)
+RETURN -> HOLD_HOME PID vị trí
 ```
 
-Build/install/log là dữ liệu sinh trên máy, không được dùng để xác định source
-của branch. Sau khi đổi branch cần build và source lại như trên; binary của
-package cũ có thể vẫn còn trong install nhưng không thuộc source branch này.
+### Terminal 3 — kết thúc hoặc dừng bài thử
+
+```bash
+ros2 control switch_controllers \
+  --strict --activate-asap \
+  --deactivate gim_arm_effort_controller \
+  --activate gim_arm_group_controller
+```
+
+#### Output mong muốn
+
+```text
+gim_arm_group_controller: active
+gim_arm_effort_controller: inactive
+```
+
+### Terminal 2 — ghi CSV
+
+```text
+Ctrl+C
+```
+
+#### Output mong muốn
+
+```text
+Ghi ... dòng -> results/pid_circle_run01.csv
+```
+
+### Terminal 3 — kết quả vị trí
+
+```bash
+ros2 run gim_control plot_joint_tracking results/pid_circle_run01.csv --show
+```
+
+#### Output mong muốn
+
+```text
+RMS e_q [deg], MAX |e_q| [deg], MAX |tau| [Nm].
+6 cửa sổ đồ thị, mỗi khớp 2 hình riêng: vị trí/sai số vị trí/mô-men và vận tốc/sai số vận tốc.
+results/pid_circle_run01_joints_q1_base.png
+results/pid_circle_run01_joints_q2_shoulder.png
+results/pid_circle_run01_joints_q3_elbow.png
+results/pid_circle_run01_joints_q1_base_velocity.png
+results/pid_circle_run01_joints_q2_shoulder_velocity.png
+results/pid_circle_run01_joints_q3_elbow_velocity.png
+```
+
+### Xem trước ba quỹ đạo
+
+```bash
+python3 tools/preview_trajectories.py
+```
+
+#### Output mong muốn
+
+```text
+results/trajectory_shapes/reference_paths.png
+results/trajectory_shapes/{circle,r,a}_reference.csv: t,x,y,z,q1..q3,qd1..qd3,qdd1..qdd3.
+```
