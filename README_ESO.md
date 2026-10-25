@@ -187,7 +187,9 @@ ros2 run gim_control plot_eso results_new/pid/eso/circle_run01.csv --show
 ```
 
 Plot ESO tách riêng ba PNG, mỗi khớp có q_hat/góc đo, v_hat/vận tốc driver/Kalman,
-và torque nhiễu/bù/lệnh cuối. Cột `eso_d_hat_*` là rad/s²;
+và torque nhiễu/bù/lệnh cuối. Hình tracking thường cũng thêm các đường
+`tau_pre_eso`, `tau_eso`, `tau_eso_actuator_adjustment` vào panel torque.
+Cột `eso_d_hat_*` là rad/s²;
 `tau_dist_hat_*` và `tau_eso_*` là Nm. `eso_status` cho biết gate/warmup/active.
 `tau_pre_eso + tau_eso + tau_eso_actuator_adjustment = tau` (sai khác heartbeat
 cỡ 1e-6 Nm). Các cột `tau_ff`, `tau_fb`, `tau_raw` cũ vẫn mô tả controller

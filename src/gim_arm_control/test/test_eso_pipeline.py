@@ -81,6 +81,9 @@ def test_eso_profile_preserves_its_baseline_and_logs_actual_command_decompositio
                 np.testing.assert_allclose(actual, expected, atol=2e-6)
                 assert all(p+'_'+joint in row for p in ESO_VECTORS)
         from gim_control.plot_eso import plot_eso
+        from gim_control.plot_ee_error import load_log
+        parsed = load_log(params['log_file'])
+        assert 'tau_eso' in parsed and len(parsed['tau_eso']) == len(rows)
         outputs = plot_eso(params['log_file'])
         assert len(outputs) == 3 and all(p.stat().st_size > 0 for p in outputs)
         gate.allowed = False
