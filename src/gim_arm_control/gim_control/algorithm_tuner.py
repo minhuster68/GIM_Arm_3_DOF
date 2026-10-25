@@ -17,27 +17,7 @@ import yaml
 
 
 # (length, strictly positive, integer). Vectors follow base, shoulder, elbow.
-FIELDS = {
-    'lqr': {
-        'max_int_e': (3, True, False), 'max_e': (3, True, False),
-        'max_tau': (3, True, False), 'tau_penalty_scale': (1, True, False),
-        'integral_limit': (1, True, False),
-        'max_tau_rate_nm_s': (3, True, False),
-    },
-    'mpc': {
-        'q_integral': (3, False, False), 'q_position': (3, True, False),
-        'r_input': (3, True, False), 'r_rate': (3, False, False),
-        'output_scale_integral': (3, True, False),
-        'output_scale_position': (3, True, False),
-        'torque_penalty_scale': (1, True, False),
-        'integral_limit': (1, True, False), 'torque_slew_rate': (3, True, False),
-        'prediction_horizon': (1, True, True), 'control_horizon': (1, True, True),
-    },
-    'smc': {
-        'lambda_gain': (3, True, False), 'ks': (3, True, False),
-        'kr': (3, False, False), 'phi': (3, True, False),
-    },
-}
+FIELDS = {'smc': {'lambda_gain': (3, True, False), 'ks': (3, True, False), 'kr': (3, False, False), 'phi': (3, True, False)}}
 STA_FIELDS = {
     'lambda_gain': (3, True, False), 'k1': (3, True, False),
     'k2': (3, True, False), 'z_limit': (3, True, False),
@@ -350,7 +330,7 @@ def main(algorithm, root):
     root = Path(root).resolve()
     parser = argparse.ArgumentParser(description=f'Tune {algorithm.upper()} từ terminal')
     parser.add_argument('--params-file', type=Path, default=root /
-                        f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml')
+                        'src/gim_arm_controller_smc/config/smc_circle_from_terminal_tuning.yaml')
     parser.add_argument('--trajectory-shape', choices=('circle', 'r', 'a'), default='circle')
     parser.add_argument('--log-dir', type=Path, default=root / f'results/tune_{algorithm}')
     parser.add_argument('--dry-run', action='store_true')

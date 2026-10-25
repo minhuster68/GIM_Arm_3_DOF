@@ -34,7 +34,6 @@ setup(
             'plot_ee_error = gim_control.plot_ee_error:main',
             'plot_joint_tracking = gim_control.plot_ee_error:main',
             'plot_eso = gim_control.plot_eso:main',
-            'analyze_lqr_diagnostics = gim_control.analyze_lqr_diagnostics:main',
         ],
     },
 )

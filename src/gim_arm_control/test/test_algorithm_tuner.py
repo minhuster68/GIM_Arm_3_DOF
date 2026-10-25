@@ -11,10 +11,10 @@ from gim_control import algorithm_tuner as tuner
 ROOT = Path(__file__).resolve().parents[3]
 
 
-@pytest.fixture(params=['lqr', 'mpc', 'smc'])
+@pytest.fixture(params=['smc'])
 def session(request, tmp_path):
     algorithm = request.param
-    source = ROOT / f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml'
+    source = ROOT / 'src/gim_arm_controller_smc/config/smc_circle_from_terminal_tuning.yaml'
     config = tmp_path / 'profile.yaml'
     config.write_text(source.read_text())
     return tuner.TuningSession(algorithm, config)
@@ -70,29 +70,6 @@ def test_dry_run_does_not_call_ros_or_write_trial(session, tmp_path, monkeypatch
     monkeypatch.setattr(tuner, 'run_ros_trial', unexpected)
     tuner.test_session(session, ROOT, tmp_path / 'logs', dry_run=True)
     assert not (tmp_path / 'logs').exists()
-
-
-def test_horizon_validation_is_transactional(tmp_path):
-    source = ROOT / 'src/gim_arm_controller_mpc/config/mpc_hardware_soft.yaml'
-    session = tuner.TuningSession('mpc', source)
-    before = deepcopy(session.document)
-    for name, value in [('control_horizon', '41'), ('prediction_horizon', '9'),
-                        ('control_horizon', '2.5'), ('prediction_horizon', '201')]:
-        with pytest.raises(ValueError):
-            session.set_value(name, [value])
-        assert session.document == before
-
-
-@pytest.mark.parametrize('algorithm,field,value', [
-    ('lqr', 'position_tracking_only', False), ('mpc', 'q_velocity', [1.0, 0.0, 0.0])])
-def test_reject_velocity_objective_from_custom_yaml(tmp_path, algorithm, field, value):
-    source = ROOT / f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml'
-    document = yaml.safe_load(source.read_text())
-    document[f'{algorithm}_controller']['ros__parameters'][field] = value
-    path = tmp_path / 'bad.yaml'
-    path.write_text(yaml.safe_dump(document))
-    with pytest.raises(ValueError):
-        tuner.TuningSession(algorithm, path)
 
 
 @pytest.mark.parametrize('states', [
