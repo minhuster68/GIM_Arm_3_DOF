@@ -22,6 +22,7 @@ from std_msgs.msg import Float64MultiArray
 from std_srvs.srv import SetBool
 
 from gim_control.arm_dynamics import ArmDynamics
+from gim_control.eso_runtime import ESO_VECTORS, EsoRuntime, declare_eso_parameters
 from gim_control.reference_trajectory import (
     Hold,
     Quintic,
@@ -90,6 +91,7 @@ class EffortControllerNode(Node):
         declare("deadline_warn_fraction", 0.8)
         declare("command_heartbeat_nm", 1.0e-6)
         factory.declare_parameters(self)
+        declare_eso_parameters(self)
 
         get = self.get_parameter
         control_hz = float(get("control_hz").value)
@@ -195,6 +197,7 @@ class EffortControllerNode(Node):
         self.hold_integral = np.zeros(self.n)
         self.controller = factory.build(
             self, self.dynamics, self.tau_limit, control_hz)
+        self.eso = EsoRuntime(self) if bool(get("eso_enabled").value) else None
         self.velocity_filter = getattr(self.controller, 'velocity_filter', None)
         if self.velocity_filter is not None:
             self.get_logger().info(
@@ -558,6 +561,8 @@ class EffortControllerNode(Node):
         if self.diagnostic_mpc and self.velocity_filter is not None:
             row.extend(self.qd_raw)
             row.extend(self.qd)
+        if self.eso is not None:
+            row.extend(self.eso.log_values())
         self.rows.append(row)
 
     def _set_hand_guiding(self, request, response):
@@ -902,8 +907,8 @@ class EffortControllerNode(Node):
         set_reference_time = getattr(self.controller, "set_reference_time", None)
         if callable(set_reference_time):
             set_reference_time(self._gain_schedule_time(elapsed))
-        tau = np.asarray(self.controller.compute(
-            self.q, self.qd, q_ref, qd_ref, qdd_ref, dt), dtype=float)
+        tau = np.asarray(self._compute_control(
+            q_ref, qd_ref, qdd_ref, dt), dtype=float)
         compute_time = time.perf_counter() - started
         if (self.factory.algorithm_name == "mpc"
                 and not self.controller.last.get("solver_accepted", False)):
@@ -953,6 +958,15 @@ class EffortControllerNode(Node):
         return np.clip(
             gravity + damping, -self.tau_limit, self.tau_limit)
 
+    def _compute_control(self, q_ref, qd_ref, qdd_ref, dt):
+        if self.eso is not None:
+            try:
+                return self.eso.compute(q_ref, qd_ref, qdd_ref, dt)
+            except (ValueError, FloatingPointError, np.linalg.LinAlgError) as error:
+                self._abort(f'ESO không hợp lệ: {error}')
+                return self._gravity_torque()
+        return self.controller.compute(self.q, self.qd, q_ref, qd_ref, qdd_ref, dt)
+
     def _hold_torque(self, dt, integrate):
         if self.controller_hold:
             if not integrate:
@@ -961,8 +975,8 @@ class EffortControllerNode(Node):
             set_reference_time = getattr(self.controller, "set_reference_time", None)
             if callable(set_reference_time):
                 set_reference_time(self._gain_schedule_time(0.0))
-            tau = self.controller.compute(
-                self.q, self.qd, self.home_q, zero, zero, dt)
+            tau = self._compute_control(
+                self.home_q, zero, zero, dt)
             scale = self._gravity_scale()
             tau = tau - (1.0 - scale) * self.dynamics.gravity(self.q)
             integral = getattr(self.controller, "integral", None)
@@ -1022,6 +1036,8 @@ class EffortControllerNode(Node):
         message = Float64MultiArray()
         message.data = [float(value) for value in command]
         self.publisher.publish(message)
+        if self.eso is not None:
+            self.eso.note_applied(command)
         self.last_command = command
         self.last_publish_wall_ns = time.time_ns()
 
@@ -1075,6 +1091,10 @@ class EffortControllerNode(Node):
                     "tau_ff", "tau_fb", "tau_p", "tau_i", "tau_raw",
                     "tau_controller", "position_error", "velocity_command",
                     "velocity_error", "integral", "saturated", "kpp", "kvp", "kvi"):
+                header.extend(f"{prefix}_{name}" for name in self.joint_names)
+        if self.eso is not None:
+            header.append("eso_status")
+            for prefix in ESO_VECTORS:
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
         self._write_csv_atomic(path, header, self.rows)
         if self.diagnostic_lqr and self.state_rows:
