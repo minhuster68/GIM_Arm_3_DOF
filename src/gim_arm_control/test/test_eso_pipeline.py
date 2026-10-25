@@ -54,7 +54,11 @@ def test_eso_profile_preserves_its_baseline_and_logs_actual_command_decompositio
         with patch.object(node.publisher, 'publish'):
             for k in range(260):
                 msg = JointState()
-                msg.name, msg.position, msg.velocity = node.joint_names, [0.]*3, [0.]*3
+                msg.name = node.joint_names
+                # Small externally imposed motion: observer should detect a
+                # residual even when calibrated FF is an exact static hold.
+                msg.position = [.0005*np.sin(k*.02), .0002*np.cos(k*.02), .0003*np.sin(k*.02)]
+                msg.velocity = [.001*np.cos(k*.02), -.0004*np.sin(k*.02), .0006*np.cos(k*.02)]
                 msg.header.stamp.sec = 1+k//100
                 msg.header.stamp.nanosec = (k % 100)*10000000
                 node._on_state(msg)
@@ -77,6 +81,9 @@ def test_eso_profile_preserves_its_baseline_and_logs_actual_command_decompositio
                 np.testing.assert_allclose(actual, expected, atol=2e-6)
                 assert all(p+'_'+joint in row for p in ESO_VECTORS)
         from gim_control.plot_eso import plot_eso
+        from gim_control.plot_ee_error import load_log
+        parsed = load_log(params['log_file'])
+        assert 'tau_eso' in parsed and len(parsed['tau_eso']) == len(rows)
         outputs = plot_eso(params['log_file'])
         assert len(outputs) == 3 and all(p.stat().st_size > 0 for p in outputs)
         gate.allowed = False

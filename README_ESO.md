@@ -70,12 +70,33 @@ lệnh, adapter đóng băng tích phân của các khớp bị chặn và cập
 sử slew/fallback theo lệnh thực gửi. Phải đánh giá lại tracking/solver trên
 các nhánh mới; các kiểm tra ổn định LQR cũ không chứng minh hệ LQR+ESO ổn định.
 
+## Đồng bộ với alpha feedforward trên tay thật
+
+MATLAB dùng mô hình URDF nguyên bản (scale=1). Các bộ phần cứng hiện tại đã
+calibrate base bằng `base_ff_alpha`. Nếu observer vẫn coi input/model có
+scale=1, nó có thể xem chính phần hiệu chỉnh đã biết này là nhiễu rồi bù lặp.
+Profile ESO vì vậy đặt `eso_nominal_input_scale=[base_ff_alpha,1,1]`.
+Với S=diag(scale), mô hình ESO thực tế là:
+
+```text
+M_nom = S @ M(q)
+N_nom = S @ inverse_dynamics(q,v_hat,0)
+a_nom = solve(M(q), tau_applied/scale - inverse_dynamics(q,v_hat,0))
+tau_dist_hat = scale * (M(q) @ d_hat)
+```
+
+Controller/FF không đổi; chỉ đồng bộ nominal model của observer với calibration
+đã có. Đây là giả thiết hiệu chỉnh gain đầu vào, chưa phải nhận dạng động lực học
+thực nghiệm đầy đủ. Nếu thay alpha sau này cần đồng bộ scale trong YAML ESO.
+Đặt scale=[1.0,1.0,1.0] để đối chiếu nguyên bản MATLAB; không tự đổi alpha FF.
+
 ## Tham số ESO ban đầu
 
 ```yaml
 eso_enabled: true
 eso_bandwidth_rad_s: [15.0, 15.0, 15.0]  # rad/s, khoảng 2.39 Hz; không phải 15 Hz
 eso_compensation_gain: [1.0, 1.0, 1.0]
+eso_nominal_input_scale: [2.2, 1.0, 1.0] # LQR/MPC; PID=2.0, SMC=2.46 ở phần tử base
 eso_compensation_limit_nm: [0.5, 2.0, 0.3]
 eso_compensation_rate_nm_s: [0.5, 2.0, 0.3]
 eso_warmup_s: 1.5
@@ -166,7 +187,9 @@ ros2 run gim_control plot_eso results_new/pid/eso/circle_run01.csv --show
 ```
 
 Plot ESO tách riêng ba PNG, mỗi khớp có q_hat/góc đo, v_hat/vận tốc driver/Kalman,
-và torque nhiễu/bù/lệnh cuối. Cột `eso_d_hat_*` là rad/s²;
+và torque nhiễu/bù/lệnh cuối. Hình tracking thường cũng thêm các đường
+`tau_pre_eso`, `tau_eso`, `tau_eso_actuator_adjustment` vào panel torque.
+Cột `eso_d_hat_*` là rad/s²;
 `tau_dist_hat_*` và `tau_eso_*` là Nm. `eso_status` cho biết gate/warmup/active.
 `tau_pre_eso + tau_eso + tau_eso_actuator_adjustment = tau` (sai khác heartbeat
 cỡ 1e-6 Nm). Các cột `tau_ff`, `tau_fb`, `tau_raw` cũ vẫn mô tả controller

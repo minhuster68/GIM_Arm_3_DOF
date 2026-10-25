@@ -31,7 +31,7 @@ def plot_eso(path, show=False):
         if 'qd_filtered_'+joint in fields:
             axes[1].plot(t, np.rad2deg(vector('qd_filtered', joint)), '--', label='Vận tốc Kalman cho FB')
         axes[1].set_ylabel('Vận tốc (độ/s)')
-        for prefix, title in (('tau_dist_hat', 'M(q)*d_hat'), ('tau_eso', 'Bù ESO (có dấu)'),
+        for prefix, title in (('tau_dist_hat', 'M_nom(q)*d_hat'), ('tau_eso', 'Bù ESO (có dấu)'),
                               ('tau_pre_eso', 'Torque trước ESO'),
                               ('tau_eso_actuator_adjustment', 'Hiệu chỉnh giới hạn cuối'), ('tau', 'Torque gửi')):
             axes[2].plot(t, vector(prefix, joint), label=title)

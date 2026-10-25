@@ -15,6 +15,7 @@ ESO_VECTORS = ('eso_q_hat', 'eso_v_hat', 'eso_d_hat', 'tau_dist_hat',
 def declare_eso_parameters(node):
     for key, value in dict(
             eso_enabled=False, eso_bandwidth_rad_s=[15., 15., 15.],
+            eso_nominal_input_scale=[1., 1., 1.],
             eso_compensation_gain=[1., 1., 1.],
             eso_compensation_limit_nm=[.5, 2., .3],
             eso_compensation_rate_nm_s=[.5, 2., .3],
@@ -104,14 +105,16 @@ class EsoRuntime:
             v('eso_compensation_limit_nm'), v('eso_compensation_rate_nm_s'),
             node.get_parameter('eso_warmup_s').value,
             node.get_parameter('eso_ramp_s').value,
-            node.get_parameter('eso_reset_gap_s').value)
+            node.get_parameter('eso_reset_gap_s').value,
+            nominal_input_scale=v('eso_nominal_input_scale'))
         self.configured_warmup = self.compensator.warmup_s
         self.gate = EsoModeGate(node)
         self.blocked = np.zeros(n, dtype=bool)
         node.get_logger().info(
             f'ESO MATLAB: bandwidth={self.compensator.observer.bandwidth} rad/s; '
-            f'tau_cmd=limits(tau_base+tau_eso), tau_eso=-M(q)*d_hat; '
+            f'tau_cmd=limits(tau_base+tau_eso), tau_eso=-M_nom(q)*d_hat; '
             f'|tau_eso|<={self.compensator.comp_limit} Nm. '
+            f'nominal_input_scale={self.compensator.input_scale}. '
             'Chờ effort active, torque_joint=all và hết handoff; Kalman/FF giữ nguyên.')
 
     def compute(self, q_ref, qd_ref, qdd_ref, dt):
@@ -120,7 +123,10 @@ class EsoRuntime:
                    and node.phase in ('GRAVITY', 'APPROACH', 'TRACK', 'RETURN', 'HOLD'))
         eso.warmup_s = max(self.configured_warmup, self.gate.handoff_s + .2)
         stamp = node.state_header_ns if node.state_header_ns > 0 else node.state_rx_wall_ns
+        previous_status = eso.status
         eso.prepare(node.q, getattr(node, 'qd_raw', node.qd), stamp, node.state_seq, allowed)
+        if eso.status != previous_status:
+            node.get_logger().info(f'ESO {previous_status} -> {eso.status}')
         saved = {key: getattr(node.controller, key).copy() for key in ('integral', 'z')
                  if isinstance(getattr(node.controller, key, None), np.ndarray)}
         baseline = node.controller.compute(node.q, node.qd, q_ref, qd_ref, qdd_ref, dt)

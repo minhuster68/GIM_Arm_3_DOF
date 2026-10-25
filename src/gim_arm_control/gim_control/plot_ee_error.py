@@ -38,6 +38,8 @@ def load_log(path):
         }
         optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i', 'tau_d', 'saturated', 'qd_raw', 'qd_filtered')
                     if all(f'{prefix}_{name}' in reader.fieldnames for name in JOINT_NAMES)]
+        optional.extend(prefix for prefix in ('tau_pre_eso', 'tau_eso', 'tau_eso_actuator_adjustment')
+                        if all(f'{prefix}_{name}' in reader.fieldnames for name in JOINT_NAMES))
         columns.update({prefix: [] for prefix in optional})
         for row in reader:
             columns["t_wall"].append(float(row["t_wall"]))
@@ -203,6 +205,11 @@ def plot(log, output, show, max_plot_points):
         axes[2].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
         axes[2].set_ylabel("Mô-men (Nm)")
         axes[2].set_title("Mô-men điều khiển đầu ra")
+        if 'tau_eso' in log:
+            for prefix, color in (('tau_pre_eso', 'black'), ('tau_eso', 'tab:purple'),
+                                  ('tau_eso_actuator_adjustment', 'gray')):
+                axes[2].plot(t, log[prefix][sample, index], color=color,
+                             linewidth=0.8, linestyle=':', label=prefix)
         axes[2].legend(loc="best")
 
         for axis in axes:

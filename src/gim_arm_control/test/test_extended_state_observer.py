@@ -61,6 +61,16 @@ def test_recorded_nominal_acceleration_uses_final_applied_torque_and_estimated_v
                                np.linalg.solve(c.dyn.mass, torque-c.dyn.bias))
 
 
+def test_nominal_scale_matches_empirical_feedforward_and_avoids_double_counting_base_bias():
+    scale = np.array([2.2, 1., 1.])
+    c = compensator(nominal_input_scale=scale)
+    c.prepare([0.]*3, [0.]*3, 1000000000, 1, True)
+    desired_acceleration = np.array([.1, -.2, .3])
+    calibrated_ff = scale * c.dyn.inverse_dynamics(np.zeros(3), np.zeros(3), desired_acceleration)
+    c.record_applied(np.zeros(3), calibrated_ff, 1)
+    np.testing.assert_allclose(c.nominal_a_previous, desired_acceleration, atol=1e-15)
+
+
 def test_gate_warmup_duplicate_long_gap_and_rewind_reset_without_learning_ignored_commands():
     c = compensator()
     zero = np.zeros(3)

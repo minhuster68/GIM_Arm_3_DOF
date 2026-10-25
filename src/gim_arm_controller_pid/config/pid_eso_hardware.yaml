@@ -1,4 +1,4 @@
-# Experimental ESO: MATLAB branch eso; existing PID/Kalman parameters unchanged.
+# Experimental ESO; PID and Kalman parameters unchanged.
 cascade_pid_controller:
   ros__parameters:
     abort_on_tracking_error: false
@@ -62,3 +62,7 @@ cascade_pid_controller:
     eso_warmup_s: 1.5
     eso_ramp_s: 2.0
     eso_reset_gap_s: 0.05
+    eso_nominal_input_scale:
+    - 2.0
+    - 1.0
+    - 1.0

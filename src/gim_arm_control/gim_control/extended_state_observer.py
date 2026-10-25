@@ -62,10 +62,14 @@ class EsoCompensator:
     """Bounded outer torque compensation; independent from controller.reset()."""
     def __init__(self, dynamics, tau_limit, bandwidth, compensation_gain,
                  compensation_limit, compensation_rate, warmup_s=1.5,
-                 ramp_s=2., reset_gap_s=.05):
+                 ramp_s=2., reset_gap_s=.05, nominal_input_scale=None):
         self.dyn, self.limit = dynamics, np.asarray(tau_limit, dtype=float)
         self.observer = DiscreteLeso(bandwidth)
         self.n = self.observer.n
+        self.input_scale = (np.ones(self.n) if nominal_input_scale is None else
+                            self.observer._vector(nominal_input_scale))
+        if np.any(self.input_scale <= 0):
+            raise ValueError('eso_nominal_input_scale cần hữu hạn > 0')
         self.gain = self.observer._vector(compensation_gain)
         self.comp_limit = self.observer._vector(compensation_limit)
         self.comp_rate = self.observer._vector(compensation_rate)
@@ -126,7 +130,7 @@ class EsoCompensator:
             self.status = 'WAIT_APPLIED_COMMAND'
             return self.compensation.copy()
         self.observer.update(q, self.nominal_a_previous, dt)
-        self.tau_dist_hat = self.dyn.mass_matrix(q) @ self.observer.d_hat
+        self.tau_dist_hat = self.input_scale * (self.dyn.mass_matrix(q) @ self.observer.d_hat)
         target = np.clip(-self.gain*self.tau_dist_hat, -self.comp_limit, self.comp_limit)
         self.ramp_elapsed += dt
         target *= min(1., self.ramp_elapsed/self.ramp_s)
@@ -142,7 +146,7 @@ class EsoCompensator:
         # Friction/load/model error is left for the extended disturbance state.
         bias = self.dyn.inverse_dynamics(q, self.observer.v_hat, np.zeros(self.n))
         self.nominal_a_previous = np.linalg.solve(self.dyn.mass_matrix(q),
-                                                  np.asarray(torque)-bias)
+                                                  np.asarray(torque)/self.input_scale-bias)
         self.applied_sequence = sequence
 
     def apply(self, baseline, previous_command, actuator_rate, dt):
