@@ -167,6 +167,7 @@ class TestPositionPidRosTrial(unittest.TestCase):
         expected_ff = dynamics.inverse_dynamics(
             [float(track['qref_' + joint]) for joint in tuner.JOINT_NAMES],
             np.zeros(3), np.zeros(3))
+        expected_ff[0] *= self.parameters.get('base_ff_alpha', 1.0)
         np.testing.assert_allclose(
             [float(track['tau_ff_' + joint]) for joint in tuner.JOINT_NAMES], expected_ff)
         self.assertTrue(path.with_name('tracking_q3_elbow.png').is_file())

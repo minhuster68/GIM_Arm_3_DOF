@@ -2,6 +2,11 @@ cascade_pid_controller:
   ros__parameters:
     abort_on_tracking_error: false
     control_hz: 100.0
+    # Three independent [velocity, acceleration] filters; only the D input changes.
+    velocity_filter_type: kalman2  # none to compare without filtering
+    velocity_kalman_measurement_std: [0.03, 0.01, 0.04]  # rad/s: base, shoulder, elbow
+    velocity_kalman_jerk_std: [180.0, 60.0, 240.0]  # rad/s^3
+    velocity_kalman_reset_gap_s: 0.05
     tau_scale: 1.0
     base_ff_alpha: 2.0
     autostart: false

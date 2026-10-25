@@ -94,7 +94,9 @@ def test_ros_entry_point_builds_position_pid_without_cascade_parameters():
     factory.declare_parameters(parameters)
     assert set(parameters.parameters) == {
         'position_kp', 'position_ki', 'position_kd', 'position_integral_limit',
-        'base_ff_alpha'}
+        'base_ff_alpha', 'velocity_filter_type', 'velocity_kalman_measurement_std',
+        'velocity_kalman_jerk_std', 'velocity_kalman_reset_gap_s'}
+    assert parameters.parameters['velocity_filter_type'] == 'none'
     with patch.object(node, 'run_controller') as run:
         node.main()
     assert isinstance(run.call_args.args[0], PositionPidFactory)

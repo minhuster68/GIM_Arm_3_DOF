@@ -1,5 +1,69 @@
 # PID một vòng bám vị trí — chuẩn bị tune từng khớp
 
+## Kalman vận tốc cho cả ba khớp — 2026-10-25
+
+Branch `pid-test`, profile `config/pid_hardware_soft.yaml` đã bật:
+
+```yaml
+# base/id0, shoulder/id1, elbow/id2
+velocity_filter_type: kalman2
+velocity_kalman_measurement_std: [0.03, 0.01, 0.04]  # rad/s
+velocity_kalman_jerk_std: [180.0, 60.0, 240.0]       # rad/s³
+velocity_kalman_reset_gap_s: 0.05
+```
+
+Mỗi khớp có bộ lọc riêng với hai trạng thái [vận tốc, gia tốc], chỉ nhận
+vận tốc thô từ driver. Gia tốc ước lượng dùng nội bộ để dự đoán vận tốc,
+không thay gia tốc tham chiếu. Đường phản hồi PID một vòng là:
+
+```text
+e = q_ref - q_measured
+tau_p = Kp * e
+tau_i = Ki * integral(e)
+tau_d = Kd * (qd_ref - qd_filtered)
+tau_ff = inverse_dynamics(q_ref, qd_ref, qdd_ref)  # base nhân alpha như trước
+tau = clip(tau_ff + tau_p + tau_i + tau_d)
+```
+
+Giữ nguyên Kp=[30,55,14], Ki=[2.5,1,0.8], Kd=[0.1,4,0.3], alpha base=2
+và giới hạn tích phân/torque. Chỉ thay vận tốc đo đưa vào thành phần D;
+không lọc góc, tham chiếu hoặc torque. Giá trị nhiễu khởi đầu theo LQR/MPC,
+chưa xác nhận hiệu quả giảm rung trên tay thật với PID.
+
+Kalman cập nhật một lần khi nhận JointState mới, dùng khoảng thời gian từ
+header (header bằng 0 thì dùng thời gian nhận monotonic). Không xử lý lại
+mẫu trùng hoặc mẫu cũ ở timer. Mất mẫu quá 50 ms hoặc thời gian quay ngược
+thì khởi tạo lại bằng vận tốc đo, gia tốc 0. Reset tích phân PID không reset
+bộ lọc. Kiểm tra đứng yên vẫn dùng vận tốc thô, cả ở terminal tune và circle.
+
+Trong CSV khi bật lọc: `qd_raw_*` là vận tốc driver, `qd_filtered_*` và
+`qd_*` là vận tốc đưa vào PID; `error_rate_* = qd_ref - qd_filtered`.
+Plot vận tốc có cả thô/sau lọc/tham chiếu, còn hình vị trí/torque riêng vẫn
+có đủ `tau_p`, `tau_i`, `tau_d`. Log cũ vẫn đọc được.
+
+Để đối chiếu không lọc, đổi `velocity_filter_type: none` và restart node PID,
+dùng tên log khác. Các profile mô phỏng/bring-up cũ mặc định không lọc.
+Terminal tune mặc định cũng dùng `pid_hardware_soft.yaml` nên bật cùng bộ lọc.
+
+Sau build, mỗi terminal phải source lại `install/setup.bash` trước khi chạy
+để nạp đúng metadata Python. Circle dùng `torque_joint:=all`; khi position
+đang giữ HOME, chạy:
+
+```bash
+ros2 launch gim_control pid_sweep_hardware.launch.py \
+  trajectory_shape:=circle approach_time:=16 return_time:=16 \
+  params_file:=src/gim_arm_controller_pid/config/pid_hardware_soft.yaml \
+  log_file:=results_new/pid/circle_kalman_run01.csv
+```
+
+Chờ READY_PID, chuyển từ group sang effort controller thành công, rồi bật
+`ros2 param set /cascade_pid_controller autostart true`. Kết thúc chạy,
+chuyển về position trước khi Ctrl-C node PID và plot CSV bằng
+`ros2 run gim_control plot_joint_tracking results_new/pid/circle_kalman_run01.csv --show`.
+Tích hợp này chỉ được kiểm tra bằng phần mềm/ROS giả lập, chưa tự chạy tay thật.
+
+## Tune PID
+
 Để chỉnh Kp/Ki/Kd trong terminal và tune lần lượt **khâu 3 → 2 → 1**, dùng
 [hướng dẫn terminal](TERMINAL_TUNING.md). Mỗi lượt chỉ một khớp dùng
 `tau_ff(URDF) + tau_fb(PID)`; hai khớp còn lại giữ bằng position mode.

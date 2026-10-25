@@ -162,7 +162,7 @@ class RosPositionTrial:
             if now < handoff_end:
                 stable_since = None
                 continue
-            still = max(abs(float(value)) for value in pid.qd) <= START_VELOCITY_LIMIT_RAD_S
+            still = max(abs(float(value)) for value in pid.qd_raw) <= START_VELOCITY_LIMIT_RAD_S
             if still and error <= position_limit:
                 if stable_since is None:
                     stable_since = time.monotonic()
@@ -173,7 +173,7 @@ class RosPositionTrial:
         values = ', '.join(
             f'{name}: qd={float(velocity):.3f} rad/s, '
             f'e_HOME={math.degrees(float(q - home)):.2f} độ'
-            for name, velocity, q, home in zip(JOINTS, pid.qd, pid.q, pid.home_q))
+            for name, velocity, q, home in zip(JOINTS, pid.qd_raw, pid.q, pid.home_q))
         raise RuntimeError(
             f'PID chưa giữ HOME ổn định sau {PRESTART_TIMEOUT_S:g}s; {values}. '
             'Dừng bài thử và trả về position, chưa chạy quỹ đạo')

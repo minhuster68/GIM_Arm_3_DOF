@@ -11,8 +11,11 @@ class PositionPidController:
     """
 
     def __init__(self, dynamics, kp, ki, kd, integral_limit, tau_limit=None,
-                 base_ff_alpha=1.0):
+                 base_ff_alpha=1.0, velocity_filter=None):
         self.dyn = dynamics
+        # JointState ingress filters once per fresh sample. Integral resets or
+        # repeated controller calls must not reprocess a velocity measurement.
+        self.velocity_filter = velocity_filter
         self.base_ff_alpha = float(base_ff_alpha)
         if not np.isfinite(self.base_ff_alpha) or self.base_ff_alpha <= 0:
             raise ValueError('base_ff_alpha phải hữu hạn và > 0')

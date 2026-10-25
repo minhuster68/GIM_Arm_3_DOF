@@ -11,7 +11,8 @@ from gim_control.plot_ee_error import JOINT_SUFFIXES, plot
 
 
 @pytest.mark.parametrize('show', [False, True])
-def test_position_and_velocity_figures_use_logged_signals(tmp_path, monkeypatch, show):
+@pytest.mark.parametrize('filtered', [False, True])
+def test_position_and_velocity_figures_use_logged_signals(tmp_path, monkeypatch, show, filtered):
     # Constant position deliberately cannot reproduce these measured velocities.
     qd = np.arange(24, dtype=float).reshape(8, 3) / 10
     qd[1] = [10, 20, 30]  # Skipped when plotting; included in error metrics.
@@ -25,6 +26,8 @@ def test_position_and_velocity_figures_use_logged_signals(tmp_path, monkeypatch,
         'qd_ref': qd_ref,
         'tau': np.ones((8, 3)),
     }
+    if filtered:
+        log.update(qd_raw=qd + .123, qd_filtered=qd)
     figures = {}
     shown = []
     original_save = Figure.savefig
@@ -54,6 +57,11 @@ def test_position_and_velocity_figures_use_logged_signals(tmp_path, monkeypatch,
                                    np.degrees(qd_ref[::2, index]))
         np.testing.assert_allclose(axes[1].lines[0].get_ydata(),
                                    np.degrees((qd - qd_ref)[::2, index]))
+        if filtered:
+            np.testing.assert_allclose(axes[0].lines[2].get_ydata(),
+                                       np.degrees(log['qd_raw'][::2, index]))
+            np.testing.assert_allclose(axes[1].lines[1].get_ydata(),
+                                       np.degrees((log['qd_raw'] - qd_ref)[::2, index]))
         error = np.degrees((qd - qd_ref)[:, index])
         assert axes[1].lines[0].get_label() == (
             f'RMS={np.sqrt(np.mean(error ** 2)):.3f}°/s, '
