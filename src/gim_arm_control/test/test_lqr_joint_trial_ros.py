@@ -31,7 +31,15 @@ class TestLqrJointRosTrial(unittest.TestCase):
     def setUp(self):
         import tempfile
         self.directory = tempfile.TemporaryDirectory()
-        self.trial = tuner.RosLqrJointTrial(self.directory.name, show_plot=False)
+        class FakeCanProbe:
+            def __init__(probe, *args):
+                pass
+            def poll(probe):
+                return True
+            def close(probe):
+                pass
+        self.trial = tuner.RosLqrJointTrial(
+            self.directory.name, show_plot=False, can_probe_factory=FakeCanProbe)
         self.context = rclpy.context.Context()
         rclpy.init(args=[], context=self.context)
         self.node = rclpy.create_node('mock_lqr_arm', context=self.context)
@@ -45,6 +53,9 @@ class TestLqrJointRosTrial(unittest.TestCase):
         self.prestart_velocity = 0.0
         self.prestart_drift = 0.0
         self.prestart_duration = 0.0
+        self.velocity_noise = 0.0
+        self.state_counter = 0
+        self.held_drift = 0.0
         self.activation_time = None
         self.commands_before_effort = []
         self.node.create_subscription(
@@ -68,6 +79,7 @@ class TestLqrJointRosTrial(unittest.TestCase):
         self.parameters = yaml.safe_load((
             ROOT / 'src/gim_arm_controller_lqr/config/lqr_joint_tuning.yaml').read_text())[
                 'lqr_controller']['ros__parameters']
+        self.assertEqual(self.parameters['feedback_model_mode'], 'independent')
 
     def tearDown(self):
         self.stop_spinning.set()
@@ -83,6 +95,8 @@ class TestLqrJointRosTrial(unittest.TestCase):
 
     def publish_state(self):
         q, qd = np.array([0.03, 0.05, 0.1]), np.zeros(3)
+        self.state_counter += 1
+        qd[2] = self.velocity_noise * (-1)**self.state_counter
         lqr = self.trial.node
         if (lqr is not None and self.effort_active and lqr.phase == 'GRAVITY'
                 and time.monotonic() - self.activation_time < self.prestart_duration):
@@ -91,6 +105,7 @@ class TestLqrJointRosTrial(unittest.TestCase):
         if lqr is not None and self.effort_active and lqr.phase in (
                 'APPROACH', 'TRACK', 'RETURN', 'HOLD'):
             q, qd, _ = lqr._reference_at_phase(lqr.phase_elapsed)
+            q[0] += self.held_drift
         message = JointState()
         message.name = list(tuner.JOINT_NAMES)
         message.position = [float(value) for value in q]
@@ -140,6 +155,11 @@ class TestLqrJointRosTrial(unittest.TestCase):
         self.assertEqual(list(self.switches[0].activate_controllers), ['gim_arm_effort_controller'])
         self.assertEqual(list(self.switches[1].activate_controllers), ['gim_arm_group_controller'])
         path = next(Path(self.directory.name).glob('*/tracking.csv'))
+        self.assertEqual(json.loads(path.with_name('trial.json').read_text())[
+            'feedback_model_mode'], 'independent')
+        self.assertTrue(json.loads(path.with_name('trial.json').read_text())['can_mode_confirmed'])
+        self.assertEqual(self.trial.node.controller.isolated_joint_index, 2)
+        self.assertIn('cô lập 2', json.loads(path.with_name('trial.json').read_text())['stability_scope'])
         with path.open() as stream:
             rows = list(csv.DictReader(stream))
         self.assertTrue({'APPROACH', 'TRACK', 'RETURN', 'HOLD'} <= {row['phase'] for row in rows})
@@ -172,6 +192,27 @@ class TestLqrJointRosTrial(unittest.TestCase):
             [float(track['tau_ff_' + joint]) for joint in tuner.JOINT_NAMES], expected_ff)
         self.assertTrue(path.with_name('tracking_q3_elbow.png').is_file())
 
+    def test_stationary_elbow_velocity_noise_does_not_false_abort_start(self):
+        self.velocity_noise = .35
+        self.trial.run(2, 1, .15, .04, self.parameters)
+        self.assertFalse(self.effort_active)
+        with next(Path(self.directory.name).glob('*/tracking.csv')).open() as stream:
+            rows = list(csv.DictReader(stream))
+        self.assertTrue(any(r['phase']=='APPROACH' for r in rows))
+        self.assertFalse(any(r['phase']=='ABORT' for r in rows))
+
+    def test_missing_can_mode_evidence_returns_position_without_path(self):
+        class MissingProbe:
+            def __init__(self, *args): pass
+            def poll(self): return False
+            def close(self): pass
+        self.trial.can_probe_factory = MissingProbe
+        with self.assertRaisesRegex(RuntimeError, 'ROS switch chưa có frame CAN'):
+            self.trial.run(2, 1, .15, .04, self.parameters)
+        self.assertFalse(self.effort_active)
+        with next(Path(self.directory.name).glob('*/tracking.csv')).open() as stream:
+            self.assertFalse(any(r['phase']=='APPROACH' for r in csv.DictReader(stream)))
+
     def test_wrong_hardware_selection_never_activates_effort(self):
         with self.assertRaisesRegex(RuntimeError, 'chưa cô lập'):
             self.trial.run(1, 1, 0.15, 0.04, self.parameters)
@@ -182,7 +223,10 @@ class TestLqrJointRosTrial(unittest.TestCase):
         from gim_control import algorithm_tuner, effort_controller_node
         from gim_control.reference_trajectory import TimedHold
         self.description = configure_hardware_description(self.stale_description, torque_joint='all')
-        params = dict(self.parameters, approach_time=0.15, return_time=0.15,
+        circle_parameters = yaml.safe_load((ROOT /
+            'src/gim_arm_controller_lqr/config/lqr_circle_hardware.yaml').read_text())[
+                'lqr_controller']['ros__parameters']
+        params = dict(circle_parameters, approach_time=0.15, return_time=0.15,
                       diagnostic_hold=False, diagnostic_segment=False, cache_file='',
                       log_file=str(Path(self.directory.name) / 'circle.csv'),
                       urdf_file=str(ROOT / 'src/gim_arm_description/urdf/gim_arm.urdf'))
@@ -283,6 +327,13 @@ class TestLqrJointRosTrial(unittest.TestCase):
         path = next(Path(self.directory.name).glob('*/tracking.csv'))
         with path.open() as stream:
             self.assertEqual({row['phase'] for row in csv.DictReader(stream)}, {'GRAVITY'})
+
+    def test_held_joint_drift_invalidates_isolated_model_and_restores_position(self):
+        self.held_drift = 0.025
+        with self.assertRaisesRegex(RuntimeError, 'LQR ABORT'):
+            self.trial.run(2, 1, 0.15, 0.04, self.parameters)
+        self.assertFalse(self.effort_active)
+        self.assertEqual(list(self.switches[-1].activate_controllers), ['gim_arm_group_controller'])
 
     def test_prestart_drift_past_position_limit_returns_to_position(self):
         self.prestart_drift = -0.15

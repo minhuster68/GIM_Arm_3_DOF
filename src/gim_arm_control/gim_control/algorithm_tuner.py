@@ -280,7 +280,7 @@ def run_ros_trial(algorithm, params_file):
             executor.spin_once(timeout_sec=0.01)
             if node.phase == 'ABORT' or time.monotonic() > deadline:
                 raise RuntimeError('Không READY; kiểm tra joint_states, giới hạn khớp và precompute')
-        if np.max(np.abs(node.qd)) > node.start_velocity_limit:
+        if np.max(np.abs(getattr(node, 'qd_raw', node.qd))) > node.start_velocity_limit:
             raise RuntimeError('Tay chưa đứng yên; chưa chuyển effort')
         if algorithm == 'lqr':
             deadline = time.monotonic() + 3.0
@@ -362,10 +362,13 @@ def test_session(session, root, log_dir, dry_run=False, no_show=False):
 def main(algorithm, root):
     root = Path(root).resolve()
     parser = argparse.ArgumentParser(description=f'Tune {algorithm.upper()} từ terminal')
+    profile = ('lqr_circle_hardware.yaml' if algorithm == 'lqr'
+               else f'{algorithm}_hardware_soft.yaml')
     parser.add_argument('--params-file', type=Path, default=root /
-                        f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml')
+                        f'src/gim_arm_controller_{algorithm}/config/{profile}')
     parser.add_argument('--trajectory-shape', choices=('circle', 'r', 'a'), default='circle')
-    parser.add_argument('--log-dir', type=Path, default=root / f'results/tune_{algorithm}')
+    parser.add_argument('--log-dir', type=Path, default=root / (
+        'results_new/lqr/circle_trials' if algorithm == 'lqr' else f'results/tune_{algorithm}'))
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--no-show', action='store_true')
     args = parser.parse_args()

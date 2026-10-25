@@ -49,6 +49,8 @@ def validate_joint_profile(params):
     if not 0 < positive(params['tau_scale']) <= 1:
         raise ValueError('tau_scale phải trong (0, 1]')
     positive(params.get('base_ff_alpha', 1.0))
+    if params.get('feedback_model_mode', 'coupled') not in ('coupled', 'independent'):
+        raise ValueError('feedback_model_mode phải là coupled hoặc independent')
     positive(params['gain_schedule_hz'])
     if params.get('gain_schedule_mode') != 'trajectory_time':
         raise ValueError('Tune từng khớp cần gain_schedule_mode=trajectory_time')
@@ -64,11 +66,12 @@ def validate_joint_profile(params):
 
 
 class LqrJointTerminal:
-    def __init__(self, params_file, joint='elbow', log_dir='results/lqr_joint_trials',
+    def __init__(self, params_file, joint='elbow', log_dir='results_new/lqr/joint_trials',
                  show_plot=True, dry_run=False, interface='can0', prestart_timeout=6.0):
         self.session = TuningSession('lqr', params_file)
         validate_joint_profile(self.parameters)
         self.parameters.setdefault('base_ff_alpha', 1.0)
+        self.parameters.setdefault('feedback_model_mode', 'coupled')
         self.selected = JOINTS.index(joint)
         self.dry_run = dry_run
         self.interface = interface
@@ -109,6 +112,7 @@ class LqrJointTerminal:
                 p['tau_penalty_scale'] / p['max_tau'][i]**2)
 
     def show(self):
+        print(f'feedback_model_mode={self.parameters["feedback_model_mode"]}')
         qe, qi, r = self.costs()
         qv = 1 / self.parameters['max_de'][self.selected]**2
         print(f'Khâu {self.selected + 1}: {JOINTS[self.selected]} | '
@@ -206,7 +210,7 @@ def main(root, argv=None):
     parser.add_argument('--joint', choices=JOINTS, default='elbow')
     parser.add_argument('--params-file', type=Path, default=Path(root) /
                         'src/gim_arm_controller_lqr/config/lqr_joint_tuning.yaml')
-    parser.add_argument('--log-dir', default='results/lqr_joint_trials')
+    parser.add_argument('--log-dir', default='results_new/lqr/joint_trials')
     parser.add_argument('--interface', '--can', default='can0')
     parser.add_argument('--prestart-timeout', type=positive, default=6.0)
     parser.add_argument('--no-show', action='store_true')

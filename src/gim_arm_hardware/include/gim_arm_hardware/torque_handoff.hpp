@@ -11,6 +11,51 @@
 namespace gim_arm_hardware
 {
 
+// Raw driver velocity can alternate around zero even while position is held.
+// Qualify holding torque with fresh, tightly bounded encoder positions instead.
+class PositionHoldWindow
+{
+public:
+  void clear() { count_ = next_ = 0; }
+
+  void add(double q, double now)
+  {
+    if (!std::isfinite(q) || !std::isfinite(now)) {clear(); return;}
+    if (count_) {
+      const size_t previous = (next_ + samples_.size() - 1) % samples_.size();
+      if (now <= samples_[previous].time || now - samples_[previous].time > 0.05) {clear();}
+    }
+    samples_[next_] = {q, now};
+    next_ = (next_ + 1) % samples_.size();
+    count_ = std::min(count_ + 1, samples_.size());
+  }
+
+  bool stable(double now) const
+  {
+    if (count_ < 2 || !std::isfinite(now)) {return false;}
+    const size_t last_index = (next_ + samples_.size() - 1) % samples_.size();
+    const Sample & last = samples_[last_index];
+    if (now < last.time || now - last.time > 0.05) {return false;}
+    double low = last.q, high = last.q;
+    for (size_t k = 1; k < count_; ++k) {
+      const Sample & sample = samples_[(last_index + samples_.size() - k) % samples_.size()];
+      low = std::min(low, sample.q);
+      high = std::max(high, sample.q);
+      if (high - low > 0.005) {return false;}
+      const double span = last.time - sample.time;
+      if (span >= 0.3) {
+        return span <= 0.35 && std::abs(last.q - sample.q) / span <= 0.05;
+      }
+    }
+    return false;
+  }
+
+private:
+  struct Sample {double q, time;};
+  std::array<Sample, 64> samples_{};
+  size_t count_{0}, next_{0};
+};
+
 // A short mean of fresh position-mode torque feedback, already in joint Nm.
 class HoldingTorque
 {

@@ -11,7 +11,7 @@ from launch_ros.actions import Node
 
 
 ALGORITHMS = {
-    'lqr': ('gim_arm_controller_lqr', 'lqr_node', 'lqr_hardware_soft.yaml'),
+    'lqr': ('gim_arm_controller_lqr', 'lqr_node', 'lqr_circle_hardware.yaml'),
     'mpc': ('gim_arm_controller_mpc', 'mpc_node', 'mpc_hardware_soft.yaml'),
     'smc': ('gim_arm_controller_smc', 'smc_node', 'smc_hardware_soft.yaml'),
 }

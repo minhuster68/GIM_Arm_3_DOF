@@ -25,7 +25,7 @@ def test_profiles_and_shapes_route_without_changing_gains(tmp_path, monkeypatch,
     params = yaml.safe_load(Path(path).read_text())[f'{algorithm}_controller']['ros__parameters']
     assert node['package'] == f'gim_arm_controller_{algorithm}'
     assert params['control_hz'] == 100.0
-    assert params['tau_scale'] == 0.35
+    assert params['tau_scale'] == (1.0 if algorithm == 'lqr' else 0.35)
     assert params['algorithm_hold']
     assert overrides['trajectory_shape'] == shape
     assert overrides['algorithm_hold'] and not overrides['cascade_hold']
@@ -34,6 +34,10 @@ def test_profiles_and_shapes_route_without_changing_gains(tmp_path, monkeypatch,
     assert not {'control_hz', 'tau_scale', 'lambda_gain', 'max_e', 'max_de',
                 'q_position', 'q_velocity', 'output_scale_velocity'}.intersection(overrides)
     if algorithm == 'lqr':
+        assert Path(path).name == 'lqr_circle_hardware.yaml'
+        assert params['feedback_model_mode'] == 'independent'
+        assert params['require_discrete_stable']
+        assert 'isolated_joint_index' not in params
         assert params['position_tracking_only'] is False and params['use_discrete_lqr']
         assert all(v > 0 for v in params['max_de'])
     if algorithm == 'mpc':
@@ -48,7 +52,7 @@ def test_profiles_and_shapes_route_without_changing_gains(tmp_path, monkeypatch,
 def test_invalid_launch_options_are_rejected(tmp_path, options):
     context = LaunchContext()
     valid_params = Path(__file__).resolve().parents[2] / (
-        'gim_arm_controller_lqr/config/lqr_hardware_soft.yaml')
+        'gim_arm_controller_lqr/config/lqr_joint_tuning.yaml')
     context.launch_configurations.update({
         'algorithm': 'lqr', 'trajectory_shape': 'circle',
         'params_file': str(valid_params), 'approach_time': '16',

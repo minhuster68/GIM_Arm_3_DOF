@@ -15,21 +15,31 @@ e = q - q_ref
 x = [integral(e), e, qd - qd_ref]
 tau_ff = inverse_dynamics(runtime URDF, q_ref, qd_ref, qdd_ref)
 tau_ff_base *= base_ff_alpha
-tau_fb = -K @ x
+tau_fb_i = -Ki_i*integral(e_i) - Kp_i*e_i - Kd_i*(qd_i-qd_ref_i)
 tau_raw = tau_ff + tau_fb
 tau_cmd = clip_and_slew_limit(tau_raw)
 ```
 
-K dùng DARE ở 100 Hz. Q phạt sai số tích phân, vị trí và vận tốc.
+Profile phần cứng dùng `feedback_model_mode: independent`. Mỗi khớp giải DARE
+riêng trên [integral(e_i),e_i,ed_i], với quán tính M_ii. K có 3 hàng/9 cột,
+nhưng mỗi hàng chỉ có 3 hệ số của chính khớp đó. FF vẫn dùng inverse dynamics
+đầy đủ tại tham chiếu. Q phạt sai số tích phân, vị trí và vận tốc.
 Đánh giá tracking dùng RMS và max sai số vị trí, không gộp sai số vận tốc.
 Có tích phân nên đây là LQR/LQI.
 K được tính trước theo HOME → góc thử → HOME ở 10 Hz và nội suy theo thời
 gian quỹ đạo. Không giải Riccati trong vòng gửi torque.
 
 Profile mặc định `config/lqr_joint_tuning.yaml` dùng `tau_scale=1` và
-`base_ff_alpha=2`, giữ trần torque và hiệu chỉnh feedforward base đã dùng
-khi tune PID. Trọng số Q/R lấy từ profile LQR phần cứng, chưa tune trên tay
-thật. Các profile LQR khác mặc định alpha=1 và giữ nguyên bộ trọng số cũ.
+`base_ff_alpha=2.2`. Ban đầu Q giữ bộ đã tune coupled; tau_penalty_scale tăng từ512
+lên8192 vì bộ independent với R cũ không qua kiểm tra robot ghép ZOH100Hz.
+Elbow đã tune trên tay thật ngày 2026-10-24: QE=2000, QI=76800, QV=1, R=160,
+slew=5 Nm/s; kiểm tra riêng 3–40°. Shoulder đã tune riêng 3–40°: QE=40000, QI=4800, QV=2, R=5.12, slew=20.
+Base đã tune riêng +3° đến+40° và−10°: QE=6400,QI=2400,QV=1,R=10,slew=5,alpha=2.2.
+Xem `results_new/lqr/base_independent_retune/README.md`.
+Bộ trong `lqr_joint_tuning.yaml` chưa qua kiểm tra full-plant ba torque;
+chưa dùng profile này chạy circle. Xem báo cáo shoulder trong results_new/lqr/shoulder_independent_retune/. Xem `results_new/lqr/elbow_independent_retune/README.md`.
+Các snapshot trong
+results_new/lqr/params_tuned.yaml giữ bộ coupled cũ để so sánh.
 
 Các vector YAML theo thứ tự `[base, shoulder, elbow]`:
 
@@ -47,8 +57,24 @@ Giảm max_de làm tăng QV; max_de là thang trọng số, không phải giới
 terminal đổi sang các tham số Bryson tương đương để lưu YAML.
 `max_tau` trong công thức R là thang chuẩn hóa trọng số, không đổi trần
 torque. Trần lệnh vẫn là effort URDF × tau_scale: `[5,40,5]` Nm với profile này.
-K là ma trận ghép ba khớp; chỉ output của khớp đang tune được gửi tới driver
-ở torque mode. Hai khớp còn lại giữ position tại góc chụp khi switch.
+K phản hồi độc lập; chỉ output của khớp đang tune được gửi tới driver ở torque
+mode. Hai khớp còn lại giữ position tại góc chụp khi switch. Mô hình cơ khí thật
+vẫn có ghép khớp; cần kiểm chứng lại khi chạy cả ba khớp.
+
+## Phạm vi kiểm tra ổn định khi tune đơn khớp
+
+Terminal xác minh `torque_joint` từ URDF runtime rồi tự đặt
+`isolated_joint_index` cho riêng lượt thử independent. Hai khớp khác giữ
+position: mô hình kiểm tra dùng quán tính M_ii của khớp đang tune.
+Nếu khớp giữ lệch quá 1° trong các pha chạy/giữ, bài thử dừng và trả position.
+Đây là giả thiết khớp giữ đủ cứng, cần kiểm chứng lại khi đổi sang ba torque.
+
+Tham số index chỉ ghi trong parameters.yaml/trial.json của lượt thử, không
+được save vào profile trọng số. Quỹ đạo đầy đủ mặc định index=-1 và vẫn
+kiểm tra robot ghép. Factory từ chối dùng index cô lập cho quỹ đạo không
+phải diagnostic_hold, tránh dùng nhầm snapshot đơn khớp chạy circle.
+Bộ tốt trong bài cô lập có thể không qua mô hình ghép: không xem kết quả
+tune từng khớp là xác nhận chạy circle cả ba khớp.
 
 ## Chuẩn bị
 
@@ -119,8 +145,18 @@ HOME trong 6 s rồi giữ thêm 3 s. K dựng cho đúng góc thử; URDF đọ
 `/controller_manager`, kiểm đúng lựa chọn torque trước khi chuyển mode.
 
 Trước quỹ đạo, PID driver bàn giao torque giữ đo được sang LQR trong 1 s.
-LQR giữ HOME với tích phân, chờ cả ba khớp đồng thời có vận tốc ≤0.05 rad/s
-và sai lệch HOME ≤min(0.02,max_transition_error_rad) rad liên tục 0.3 s.
+LQR giữ HOME với tích phân. Terminal xác nhận đứng yên bằng cửa sổ mẫu mới
+dài ít nhất 0.3 s: biên độ vị trí mỗi khớp ≤0.005 rad, vận tốc trung bình
+từ vị trí và trung bình tín hiệu driver đều ≤0.05 rad/s; khoảng cách mẫu
+không vượt 0.05 s. Vẫn yêu cầu sai lệch HOME
+≤min(0.02,max_transition_error_rad) rad liên tục 0.3 s.
+Điều này tránh chặn nhầm bởi một mẫu vận tốc nhiễu; vận tốc dùng trong
+feedback vẫn là tín hiệu driver, chưa thêm LPF/Kalman.
+
+Terminal còn nghe CAN thụ động: phải thấy frame chọn torque mode và sau đó
+lệnh torque hữu hạn cho đúng node đang tune. Thiếu bằng chứng trong 0.5 s
+thì trả position, dù ROS báo switch thành công. Đây là xác nhận frame gửi
+trên bus, không phải ACK trạng thái bên trong driver.
 Chờ ổn định tối đa 6 s sau bàn giao. Đổi bằng `--prestart-timeout 8` nếu cần;
 không tự chốt lại HOME tại vị trí đã trôi.
 
@@ -168,8 +204,14 @@ Trong terminal chỉ có một khớp nhận torque; bài circle cả ba khớp 
 
 ## Chạy vòng tròn bằng bộ trọng số đã tune
 
-Sau khi `save` khớp base, bộ ba khớp nằm trong `config/lqr_joint_tuning.yaml`.
-Dùng trực tiếp file này; `lqr_hardware_soft.yaml` vẫn là profile ban đầu.
+**Trạng thái 2026-10-24:** giữ nguyên `config/lqr_joint_tuning.yaml` cho tune
+cô lập. Bộ đó không đạt kiểm tra mô hình robot ghép. Circle dùng riêng
+`config/lqr_circle_hardware.yaml`, dùng mô hình thiết kế `free_torque`,
+giữ Q và tăng R 8 lần. Đã qua kiểm tra cả tay, lịch gain/nội suy, trễ thêm
+10 ms và hoàn thành một vòng trên tay thật. Các guard ổn định vẫn bật.
+TRACK RMS base/shoulder/elbow≈2.57°/1.94°/1.21°; chưa chốt tối ưu độ bám.
+Xem `results_new/lqr/circle_readiness/README.md`.
+
 Thoát terminal từng khớp bằng `quit`, chờ position active rồi dừng launch cũ.
 Đặt/đỡ tay đúng zero và khởi động lại hardware với cả ba khớp torque:
 
@@ -184,8 +226,8 @@ Terminal khác nạp ROS/install và domain 42 như phần Chuẩn bị. Chạy 
 
 ```bash
 python3 tools/tune_lqr.py \
-  --params-file src/gim_arm_controller_lqr/config/lqr_joint_tuning.yaml \
-  --trajectory-shape circle --log-dir results/lqr_circle_trials
+  --params-file src/gim_arm_controller_lqr/config/lqr_circle_hardware.yaml \
+  --trajectory-shape circle --log-dir results_new/lqr/circle_trials
 ```
 
 Nhập `show`, rồi `test circle`. Terminal này nhận `test circle`, không nhận
@@ -199,11 +241,11 @@ Nếu không ổn định sau 6 s, bài không chạy và terminal trả về po
 
 Kết thúc hoặc Ctrl-C trong test: tự trả về position trước khi đóng node,
 ghi CSV và YAML tham số của lượt thử, rồi mở ba đồ thị tracking.
-Log nằm trong `results/lqr_circle_trials/`. Đóng đồ thị để trở lại prompt.
+Log nằm trong `results_new/lqr/circle_trials/`. Đóng đồ thị để trở lại prompt.
 
 ## Log và ngắt bài thử
 
-Mỗi lượt lưu riêng trong `results/lqr_joint_trials/lqr_<joint>_<timestamp>/`:
+Mỗi lượt lưu riêng trong `results_new/lqr/joint_trials/lqr_<joint>_<timestamp>/`:
 
 - `tracking.csv`: GRAVITY/APPROACH/TRACK/RETURN/HOLD, q/q_ref, tau_ff/tau_fb,
   các thành phần vị trí/tích phân/vận tốc, saturation và chỉ số gain.

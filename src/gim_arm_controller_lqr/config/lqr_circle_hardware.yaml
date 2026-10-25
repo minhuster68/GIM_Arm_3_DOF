@@ -1,0 +1,59 @@
+# Whole-arm circle: current gains with experimental velocity Kalman filter.
+# The filter has offline model validation only; physical validation is pending.
+# Free-torque SISO design, independent feedback; isolated gains are preserved separately.
+# Q unchanged. R(base, shoulder, elbow)=[15.625,0.625,19.53125].
+# max_tau is ONLY cost normalization; actual torque caps remain [5,40,5] Nm.
+# Stability checks stay enabled; autostart remains false.
+lqr_controller:
+  ros__parameters:
+    feedback_model_mode: independent
+    abort_on_tracking_error: false
+    control_hz: 100.0
+    # One independent [velocity, acceleration] estimator per joint; qd_ref unchanged.
+    velocity_filter_type: kalman2  # none to compare without filtering
+    velocity_kalman_measurement_std: [0.03, 0.01, 0.04]  # rad/s; base, shoulder, elbow
+    velocity_kalman_jerk_std: [180.0, 60.0, 240.0]  # rad/s^3; process noise
+    velocity_kalman_reset_gap_s: 0.05
+    tau_scale: 1.0
+    base_ff_alpha: 2.2
+    autostart: false
+    use_armature: true
+    algorithm_hold: true
+    start_velocity_limit_rad_s: 0.05
+    max_track_error_rad: 0.1
+    max_transition_error_rad: 0.1
+    state_timeout: 0.25
+    joint_margin_rad: 0.05
+    joint_state_qos_depth: 1
+    command_heartbeat_nm: 1.0e-06
+    position_tracking_only: false
+    max_int_e:
+    - 0.020412414523193152
+    - 0.014433756729740642
+    - 0.006
+    max_e:
+    - 0.0125
+    - 0.005
+    - 0.022360679774997897
+    max_de:
+    - 1.0
+    - 0.7071067811865475
+    - 0.8
+    max_tau:
+    - 8.0
+    - 40.0
+    - 6.0
+    tau_penalty_scale: 1000.0
+    integral_limit: 0.05
+    gravity_at_measured: false
+    linearization_step: 1.0e-05
+    require_discrete_stable: true
+    use_discrete_lqr: true
+    recompute_every: 1
+    gain_schedule_mode: trajectory_time
+    gain_schedule_hz: 10.0
+    max_tau_rate_nm_s:
+    - 5.0
+    - 20.0
+    - 10.0
+    independent_design_model: free_torque

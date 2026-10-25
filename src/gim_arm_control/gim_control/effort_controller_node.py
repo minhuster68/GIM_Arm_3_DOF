@@ -134,6 +134,8 @@ class EffortControllerNode(Node):
 
         self.phase = WAIT
         self.q = self.qd = self.measured_effort = self.state_stamp = None
+        self.qd_raw = None
+        self.filter_rx_monotonic = None
         self.previous_tick = None
         self.phase_elapsed = 0.0
         self.home_q = self.reference = None
@@ -193,6 +195,13 @@ class EffortControllerNode(Node):
         self.hold_integral = np.zeros(self.n)
         self.controller = factory.build(
             self, self.dynamics, self.tau_limit, control_hz)
+        self.velocity_filter = getattr(self.controller, 'velocity_filter', None)
+        if self.velocity_filter is not None:
+            self.get_logger().info(
+                'Vận tốc: driver -> Kalman [velocity, acceleration] -> LQR; '
+                f'std đo={self.velocity_filter.measurement_std} rad/s, '
+                f'std jerk={self.velocity_filter.jerk_std} rad/s³. '
+                'Kiểm tra đứng yên vẫn dùng vận tốc thô.')
         self.diagnostic_segment = bool(get("diagnostic_segment").value)
         self.fixed_track_gain_index = int(
             get("fixed_track_gain_index").value)
@@ -431,10 +440,32 @@ class EffortControllerNode(Node):
             indices = [msg.name.index(name) for name in self.joint_names]
         except ValueError:
             return
-        self.q = np.asarray([msg.position[i] for i in indices], dtype=float)
-        self.qd = (
+        header_ns = (int(msg.header.stamp.sec) * 1_000_000_000
+                     + int(msg.header.stamp.nanosec))
+        velocity_filter = getattr(self, 'velocity_filter', None)
+        if velocity_filter is not None and header_ns > 0 and header_ns == self.state_header_ns:
+            return  # Duplicate sample must not advance the observer or state freshness.
+        if len(msg.position) < len(msg.name):
+            return
+        q = np.asarray([msg.position[i] for i in indices], dtype=float)
+        qd_raw = (
             np.asarray([msg.velocity[i] for i in indices], dtype=float)
             if len(msg.velocity) >= len(msg.name) else np.zeros(self.n))
+        if velocity_filter is not None:
+            if (len(msg.velocity) < len(msg.name) or not np.all(np.isfinite(q))
+                    or not np.all(np.isfinite(qd_raw))):
+                self._abort('Kalman: /joint_states thiếu hoặc có vận tốc/vị trí NaN/Inf')
+                return
+            received = time.monotonic()
+            if (self.filter_rx_monotonic is not None
+                    and received - self.filter_rx_monotonic > velocity_filter.reset_gap_s):
+                velocity_filter.reset()
+            self.filter_rx_monotonic = received
+            timestamp = header_ns * 1e-9 if header_ns > 0 else received
+            qd = velocity_filter.update(qd_raw, timestamp)
+        else:
+            qd = qd_raw.copy()
+        self.q, self.qd_raw, self.qd = q, qd_raw, qd
         self.measured_effort = (
             np.asarray([msg.effort[i] for i in indices], dtype=float)
             if len(msg.effort) >= len(msg.name)
@@ -448,7 +479,7 @@ class EffortControllerNode(Node):
             if self.phase in (APPROACH, TRACK, RETURN):
                 self.state_rows.append([
                     self.state_header_ns, self.state_rx_wall_ns,
-                    *self.q, *self.qd, *self.measured_effort,
+                    *self.q, *self.qd_raw, *self.measured_effort,
                 ])
         self.state_stamp = self.get_clock().now()
 
@@ -494,6 +525,8 @@ class EffortControllerNode(Node):
             ])
             for name in ("tau_fb", "tau_p", "tau_i", "tau_d", "saturated"):
                 row.extend(float(value) for value in last.get(name, missing))
+            row.extend(getattr(self, 'qd_raw', self.qd))
+            row.extend(self.qd)
         elif self.diagnostic_mpc:
             last = self.controller.last if event == "CONTROL" else {}
             missing = np.full(self.n, np.nan)
@@ -656,6 +689,11 @@ class EffortControllerNode(Node):
                 f"Kết thúc phục hồi /joint_states; tiếp tục {self.phase} "
                 f"tại t={self.phase_elapsed:.3f}s")
 
+    def _start_velocity_is_safe(self):
+        """Default raw velocity gate; a joint tuner can validate a fresh window."""
+        return (self.start_velocity_limit <= 0
+                or np.max(np.abs(getattr(self, 'qd_raw', self.qd))) <= self.start_velocity_limit)
+
     def _tick(self):
         tick_wall_ns = time.time_ns()
         now = self.get_clock().now()
@@ -736,8 +774,7 @@ class EffortControllerNode(Node):
                     self.autostart_block_warned = True
                 self._publish(self._drag_torque())
                 return
-            if (self.start_velocity_limit > 0
-                    and np.max(np.abs(self.qd)) > self.start_velocity_limit):
+            if not self._start_velocity_is_safe():
                 self._abort(
                     "tay chưa đứng yên trước quỹ đạo: "
                     f"qd={np.round(self.qd, 3)} rad/s, "
@@ -1020,6 +1057,8 @@ class EffortControllerNode(Node):
                     "tau_integral", "tau_position", "tau_velocity"):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
             for prefix in ("tau_fb", "tau_p", "tau_i", "tau_d", "saturated"):
+                header.extend(f"{prefix}_{name}" for name in self.joint_names)
+            for prefix in ('qd_raw', 'qd_filtered'):
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
         elif self.diagnostic_mpc:
             header.extend([

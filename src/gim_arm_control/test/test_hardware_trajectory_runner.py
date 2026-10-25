@@ -22,7 +22,8 @@ from gim_control.plot_ee_error import load_log, print_metrics
 @pytest.mark.parametrize('shape', ['circle', 'r', 'a'])
 def test_ready_track_return_hold_and_position_metrics(tmp_path, capsys, algorithm, factory, shape):
     source = Path(__file__).resolve().parents[2]
-    params = source / f'gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml'
+    profile = 'lqr_circle_hardware.yaml' if algorithm == 'lqr' else f'{algorithm}_hardware_soft.yaml'
+    params = source / f'gim_arm_controller_{algorithm}/config/{profile}'
     log_path = tmp_path / 'hardware.csv'
     rclpy.init(args=[
         '--ros-args', '--params-file', str(params),

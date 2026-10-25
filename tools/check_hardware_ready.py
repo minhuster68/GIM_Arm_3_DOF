@@ -21,7 +21,8 @@ FACTORIES = {'lqr': LqrFactory, 'mpc': MpcFactory, 'smc': SmcFactory}
 
 
 def check_case(algorithm, shape):
-    params = ROOT / f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml'
+    profile = 'lqr_circle_hardware.yaml' if algorithm == 'lqr' else f'{algorithm}_hardware_soft.yaml'
+    params = ROOT / f'src/gim_arm_controller_{algorithm}/config/{profile}'
     rclpy.init(args=[
         '--ros-args', '--params-file', str(params),
         '-p', f'urdf_file:={ROOT / "src/gim_arm_description/urdf/gim_arm.urdf"}',

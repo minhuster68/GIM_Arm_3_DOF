@@ -157,7 +157,7 @@ bool GimArmSystemHardware::switch_to_mode(ControlMode target)
     const double now = steady_seconds();
     for (size_t i = 0; i < holding_torque_.size(); ++i) {
       if (!torque_mode_enable_[i]) {continue;}
-      if (!holding_torque_[i].fresh(now)) {
+      if (!holding_torque_[i].fresh(now) || !position_hold_window_[i].stable(now)) {
         RCLCPP_ERROR(
           rclcpp::get_logger("GimArmSystemHardware"),
           "Từ chối chuyển torque: chưa có Get_Torques mới khi giữ position cho '%s'.",
@@ -228,6 +228,7 @@ void GimArmSystemHardware::enter_position_mode()
   torque_handoff_active_ = false;
   torque_query_started_s_ = -1.0;
   for (auto & sample : holding_torque_) {sample.clear();}
+  for (auto & sample : position_hold_window_) {sample.clear();}
   // Chốt setpoint tại CHỖ TAY ĐANG ĐỨNG trước khi trả quyền cho vòng vị trí
   // của driver. Bỏ bước này thì driver dùng lại input_pos cũ từ trước lúc rời
   // chế độ vị trí, và tay GIẬT về đó.
@@ -498,6 +499,7 @@ hardware_interface::CallbackReturn GimArmSystemHardware::on_init(
   hw_states_position_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   hw_states_velocity_.resize(n_joints, std::numeric_limits<double>::quiet_NaN());
   holding_torque_.resize(n_joints);
+  position_hold_window_.resize(n_joints);
   handoff_torque_joint_.assign(n_joints, 0.0);
   can_node_ids_.resize(n_joints, 0);
   gear_ratios_.resize(n_joints, 8.0);
@@ -1373,7 +1375,7 @@ hardware_interface::return_type GimArmSystemHardware::read(
         std::memcpy(&measured, &frame.data[4], 4);
         for (size_t i = 0; i < can_node_ids_.size(); ++i) {
           if (can_node_ids_[i] != node_id) {continue;}
-          if (std::isfinite(hw_states_velocity_[i]) && std::abs(hw_states_velocity_[i]) <= 0.1) {
+          if (position_hold_window_[i].stable(steady_seconds())) {
             holding_torque_[i].add(
               static_cast<double>(measured) * torque_sign_[i] * torque_gear_ratio_[i],
               steady_seconds());
@@ -1404,6 +1406,7 @@ hardware_interface::return_type GimArmSystemHardware::read(
         pos_rev, gear_ratios_[i], directions_[i], zero_offsets_rad_[i]);
       hw_states_velocity_[i] = (static_cast<double>(vel_rev_s) / gear_ratios_[i]) * 2.0 * M_PI *
         directions_[i];
+      position_hold_window_[i].add(hw_states_position_[i], steady_seconds());
       break;
     }
   }

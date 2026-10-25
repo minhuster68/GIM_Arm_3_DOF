@@ -18,6 +18,13 @@ interpolates using the runner's logical trajectory time. That time freezes
 on stale feedback and wraps only the TRACK section on subsequent loops.
 Gain design is offline; the torque callback never solves Riccati.
 
+Hardware profiles can select feedback_model_mode=independent: each joint has
+its own three-state CARE/DARE. The position_held design uses 1/M_ii for isolated
+trials; free_torque reduces the full free plant to own-input/own-state models
+for three torque joints. Feedforward remains full inverse dynamics. Coupled is the legacy
+default for profiles without this parameter. Independent gain schedules are
+also checked against the full local coupled ZOH model before installation.
+
 Gazebo implements sampled torque held by ros2_control. Therefore this CARE
 profile runs at 2000 Hz and checks local ZOH stability; copying its gains to
 100 Hz is unstable. The legacy safe_100hz profile retains its separate DARE
@@ -115,9 +122,29 @@ class LqrController:
         gain_schedule_hz: float = 0.0,
         gain_schedule_mode: str = "reference_state",
         base_ff_alpha: float = 1.0,
+        feedback_model_mode: str = "coupled",
+        isolated_joint_index: int = -1,
+        independent_design_model: str = "position_held",
+        velocity_filter=None,
     ):
         self.dyn = dynamics
         self.n = int(dynamics.nq)
+        self.feedback_model_mode = str(feedback_model_mode)
+        if self.feedback_model_mode not in ('coupled', 'independent'):
+            raise ValueError('feedback_model_mode phải là coupled hoặc independent')
+        self.isolated_joint_index = int(isolated_joint_index)
+        if (self.isolated_joint_index != isolated_joint_index
+                or not -1 <= self.isolated_joint_index < self.n
+                or (self.isolated_joint_index >= 0
+                    and self.feedback_model_mode != 'independent')):
+            raise ValueError('isolated_joint_index cần -1 hoặc khớp independent hợp lệ')
+        self.independent_design_model = str(independent_design_model)
+        if (self.independent_design_model not in ('position_held', 'free_torque')
+                or (self.independent_design_model == 'free_torque'
+                    and (self.feedback_model_mode != 'independent'
+                         or self.isolated_joint_index >= 0))):
+            raise ValueError('independent_design_model cần position_held hoặc free_torque; '
+                             'free_torque chỉ dành cho independent cả ba khớp torque')
         self.base_ff_alpha = float(base_ff_alpha)
         if not np.isfinite(self.base_ff_alpha) or self.base_ff_alpha <= 0:
             raise ValueError('base_ff_alpha phải hữu hạn và > 0')
@@ -129,10 +156,12 @@ class LqrController:
         self.tau_limit = (np.asarray(dynamics.tau_max, dtype=float)
                           if tau_limit is None else np.asarray(tau_limit, dtype=float))
         self.control_hz = float(control_hz)
+        self.velocity_filter = velocity_filter
         self.gravity_at_measured = bool(gravity_at_measured)
         self.recompute_every = max(1, int(recompute_every))
         self.fd_step = float(fd_step)
         self.use_discrete_lqr = bool(use_discrete_lqr)
+        self.require_discrete_stable = bool(require_discrete_stable)
         self.gain_schedule_hz = float(gain_schedule_hz)
         self.gain_schedule_mode = str(gain_schedule_mode)
         if self.gain_schedule_mode not in ("reference_state", "trajectory_time"):
@@ -213,6 +242,13 @@ class LqrController:
         gains = np.asarray([
             self.gain(q, qd) for q, qd in zip(q_ref, qd_ref)],
             dtype=float)
+        if (self.feedback_model_mode == 'independent' or self.velocity_filter is not None) and self.require_discrete_stable:
+            for index, (q, qd, K) in enumerate(zip(q_ref, qd_ref, gains)):
+                radius = self._plant_spectral_radius(q, qd, K)
+                if radius >= 1.0 or not np.isfinite(radius):
+                    raise ValueError(
+                        f'Independent LQR: mẫu gain {index} không ổn định trên '
+                        f'mô hình {self._validation_scope()} ZOH: |z|max={radius:.6f}')
         features = np.hstack((q_ref, qd_ref))
         # Normalize position and velocity so neither unit dominates the
         # nearest-reference lookup. Floors keep constant dimensions valid.
@@ -261,6 +297,24 @@ class LqrController:
 
     # ------------------------------------------------------------------
     def linearize(self, q_ref, qd_ref):
+        """Local error model selected for gain design, in [integral, e, ed]."""
+        if (self.feedback_model_mode == 'independent'
+                and self.independent_design_model == 'free_torque'):
+            # All joints can accelerate: the own-input coefficient is
+            # (M^-1)_ii, and own-error coefficients are diagonal entries of
+            # -M^-1*dG/dq and -M^-1*dC/dqd. Reduce the FREE plant into three
+            # SISO design models, then still validate K on the FULL plant.
+            # Position-held trials retain M_ii and their original gains.
+            A, B = self._linearize_model(q_ref, qd_ref)
+            n = self.n
+            A[2*n:, n:2*n] = np.diag(np.diag(A[2*n:, n:2*n]))
+            A[2*n:, 2*n:] = np.diag(np.diag(A[2*n:, 2*n:]))
+            B[2*n:] = np.diag(np.diag(B[2*n:]))
+            return A, B
+        return self._linearize_model(
+            q_ref, qd_ref, self.feedback_model_mode == 'independent')
+
+    def _linearize_model(self, q_ref, qd_ref, independent=False):
         """(A, B) của hệ sai số 9 trạng thái tại điểm làm việc. Sai phân trung
         tâm hai phía -- KHÔNG phải một phía: một phía có sai số bậc h (1e-5) còn
         hai phía bậc h² (1e-10), mà Astiff đi thẳng vào A nên sai số đó nhân
@@ -268,7 +322,14 @@ class LqrController:
         q = np.asarray(q_ref, dtype=float)
         qd = np.asarray(qd_ref, dtype=float)
         n, h = self.n, self.fd_step
-        Minv = np.linalg.inv(self.dyn.mass_matrix(q))
+        mass = self.dyn.mass_matrix(q)
+        if independent:
+            inertia = np.diag(mass)
+            if np.any(~np.isfinite(inertia)) or np.any(inertia <= 0):
+                raise ValueError('Independent LQR cần M_ii hữu hạn và > 0')
+            Minv = np.diag(1.0 / inertia)
+        else:
+            Minv = np.linalg.inv(mass)
 
         Astiff = np.empty((n, n))
         Adamp = np.empty((n, n))
@@ -282,6 +343,10 @@ class LqrController:
             vp[i] += h
             vm[i] -= h
             Adamp[:, i] = (self.dyn.coriolis(q, vp) - self.dyn.coriolis(q, vm)) / (2.0 * h)
+
+        if independent:
+            Astiff = np.diag(np.diag(Astiff))
+            Adamp = np.diag(np.diag(Adamp))
 
         A = np.block([[_Z3, _I3, _Z3],
                       [_Z3, _Z3, _I3],
@@ -300,17 +365,31 @@ class LqrController:
         return transition[:n_state, :n_state], transition[:n_state, n_state:]
 
     def _gain_from_model(self, A, B):
+        if self.feedback_model_mode == 'independent':
+            # Solve three scalar-input Riccati problems. Never trim a gain
+            # designed on the coupled plant: it has a different optimum.
+            K = np.zeros((self.n, 3 * self.n))
+            for i in range(self.n):
+                indices = [i, self.n + i, 2 * self.n + i]
+                block = np.ix_(indices, indices)
+                K[i, indices] = self._riccati_gain(
+                    A[block], B[indices, i:i+1], self.Q[block],
+                    self.R[i:i+1, i:i+1])[0]
+            return K
+        return self._riccati_gain(A, B, self.Q, self.R)
+
+    def _riccati_gain(self, A, B, Q, R):
         if not self.use_discrete_lqr:
-            P = solve_continuous_are(A, B, self.Q, self.R)
-            return np.linalg.solve(self.R, B.T @ P)
+            P = solve_continuous_are(A, B, Q, R)
+            return np.linalg.solve(R, B.T @ P)
 
         Ad, Bd = self._zoh(A, B)
         # Qd≈Q*dt và Rd≈R*dt là phép rời rạc hoá tích phân chi phí bậc nhất.
         # Cùng nhân dt ở Q/R không đổi trade-off, nhưng giữ đúng đơn vị cost.
         dt = 1.0 / self.control_hz
-        P = solve_discrete_are(Ad, Bd, self.Q * dt, self.R * dt)
+        P = solve_discrete_are(Ad, Bd, Q * dt, R * dt)
         return np.linalg.solve(
-            self.R * dt + Bd.T @ P @ Bd,
+            R * dt + Bd.T @ P @ Bd,
             Bd.T @ P @ Ad)
 
     def gain(self, q_ref, qd_ref) -> np.ndarray:
@@ -414,6 +493,52 @@ class LqrController:
         return worst
 
     # ------------------------------------------------------------------
+    def _validation_scope(self):
+        if self.isolated_joint_index >= 0:
+            return f'khớp cô lập {self.isolated_joint_index}, hai khớp giữ position'
+        return 'robot ghép'
+
+    def _closed_loop_transition(self, q, qd, K, command_delay=False):
+        # Holding the other joints fixes their accelerations: the selected
+        # equation has inertia M_ii, not 1/(inv(M))_ii of a free coupled arm.
+        if self.isolated_joint_index >= 0:
+            i = self.isolated_joint_index
+            indices = [i, self.n+i, 2*self.n+i]
+            A, B = self._linearize_model(q, qd, independent=True)
+            A, B = A[np.ix_(indices, indices)], B[indices, i:i+1]
+            K = K[i:i+1, indices]
+        else:
+            A, B = self._linearize_model(q, qd)
+        Ad, Bd = self._zoh(A, B)
+        n = Bd.shape[1]
+        if self.velocity_filter is None:
+            if command_delay:
+                return np.block([[Ad, Bd], [-K, np.zeros((n, n))]])
+            return Ad - Bd @ K
+        af, bf, select = self.velocity_filter.steady_state_model()
+        if self.isolated_joint_index >= 0:
+            i = self.isolated_joint_index
+            sl = slice(2*i, 2*i+2)
+            af, bf, select = af[sl, sl], bf[sl, i:i+1], select[i:i+1, sl]
+        cv = np.hstack([np.zeros((n, 2*n)), np.eye(n)])
+        k0 = K.copy()
+        k0[:, 2*n:] = 0.
+        kv = K[:, 2*n:]
+        measurement = bf @ cv
+        nx, nf = Ad.shape[0], af.shape[0]
+        feedback_x = -k0 - kv @ select @ measurement
+        feedback_z = -kv @ select @ af
+        if command_delay:
+            return np.block([[Ad, np.zeros((nx, nf)), Bd],
+                             [measurement, af, np.zeros((nf, n))],
+                             [feedback_x, feedback_z, np.zeros((n, n))]])
+        return np.block([[Ad + Bd @ feedback_x, Bd @ feedback_z],
+                         [measurement, af]])
+
+    def _plant_spectral_radius(self, q, qd, K):
+        return float(np.max(np.abs(np.linalg.eigvals(
+            self._closed_loop_transition(q, qd, K)))))
+
     def stability_report(self, samples: int = 24, seed: int = 0) -> dict:
         """Kiểm hệ SAI SỐ vòng kín trên nhiều điểm làm việc, cả liên tục lẫn
         RỜI RẠC HOÁ ZOH ở control_hz.
@@ -428,6 +553,7 @@ class LqrController:
                         rng.uniform(self.dyn.q_min, self.dyn.q_max,
                                     size=(max(0, samples - 3), self.n))])
         rho = 0.0
+        plant_rho = 0.0
         fast = 0.0
         slow = np.inf
         for q in qs:
@@ -438,7 +564,17 @@ class LqrController:
             slow = min(slow, float(np.abs(ev.real).min()))
             Ad, Bd = self._zoh(A, B)
             rho = max(rho, float(np.abs(np.linalg.eigvals(Ad - Bd @ K)).max()))
-        return dict(spectral_radius=rho, stable_discrete=rho < 1.0,
+            if self.feedback_model_mode == 'independent' or self.velocity_filter is not None:
+                plant_rho = max(plant_rho, self._plant_spectral_radius(
+                    q, np.zeros(self.n), K))
+            else:
+                plant_rho = rho
+        worst_rho = max(rho, plant_rho)
+        return dict(spectral_radius=worst_rho, stable_discrete=worst_rho < 1.0,
+                    validation_scope=self._validation_scope(),
+                    velocity_filter_type=('kalman2' if self.velocity_filter is not None else 'none'),
+                    independent_design_model=self.independent_design_model,
+                    design_spectral_radius=rho, plant_spectral_radius=plant_rho,
                     fastest_pole=fast, slowest_pole=slow,
                     nyquist=np.pi * self.control_hz,
                     settling_time=(4.0 / slow if slow > 0 else np.inf))
@@ -480,7 +616,12 @@ class LqrController:
             f"  feedforward: inverse_dynamics(q_ref) "
             f"{gravity_text}",
             f"  base_ff_alpha={self.base_ff_alpha:g} (chỉ nhân feedforward base)",
+            f"  feedback_model_mode={self.feedback_model_mode}; "
+            + ('3 LQR/LQI riêng: tau_fb_i chỉ dùng [integral(e_i), e_i, ed_i]'
+               if self.feedback_model_mode == 'independent' else 'K ghép 3 khớp'),
             f"  {gain_update_text}",
+            f"  vận tốc phản hồi: {rep['velocity_filter_type']} "
+            "(động học bộ lọc được tính trong kiểm tra mô hình ZOH)",
             f"  trần mô-men: {np.round(self.tau_limit, 3)} Nm   "
             f"|∫e| <= {self.i_limit:g} rad·s",
             f"  slew-rate mô-men: {slew_text}",
@@ -494,6 +635,11 @@ class LqrController:
             f"  mô-men riêng khâu tích phân khi ∫e chạm kẹp: "
             f"{np.round(self.integral_kick(), 3)} Nm",
         ]
+        if self.feedback_model_mode == 'independent':
+            lines.append(f"  independent_design_model={self.independent_design_model}")
+            lines.append(
+                f"  ZOH thiết kế riêng: {rep['design_spectral_radius']:.9f}; "
+                f"mô hình {rep['validation_scope']}: {rep['plant_spectral_radius']:.9f}")
         q0 = self._nominal()[0] if q_nominal is None else np.asarray(q_nominal, float)
         K = self.gain(q0, np.zeros(self.n))
         lines.append(f"  K tại q = {np.round(q0, 3)} (Nm trên mỗi đơn vị trạng thái):")

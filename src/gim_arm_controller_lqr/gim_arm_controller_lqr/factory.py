@@ -27,9 +27,31 @@ class LqrFactory(ControllerFactory):
         node.declare_parameter("gain_schedule_hz", 20.0)
         node.declare_parameter("gain_schedule_mode", "reference_state")
         node.declare_parameter("base_ff_alpha", 1.0)
+        node.declare_parameter("feedback_model_mode", "coupled")
+        node.declare_parameter("isolated_joint_index", -1)
+        node.declare_parameter("independent_design_model", "position_held")
+        node.declare_parameter("velocity_filter_type", "none")
+        node.declare_parameter("velocity_kalman_measurement_std", [0.03, 0.01, 0.04])
+        node.declare_parameter("velocity_kalman_jerk_std", [180.0, 60.0, 240.0])
+        node.declare_parameter("velocity_kalman_reset_gap_s", 0.05)
 
     def build(self, node, dynamics, tau_limit, control_hz):
         n = dynamics.nq
+        isolated = int(node.get_parameter('isolated_joint_index').value)
+        if isolated >= 0 and not bool(node.get_parameter('diagnostic_hold').value):
+            raise ValueError('isolated_joint_index chỉ dành cho bài tune giữ đơn khớp; '
+                             'quỹ đạo đầy đủ cần kiểm tra robot ghép')
+        filter_type = str(node.get_parameter('velocity_filter_type').value)
+        velocity_filter = None
+        if filter_type == 'kalman2':
+            from gim_control.velocity_filter import VelocityAccelerationKalman
+            velocity_filter = VelocityAccelerationKalman(
+                vector_parameter(node, 'velocity_kalman_measurement_std', n, positive=True),
+                vector_parameter(node, 'velocity_kalman_jerk_std', n, positive=True),
+                1. / control_hz,
+                node.get_parameter('velocity_kalman_reset_gap_s').value)
+        elif filter_type != 'none':
+            raise ValueError('velocity_filter_type cần none hoặc kalman2')
         configured_tau = vector_parameter(node, "max_tau", n)
         position_tracking_only = bool(
             node.get_parameter("position_tracking_only").value)
@@ -65,4 +87,8 @@ class LqrFactory(ControllerFactory):
             gain_schedule_mode=str(
                 node.get_parameter("gain_schedule_mode").value),
             base_ff_alpha=node.get_parameter("base_ff_alpha").value,
+            feedback_model_mode=node.get_parameter("feedback_model_mode").value,
+            isolated_joint_index=isolated,
+            independent_design_model=str(node.get_parameter('independent_design_model').value),
+            velocity_filter=velocity_filter,
         )

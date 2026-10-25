@@ -27,7 +27,8 @@ def test_costs_edit_only_selected_joint_and_save_bryson_equivalent(terminal):
     for key in ('max_e', 'max_int_e', 'max_tau'):
         assert terminal.parameters[key][:2] == before[key][:2]
     assert terminal.parameters['tau_scale'] == before['tau_scale']
-    assert terminal.parameters['max_tau'][2] != before['max_tau'][2]
+    assert terminal.parameters['max_tau'][2] == pytest.approx(
+        (terminal.parameters['tau_penalty_scale'] / 10)**.5)
     terminal.execute('save')
     saved = LqrJointTerminal(terminal.session.params_file, show_plot=False)
     assert saved.costs() == pytest.approx((400, 100, 10))
@@ -36,22 +37,34 @@ def test_costs_edit_only_selected_joint_and_save_bryson_equivalent(terminal):
 def test_velocity_cost_is_selected_joint_only_and_survives_save(terminal, capsys):
     before = deepcopy(terminal.parameters)
     terminal.execute('qv 4')
-    assert terminal.parameters['max_de'] == [2.0, 2.0, 0.5]
+    assert terminal.parameters['max_de'] == before['max_de'][:2] + [0.5]
     for key in ('max_e', 'max_int_e', 'max_tau'):
         assert terminal.parameters[key] == before[key]
     terminal.execute('set 400 100 1 10')
     assert terminal.costs() == pytest.approx((400, 100, 10))
-    assert terminal.parameters['max_de'] == [2.0, 2.0, 1.0]
+    assert terminal.parameters['max_de'] == before['max_de'][:2] + [1.0]
     terminal.execute('set 225 25 20')  # Old syntax preserves QV.
     assert terminal.parameters['max_de'][2] == 1.0
     terminal.execute('save')
     saved = LqrJointTerminal(terminal.session.params_file, show_plot=False)
     saved.show()
-    assert saved.parameters['max_de'] == [2.0, 2.0, 1.0]
+    assert saved.parameters['max_de'] == before['max_de'][:2] + [1.0]
     assert 'QV=1' in capsys.readouterr().out
     terminal.execute('next')
     terminal.execute('max_de 0.5')
-    assert terminal.parameters['max_de'] == [2.0, 0.5, 1.0]
+    assert terminal.parameters['max_de'] == [before['max_de'][0], 0.5, 1.0]
+
+
+def test_independent_mode_survives_edit_save_and_trial(terminal, capsys):
+    assert terminal.parameters['feedback_model_mode'] == 'independent'
+    terminal.execute('qe 300')
+    terminal.execute('save')
+    saved = LqrJointTerminal(terminal.session.params_file, show_plot=False)
+    saved.trial = Mock()
+    saved.execute('test 3 6 2')
+    assert saved.trial.run.call_args.args[-1]['feedback_model_mode'] == 'independent'
+    saved.show()
+    assert 'feedback_model_mode=independent' in capsys.readouterr().out
 
 
 def test_stages_elbow_shoulder_base_and_preserves_other_costs(terminal):
@@ -118,6 +131,7 @@ def test_dry_run_never_saves_or_opens_ros(terminal):
     ('base_ff_alpha', float('nan')), ('gain_schedule_hz', 0),
     ('gain_schedule_mode', 'reference_state'),
     ('position_tracking_only', True),
+    ('feedback_model_mode', 'unknown'),
 ])
 def test_reject_incompatible_hardware_profile(terminal, field, value):
     params = deepcopy(terminal.parameters)

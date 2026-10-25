@@ -5,6 +5,7 @@ Only explicit run() activates effort; importing this module never uses ROS/CAN.
 """
 
 import copy
+from collections import deque
 from datetime import datetime
 import json
 import math
@@ -15,10 +16,43 @@ from zoneinfo import ZoneInfo
 
 import yaml
 
+from .can_mode_probe import CanTorqueModeProbe
+
 JOINTS = ('base', 'shoulder', 'elbow')
 JOINT_NAMES = tuple(name + '_joint' for name in JOINTS)
 START_VELOCITY_LIMIT_RAD_S = 0.05
 PRESTART_STABLE_TIME_S = 0.3
+PRESTART_POSITION_SPAN_RAD = 0.005
+
+
+def append_hold_sample(samples, now, q, qd):
+    samples.append((now, tuple(q), tuple(qd)))
+    while len(samples) > 2 and now - samples[1][0] >= PRESTART_STABLE_TIME_S:
+        samples.popleft()
+
+
+def stationary_hold_window(samples):
+    """Receipt-time mean velocity plus bounded position motion, for startup only."""
+    if len(samples) < 2:
+        return False
+    span = samples[-1][0] - samples[0][0]
+    if not PRESTART_STABLE_TIME_S <= span <= 0.5:
+        return False
+    pairs = list(zip(samples, list(samples)[1:]))
+    if any(not 0 < b[0]-a[0] <= 0.05 for a, b in pairs):
+        return False
+    if any(not math.isfinite(v) for _, q, qd in samples for v in (*q, *qd)):
+        return False
+    for joint in range(3):
+        positions = [q[joint] for _, q, _ in samples]
+        if max(positions)-min(positions) > PRESTART_POSITION_SPAN_RAD:
+            return False
+        if abs(positions[-1]-positions[0])/span > START_VELOCITY_LIMIT_RAD_S:
+            return False
+        velocity = sum((b[0]-a[0])*(a[2][joint]+b[2][joint])/2 for a, b in pairs)/span
+        if abs(velocity) > START_VELOCITY_LIMIT_RAD_S:
+            return False
+    return True
 
 
 def checked_trial(degrees, move, hold):
@@ -62,20 +96,22 @@ def trial_target(start, selected, degrees, move, lower, upper, velocity):
 class RosLqrJointTrial:
     """Run the existing effort LQR runner, with only one hardware torque joint."""
 
-    def __init__(self, log_dir, show_plot=True, prestart_timeout=6.0):
+    def __init__(self, log_dir, show_plot=True, prestart_timeout=6.0,
+                 can_probe_factory=CanTorqueModeProbe):
         self.log_dir = Path(log_dir)
         self.show_plot = show_plot
         self.prestart_timeout = float(prestart_timeout)
         if not math.isfinite(self.prestart_timeout) or self.prestart_timeout <= 0:
             raise ValueError('prestart_timeout phải hữu hạn và > 0')
         self.node = None
+        self.can_probe_factory = can_probe_factory
 
     def wait_for_stable_hold(self, executor, handoff_duration=0.0):
         """Keep the original HOME under LQR before starting the trajectory."""
         node = self.node
         handoff_end = time.monotonic() + handoff_duration
         deadline = handoff_end + self.prestart_timeout
-        stable_since = None
+        samples = deque()
         previous_seq = node.state_seq
         last_fresh = time.monotonic()
         position_limit = min(0.02, node.max_transition_error)
@@ -85,11 +121,11 @@ class RosLqrJointTrial:
                 raise RuntimeError('LQR ABORT khi giữ HOME trước quỹ đạo; xem CSV')
             if node.state_seq == previous_seq:
                 if time.monotonic() - last_fresh > 0.05:
-                    stable_since = None
+                    samples.clear()
                 continue
             now = time.monotonic()
             if now - last_fresh > 0.05:
-                stable_since = None
+                samples.clear()
             last_fresh = now
             previous_seq = node.state_seq
             error = max(abs(float(q - home)) for q, home in zip(node.q, node.home_q))
@@ -98,20 +134,19 @@ class RosLqrJointTrial:
                     f'Tay trôi khỏi HOME {math.degrees(error):.2f} độ khi chuyển sang torque; '
                     'trả về position, chưa chạy quỹ đạo')
             if now < handoff_end:
-                stable_since = None
+                samples.clear()
                 continue
-            still = max(abs(float(value)) for value in node.qd) <= START_VELOCITY_LIMIT_RAD_S
-            if still and error <= position_limit:
-                if stable_since is None:
-                    stable_since = time.monotonic()
-                if time.monotonic() - stable_since >= PRESTART_STABLE_TIME_S:
-                    return
-            else:
-                stable_since = None
+            if error > position_limit:
+                samples.clear()
+                continue
+            append_hold_sample(samples, now, node.q, node.qd_raw)
+            if stationary_hold_window(samples):
+                node.stationarity_samples = samples.copy()
+                return
         values = ', '.join(
             f'{name}: qd={float(velocity):.3f} rad/s, '
             f'e_HOME={math.degrees(float(q - home)):.2f} độ'
-            for name, velocity, q, home in zip(JOINTS, node.qd, node.q, node.home_q))
+            for name, velocity, q, home in zip(JOINTS, node.qd_raw, node.q, node.home_q))
         raise RuntimeError(
             f'LQR chưa giữ HOME ổn định sau {self.prestart_timeout:g}s; {values}. '
             'Dừng bài thử và trả về position, chưa chạy quỹ đạo')
@@ -129,6 +164,24 @@ class RosLqrJointTrial:
         from gim_control.plot_ee_error import load_log, plot, print_metrics
         from gim_control.reference_trajectory import TimedHold
 
+        class JointTrialNode(EffortControllerNode):
+            def _tick(node):
+                # The isolated plant model is valid only while the two
+                # position-controlled joints stay close to their held pose.
+                if (node.home_q is not None and node.q is not None
+                        and node.phase in ('APPROACH', 'TRACK', 'RETURN', 'HOLD')):
+                    drift = max(abs(float(node.q[i]-node.home_q[i]))
+                                for i in range(3) if i != selected)
+                    if drift > math.radians(1.0):
+                        node._abort('khớp giữ position lệch quá 1 độ; '
+                                    'không còn thỏa mô hình tune cô lập')
+                super()._tick()
+
+            def _start_velocity_is_safe(node):
+                samples = getattr(node, 'stationarity_samples', deque()).copy()
+                append_hold_sample(samples, time.monotonic(), node.q, node.qd_raw)
+                return stationary_hold_window(samples)
+
         self.node = None
         if rclpy.ok():
             raise RuntimeError('Terminal cần một ROS context riêng, không chạy trong node khác')
@@ -141,6 +194,7 @@ class RosLqrJointTrial:
         description_client = probe.create_client(
             GetParameters, '/controller_manager/get_parameters')
         state = {}
+        preflight_samples = deque()
 
         def on_state(message):
             try:
@@ -150,7 +204,9 @@ class RosLqrJointTrial:
             except (ValueError, IndexError):
                 return
             if all(math.isfinite(value) for value in q + qd):
-                state.update(q=q, qd=qd, received=time.monotonic())
+                received = time.monotonic()
+                state.update(q=q, qd=qd, received=received)
+                append_hold_sample(preflight_samples, received, q, qd)
 
         probe.create_subscription(JointState, '/joint_states', on_state, qos_profile_sensor_data)
 
@@ -185,6 +241,7 @@ class RosLqrJointTrial:
                 raise RuntimeError('Không chuyển được controller')
 
         active_effort = False
+        can_probe = None
         path = None
         try:
             controllers = call(listing, ListControllers.Request())
@@ -206,12 +263,11 @@ class RosLqrJointTrial:
             if probe.count_publishers('/gim_arm_effort_controller/commands'):
                 raise RuntimeError('Một node khác đang phát effort; dừng node LQR cũ trước test')
             deadline = time.monotonic() + 3.0
-            while not state or time.monotonic() - state['received'] > 0.25:
+            while (not state or time.monotonic() - state['received'] > 0.05
+                   or not stationary_hold_window(preflight_samples)):
                 if time.monotonic() >= deadline:
-                    raise RuntimeError('Chưa có joint state mới với đủ góc/vận tốc')
+                    raise RuntimeError('Chưa có cửa sổ joint state đứng yên 0.3s trước test')
                 executor.spin_once(timeout_sec=0.01)
-            if max(abs(value) for value in state['qd']) > 0.1:
-                raise RuntimeError('Tay đang chuyển động; giữ yên trước test')
 
             stamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y%m%d_%H%M%S_%f')
             directory = self.log_dir / f'lqr_{JOINTS[selected]}_{stamp}'
@@ -220,6 +276,8 @@ class RosLqrJointTrial:
             urdf = directory / 'model.urdf'
             urdf.write_text(description)
             config = copy.deepcopy(parameters)
+            config['isolated_joint_index'] = (
+                selected if config.get('feedback_model_mode') == 'independent' else -1)
             config.update(
                 urdf_file=str(urdf.resolve()), log_file=str(path.resolve()),
                 command_topic='/gim_arm_effort_controller/commands',
@@ -233,7 +291,7 @@ class RosLqrJointTrial:
             # after WAIT captures the exact HOME from a fresh state sample.
             for index in range(3):
                 config[f'diagnostic_q{index + 1}_deg'] = math.degrees(state['q'][index])
-            self.node = EffortControllerNode(
+            self.node = JointTrialNode(
                 LqrFactory(),
                 parameter_overrides=[Parameter(name, value=value) for name, value in config.items()])
             executor.add_node(self.node)
@@ -271,12 +329,18 @@ class RosLqrJointTrial:
                 'tau_ff': 'inverse_dynamics(runtime URDF, q_ref, qd_ref, qdd_ref); '
                           'base component multiplied by base_ff_alpha',
                 'base_ff_alpha': self.node.controller.base_ff_alpha,
+                'feedback_model_mode': self.node.controller.feedback_model_mode,
+                'stability_scope': self.node.controller._validation_scope(),
+                'held_joint_drift_limit_rad': math.radians(1.0),
+                'can_mode_confirmed': False,
                 'tau_fb': '-K @ [integral(q-q_ref), q-q_ref, qd-qd_ref]',
                 'prestart_hold': {
                     'hardware_handoff_duration_s': handoff_duration,
                     'stable_time_s': PRESTART_STABLE_TIME_S,
                     'timeout_s': self.prestart_timeout,
                     'velocity_limit_rad_s': START_VELOCITY_LIMIT_RAD_S,
+                    'position_span_limit_rad': PRESTART_POSITION_SPAN_RAD,
+                    'stationarity_check': '0.3s fresh position span and mean driver velocity; feedback remains raw',
                     'position_limit_rad': min(0.02, self.node.max_transition_error),
                 },
             }, indent=2) + '\n')
@@ -299,7 +363,28 @@ class RosLqrJointTrial:
             # A failed/timed-out activation may still have changed the manager;
             # mark the cleanup obligation before requesting the switch.
             active_effort = True
+            runtime = ET.fromstring(description)
+            interface = runtime.find("ros2_control/hardware/param[@name='can_interface']")
+            node_id = runtime.find(
+                f"ros2_control/joint[@name='{JOINT_NAMES[selected]}']/param[@name='can_node_id']")
+            if node_id is None or not 0 <= int(node_id.text) <= 63:
+                raise RuntimeError('Không xác định được CAN node của khớp đang tune')
+            can_probe = self.can_probe_factory(
+                interface.text if interface is not None else 'can0', int(node_id.text))
             switch(True)
+            deadline = time.monotonic() + 0.5
+            while not can_probe.poll():
+                if time.monotonic() >= deadline:
+                    raise RuntimeError('ROS switch chưa có frame CAN vào torque và lệnh torque; '
+                                       'trả position, không chạy quỹ đạo')
+                executor.spin_once(timeout_sec=0.01)
+            can_probe.close()
+            can_probe = None
+            metadata = json.loads((directory/'trial.json').read_text())
+            metadata['can_mode_confirmed'] = True
+            metadata['can_evidence_scope'] = 'host mode(1,1) then finite torque frame; not driver internal ACK'
+            (directory/'trial.json').write_text(json.dumps(metadata, indent=2)+'\n')
+            print('CAN đã có frame mode torque và lệnh torque cho đúng khớp.')
             # Position mode is now inactive: allow this same LQR's I term to
             # correct gravity/model mismatch while HOME stays fixed. Nothing
             # accumulated while the driver was holding position.
@@ -323,6 +408,8 @@ class RosLqrJointTrial:
                 executor.spin_once(timeout_sec=0.01)
         finally:
             try:
+                if can_probe is not None:
+                    can_probe.close()
                 if active_effort:
                     from types import SimpleNamespace
                     from gim_control.algorithm_tuner import restore_position

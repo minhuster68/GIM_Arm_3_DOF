@@ -14,7 +14,8 @@ ROOT = Path(__file__).resolve().parents[3]
 @pytest.fixture(params=['lqr', 'mpc', 'smc'])
 def session(request, tmp_path):
     algorithm = request.param
-    source = ROOT / f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml'
+    profile = 'lqr_circle_hardware.yaml' if algorithm == 'lqr' else f'{algorithm}_hardware_soft.yaml'
+    source = ROOT / f'src/gim_arm_controller_{algorithm}/config/{profile}'
     config = tmp_path / 'profile.yaml'
     config.write_text(source.read_text())
     return tuner.TuningSession(algorithm, config)
@@ -89,7 +90,8 @@ def test_horizon_validation_is_transactional(tmp_path):
     ('mpc', 'q_velocity', [float('nan'), 1.0, 1.0]),
     ('mpc', 'output_scale_velocity', [0.1, 0.0, 0.1])])
 def test_reject_invalid_velocity_cost_from_custom_yaml(tmp_path, algorithm, field, value):
-    source = ROOT / f'src/gim_arm_controller_{algorithm}/config/{algorithm}_hardware_soft.yaml'
+    profile = 'lqr_circle_hardware.yaml' if algorithm == 'lqr' else f'{algorithm}_hardware_soft.yaml'
+    source = ROOT / f'src/gim_arm_controller_{algorithm}/config/{profile}'
     document = yaml.safe_load(source.read_text())
     document[f'{algorithm}_controller']['ros__parameters'][field] = value
     path = tmp_path / 'bad.yaml'

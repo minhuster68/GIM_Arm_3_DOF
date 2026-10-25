@@ -1,5 +1,8 @@
+# Independent LQR gains tuned joint-by-joint with other joints position-held (2026-10-24).
+# Whole-arm torque validation currently rejects this set; do not use for circle yet.
 lqr_controller:
   ros__parameters:
+    feedback_model_mode: independent
     abort_on_tracking_error: false
     control_hz: 100.0
     tau_scale: 1.0
@@ -16,22 +19,22 @@ lqr_controller:
     command_heartbeat_nm: 1.0e-06
     position_tracking_only: false
     max_int_e:
-    - 0.040824829046386304
-    - 0.05773502691896257
-    - 0.05773502691896257
+    - 0.020412414523193152
+    - 0.014433756729740642
+    - 0.0036084391824351605
     max_e:
-    - 0.025
-    - 0.03333333333333333
+    - 0.0125
+    - 0.005
     - 0.022360679774997897
     max_de:
     - 1.0
     - 0.7071067811865475
     - 1.0
     max_tau:
-    - 7.155417527999327
+    - 28.621670111997307
     - 40.0
     - 7.155417527999327
-    tau_penalty_scale: 512.0
+    tau_penalty_scale: 8192.0
     integral_limit: 0.05
     gravity_at_measured: false
     linearization_step: 1.0e-05

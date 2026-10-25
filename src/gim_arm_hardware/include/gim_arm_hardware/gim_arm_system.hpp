@@ -385,6 +385,7 @@ private:
   // gim_arm_effort_controller, nó không ghi vào mảng đó.
   std::vector<double> hold_position_;
   std::vector<HoldingTorque> holding_torque_;
+  std::vector<PositionHoldWindow> position_hold_window_;
   std::vector<double> handoff_torque_joint_;
   double torque_handoff_duration_s_{1.0};
   double torque_handoff_started_s_{0.0};

@@ -11,6 +11,7 @@
 namespace
 {
 using gim_arm_hardware::HoldingTorque;
+using gim_arm_hardware::PositionHoldWindow;
 using gim_arm_hardware::blend_handoff_torque;
 using gim_arm_hardware::start_torque_with_hold;
 using gim6010::CmdId;
@@ -98,6 +99,40 @@ TEST(TorqueHandoff, InvalidFeedbackDoesNotRefreshWindowAndPositionReentryClearsI
   EXPECT_FALSE(sample.fresh(1.0));
   sample.clear();
   EXPECT_FALSE(sample.fresh(1.0));
+}
+
+TEST(TorqueHandoff, StablePositionAllowsSmallEncoderNoiseButRejectsActualMotion)
+{
+  PositionHoldWindow still, drift, oscillation;
+  for (int i = 0; i < 60; ++i) {
+    const double t = i * 0.01;
+    still.add(i % 2 ? 0.0016 : -0.0016, t);
+    drift.add(0.06 * t, t);
+    oscillation.add(i % 2 ? 0.004 : -0.004, t);
+  }
+  EXPECT_TRUE(still.stable(0.59));
+  EXPECT_FALSE(drift.stable(0.59));
+  EXPECT_FALSE(oscillation.stable(0.59));
+  EXPECT_FALSE(still.stable(0.7));
+  still.clear();
+  EXPECT_FALSE(still.stable(0.59));
+}
+
+TEST(TorqueHandoff, PositionWindowRejectsShortStaleInvalidAndReversedTime)
+{
+  PositionHoldWindow sample;
+  for (int i = 0; i < 20; ++i) {sample.add(0.0, i * 0.01);}
+  EXPECT_FALSE(sample.stable(0.19));
+  sample.add(0.0, 1.0);
+  EXPECT_FALSE(sample.stable(1.0));
+  for (int i = 1; i <= 40; ++i) {sample.add(0.0, 1.0 + i * 0.01);}
+  EXPECT_TRUE(sample.stable(1.4));
+  sample.add(std::numeric_limits<double>::quiet_NaN(), 1.41);
+  EXPECT_FALSE(sample.stable(1.41));
+  for (int i = 0; i < 40; ++i) {sample.add(0.0, 2.0 + i * 0.01);}
+  EXPECT_TRUE(sample.stable(2.39));
+  sample.add(0.0, 2.1);
+  EXPECT_FALSE(sample.stable(2.1));
 }
 
 TEST(TorqueHandoff, SmoothlyTransfersMeasuredHoldToPidWithoutZeroOrLimitOvershoot)
