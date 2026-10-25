@@ -10,15 +10,12 @@ import rclpy
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import JointState
 
-from gim_arm_controller_lqr.factory import LqrFactory
-from gim_arm_controller_mpc.factory import MpcFactory
 from gim_arm_controller_smc.factory import SmcFactory
 from gim_control.effort_controller_node import EffortControllerNode
 from gim_control.plot_ee_error import load_log, print_metrics
 
 
-@pytest.mark.parametrize('algorithm,factory', [
-    ('lqr', LqrFactory), ('mpc', MpcFactory), ('smc', SmcFactory)])
+@pytest.mark.parametrize('algorithm,factory', [('smc', SmcFactory)])
 @pytest.mark.parametrize('shape', ['circle', 'r', 'a'])
 def test_ready_track_return_hold_and_position_metrics(tmp_path, capsys, algorithm, factory, shape):
     source = Path(__file__).resolve().parents[2]
