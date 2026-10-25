@@ -17,8 +17,66 @@ base còn giữ bộ trước.
 
 Tuner MPC kiểm tra đứng yên theo cửa sổ 0.3s của vị trí/vận tốc để giảm báo
 nhầm do vận tốc khớp đang giữ position nhiễu. Vẫn kiểm tra vận tốc tức thời
-khớp đang tune, trôi HOME, dữ liệu mới và giới hạn URDF. Không lọc tín hiệu
-phản hồi MPC; gate của runner vòng tròn vẫn giữ cách kiểm tra cũ.
+khớp đang tune, trôi HOME, dữ liệu mới và giới hạn URDF. Kiểm tra đứng yên
+dùng vận tốc thô, độc lập với bộ lọc phản hồi.
+Từ 2026-10-25, profile independent bật Kalman vận tốc bậc 2 trước phản hồi MPC
+cho cả ba khớp; xem phần dưới. Bộ lọc chưa được kiểm chứng trên tay thật với MPC.
+
+## Kalman vận tốc bậc 2 — 2026-10-25
+
+```text
+/joint_states.velocity thô
+    -> 3 bộ Kalman riêng [vận tốc, gia tốc]
+    -> vận tốc sau lọc
+    -> e_dot = vận tốc sau lọc - qd_ref
+    -> trạng thái đầu vào QP independent của MPC
+```
+
+Chỉ đo vận tốc; gia tốc là trạng thái ước lượng nội bộ để dự đoán vận tốc ở
+mẫu tiếp theo. Gia tốc này không thay `qdd_ref` và không đưa vào feedforward.
+Góc đo, q/qd/qdd tham chiếu và torque đầu ra không được lọc. QP vẫn dùng mô hình
+sai số hiện có, không bổ sung trạng thái Kalman vào prediction horizon.
+
+Đã bật trong `src/gim_arm_controller_mpc/config/mpc_circle_independent_feedback.yaml`:
+
+```yaml
+# base/id0, shoulder/id1, elbow/id2
+velocity_filter_type: kalman2
+velocity_kalman_measurement_std: [0.03, 0.01, 0.04]  # rad/s
+velocity_kalman_jerk_std: [180.0, 60.0, 240.0]       # rad/s³
+velocity_kalman_reset_gap_s: 0.05
+```
+
+Đây là bộ số khởi đầu dùng cùng cách lọc LQR, chưa phải bộ nhiễu nhận dạng
+riêng cho MPC. Trọng số Q/R/RD, horizon, precompute, alpha feedforward và các
+giới hạn torque/slew của MPC được giữ nguyên. Profile coupled và mô phỏng cũ
+mặc định `velocity_filter_type: none`; phải truyền đúng profile independent
+khi launch vòng tròn. Terminal tune mặc định dùng profile independent này
+nên cũng bật lọc, còn kiểm tra đứng yên vẫn lấy tín hiệu thô.
+
+Mô hình nhiễu là jerk ngẫu nhiên không đổi trong một khoảng mẫu:
+`F=[[1,dt],[0,1]]`, `G=[dt²/2,dt]ᵀ`, `Q_filter=jerk_std²*G*Gᵀ`,
+`R_filter=measurement_std²`. Đây là Q/R nhiễu, khác Q/R chi phí tối ưu MPC.
+Tăng measurement std hoặc giảm jerk std làm lọc mạnh hơn nhưng có thể tăng
+trễ; Kalman không bảo đảm giảm mọi dải dao động. Chưa thay trọng số MPC cùng
+lúc để có thể so ảnh hưởng của việc lọc.
+
+Bộ lọc cập nhật một lần theo mỗi JointState mới, dùng dt từ header; header
+bằng 0 thì dùng thời gian nhận monotonic. Mẫu trùng không cập nhật lại hoặc
+làm mới timeout. Khoảng mất mẫu trên 50 ms, hoặc thời gian quay ngược, sẽ
+khởi tạo lại bằng vận tốc đo và gia tốc 0. Timer dùng số đo cũ không chạy
+lọc lại; reset tích phân/warm-start không reset bộ lọc mỗi tick HOLD.
+Không có luồng riêng hay chờ một chu kỳ để xuất kết quả.
+
+CSV chính khi bật lọc có `qd_raw_*` là driver velocity, `qd_filtered_*` và
+`qd_*` là tín hiệu đưa vào MPC. Plot vận tốc chồng cả thô, sau lọc và tham
+chiếu; sai số vận tốc cũng có đường thô để so sánh. Các log cũ vẫn đọc được.
+Đồ thị vị trí/torque giữ riêng. Không kết luận cơ cấu bớt rung chỉ từ đường
+sau lọc; cần so vị trí, vận tốc thô, torque và solver giữa hai lượt cùng quỹ đạo.
+
+Chạy bằng các lệnh ở phần cuối với tên log mới `circle_independent_kalman_run01.csv`.
+Để thử không lọc: đổi `velocity_filter_type: none`, restart node MPC và dùng
+tên log khác. Tham số lọc được nạp khi khởi tạo node.
 
 ## Tune lại từng khớp
 
@@ -124,6 +182,12 @@ cần chạy đối chiếu cùng quỹ đạo và cùng tham số, rồi mới 
 
 ## Kiểm tra phần mềm
 
+Tích hợp Kalman ngày 2026-10-25: build `gim_control` và `gim_arm_controller_mpc`
+thành công; 183 test qua, gồm hồi quy solver/independent, bộ lọc, đường tín hiệu
+vào QP, CSV/plot và bài đổi controller ROS với tay giả lập. Trọng số và mô hình
+MPC được đối chiếu bằng nhau khi bật/tắt lọc. Chưa chạy hay đánh giá ổn định
+vòng kín trên tay thật với bộ lọc; các bài kiểm tra này không chứng minh giảm rung.
+
 - 33 test MPC qua, gồm bộ hồi quy coupled và test độc lập cả ba solver.
 - Kiểm tra mô hình/QP không có hạng liên khớp; FF vẫn đầy đủ; sai số, warm-start
   và fallback của khớp khác không thay phản hồi khớp đang xét.
@@ -173,7 +237,7 @@ ros2 launch gim_control mpc_sweep_hardware.launch.py \
   approach_time:=16 \
   return_time:=16 \
   params_file:=src/gim_arm_controller_mpc/config/mpc_circle_independent_feedback.yaml \
-  log_file:=results_new/mpc/circle_independent_fb_run01.csv
+  log_file:=results_new/mpc/circle_independent_kalman_run01.csv
 ```
 
 Xác nhận log có `feedback_model_mode=independent`. Chờ READY_MPC và tay đứng
@@ -194,7 +258,7 @@ ros2 control switch_controllers --deactivate gim_arm_effort_controller --activat
 Sau Ctrl+C node MPC:
 
 ```bash
-ros2 run gim_control plot_joint_tracking results_new/mpc/circle_independent_fb_run01.csv --show
+ros2 run gim_control plot_joint_tracking results_new/mpc/circle_independent_kalman_run01.csv --show
 ```
 
 Không ghi đè log; đổi run01 khi chạy lại. Muốn so cấu hình ghép thì dùng

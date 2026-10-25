@@ -137,6 +137,11 @@ class TestMpcJointRosTrial(unittest.TestCase):
 
     def test_trial_adds_urdf_feedforward_runs_mpc_and_holds_two_measured_references(self):
         self.parameters['feedback_model_mode'] = 'independent'
+        self.parameters.update(
+            velocity_filter_type='kalman2',
+            velocity_kalman_measurement_std=[.03, .01, .04],
+            velocity_kalman_jerk_std=[180., 60., 240.],
+            velocity_kalman_reset_gap_s=.05)
         self.trial.run(2, 1, 0.15, 0.04, self.parameters)
         self.assertEqual(self.description_requests, 1)
         self.assertEqual(self.stale_description_requests, 0)

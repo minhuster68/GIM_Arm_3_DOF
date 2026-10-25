@@ -36,7 +36,7 @@ def load_log(path):
             "qd_ref": [],
             "tau": [],
         }
-        optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i', 'saturated')
+        optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i', 'saturated', 'qd_raw', 'qd_filtered')
                     if all(f'{prefix}_{name}' in reader.fieldnames for name in JOINT_NAMES)]
         columns.update({prefix: [] for prefix in optional})
         for row in reader:
@@ -224,10 +224,13 @@ def plot(log, output, show, max_plot_points):
             constrained_layout=True)
         axes[0].plot(
             t, qd_deg[:, index], color=color, linewidth=1.1,
-            label="Thực tế")
+            label="Sau lọc (đưa vào điều khiển)" if 'qd_filtered' in log else "Thực tế")
         axes[0].plot(
             t, qd_ref_deg[:, index], color="tab:red", linestyle="--",
             linewidth=1.1, label="Mong muốn")
+        if 'qd_raw' in log:
+            axes[0].plot(t, np.degrees(log['qd_raw'][sample, index]),
+                         color='gray', alpha=0.45, linewidth=0.8, label='Vận tốc thô')
         axes[0].set_ylabel("Vận tốc (độ/s)")
         axes[0].set_title("Vận tốc khớp")
         axes[0].legend(loc="best", ncol=2)
@@ -238,9 +241,13 @@ def plot(log, output, show, max_plot_points):
         axes[1].plot(
             t, velocity_error[:, index], color=color, linewidth=1.0,
             label=f"RMS={velocity_rms:.3f}°/s, MAX={velocity_max:.3f}°/s")
+        if 'qd_raw' in log:
+            axes[1].plot(t, np.degrees(log['qd_raw'][sample, index] - log['qd_ref'][sample, index]),
+                         color='gray', alpha=0.45, linewidth=0.8, label='Sai số vận tốc thô')
         axes[1].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
         axes[1].set_ylabel("Sai số vận tốc (độ/s)")
-        axes[1].set_title("e_qdot = vận tốc thực tế - vận tốc mong muốn")
+        axes[1].set_title("e_qdot = vận tốc sau lọc - vận tốc mong muốn" if 'qd_filtered' in log
+                          else "e_qdot = vận tốc thực tế - vận tốc mong muốn")
         axes[1].legend(loc="best")
 
         for axis in axes:

@@ -29,9 +29,13 @@ class MpcController:
         precompute_prediction=False,
         base_ff_alpha=1.0,
         feedback_model_mode="coupled",
+        velocity_filter=None,
     ):
         self.dyn = dynamics
         self.n = dynamics.nq
+        # Measurement filtering belongs to the JointState ingress, once per
+        # fresh sample. Solver retries and reset() must not update this filter.
+        self.velocity_filter = velocity_filter
         self.feedback_model_mode = str(feedback_model_mode)
         if self.feedback_model_mode not in ("coupled", "independent"):
             raise ValueError('feedback_model_mode phải là coupled hoặc independent')

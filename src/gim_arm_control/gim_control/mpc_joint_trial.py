@@ -139,14 +139,14 @@ class RosMpcJointTrial:
             if error > position_limit:
                 samples.clear()
                 continue
-            append_stationary_sample(samples, now, node.q, node.qd)
+            append_stationary_sample(samples, now, node.q, node.qd_raw)
             if stationary_window(samples, self.selected):
                 node.stationarity_samples = samples.copy()
                 return
         values = ', '.join(
             f'{name}: qd={float(velocity):.3f} rad/s, '
             f'e_HOME={math.degrees(float(q - home)):.2f} độ'
-            for name, velocity, q, home in zip(JOINTS, node.qd, node.q, node.home_q))
+            for name, velocity, q, home in zip(JOINTS, node.qd_raw, node.q, node.home_q))
         raise RuntimeError(
             f'MPC chưa giữ HOME ổn định sau {self.prestart_timeout:g}s; {values}. '
             'Dừng bài thử và trả về position, chưa chạy quỹ đạo')
@@ -167,7 +167,7 @@ class RosMpcJointTrial:
         class JointTrialNode(EffortControllerNode):
             def _start_velocity_is_safe(node):
                 samples = getattr(node, 'stationarity_samples', deque()).copy()
-                append_stationary_sample(samples, time.monotonic(), node.q, node.qd)
+                append_stationary_sample(samples, time.monotonic(), node.q, node.qd_raw)
                 return stationary_window(samples, selected, node.start_velocity_limit)
 
         self.node = None
@@ -317,6 +317,7 @@ class RosMpcJointTrial:
                 'base_ff_alpha': self.node.controller.base_ff_alpha,
                 'feedback_model_mode': self.node.controller.feedback_model_mode,
                 'tau_fb': 'first input of constrained MPC QP for [integral(e), e, qd-qd_ref]',
+                'velocity_filter_type': config.get('velocity_filter_type', 'none'),
                 'prestart_hold': {
                     'hardware_handoff_duration_s': handoff_duration,
                     'stable_time_s': PRESTART_STABLE_TIME_S,

@@ -29,11 +29,15 @@ def test_terminal_costs_reach_actual_controller_and_other_joints_stay_unchanged(
             assert terminal.parameters[key][:2] == values[:2]
     params = terminal.parameters
     class Parameters:
+        def declare_parameter(self, name, default):
+            return SimpleNamespace(value=params.setdefault(name, default))
         def get_parameter(self, name):
             return SimpleNamespace(value=params[name])
     from gim_control.arm_dynamics import ArmDynamics
     dynamics = ArmDynamics(str(ROOT / 'src/gim_arm_description/urdf/gim_arm.urdf'))
-    c = MpcFactory().build(Parameters(), dynamics, dynamics.tau_max, 100)
+    factory = MpcFactory()
+    factory.declare_parameters(Parameters())
+    c = factory.build(Parameters(), dynamics, dynamics.tau_max, 100)
     assert np.diag(c.Q)[[2, 5, 8]] == pytest.approx((600, 1600, 1))
     assert c.R[2, 2] == pytest.approx(10)
     assert c.Rd[2, 2] == pytest.approx(.3)

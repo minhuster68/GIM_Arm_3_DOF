@@ -248,7 +248,7 @@ def run_ros_trial(algorithm, params_file):
             executor.spin_once(timeout_sec=0.01)
             if node.phase == 'ABORT' or time.monotonic() > deadline:
                 raise RuntimeError('Không READY; kiểm tra joint_states, giới hạn khớp và precompute')
-        if np.max(np.abs(node.qd)) > node.start_velocity_limit:
+        if np.max(np.abs(getattr(node, 'qd_raw', node.qd))) > node.start_velocity_limit:
             raise RuntimeError('Tay chưa đứng yên; chưa chuyển effort')
         require_position(manager.states())
         attempted_switch = True  # Set before the request: a timeout is not a cancellation.

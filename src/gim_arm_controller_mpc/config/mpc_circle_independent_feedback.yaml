@@ -5,6 +5,12 @@ mpc_controller:
   ros__parameters:
     feedback_model_mode: independent
     control_hz: 100.0
+    # Separate [velocity, acceleration] filter per joint; raw driver velocity in.
+    # Starting noise settings from LQR; validate on MPC before retuning costs.
+    velocity_filter_type: kalman2  # none to compare without filtering
+    velocity_kalman_measurement_std: [0.03, 0.01, 0.04]  # rad/s: base, shoulder, elbow
+    velocity_kalman_jerk_std: [180.0, 60.0, 240.0]  # rad/s^3
+    velocity_kalman_reset_gap_s: 0.05
     tau_scale: 1.0
     base_ff_alpha: 2.2
     command_heartbeat_nm: 1.0e-06

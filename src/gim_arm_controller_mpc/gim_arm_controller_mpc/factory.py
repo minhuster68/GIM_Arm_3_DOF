@@ -34,9 +34,24 @@ class MpcFactory(ControllerFactory):
         node.declare_parameter("torque_penalty_scale", 1.0)
         node.declare_parameter("base_ff_alpha", 1.0)
         node.declare_parameter("feedback_model_mode", "coupled")
+        node.declare_parameter("velocity_filter_type", "none")
+        node.declare_parameter("velocity_kalman_measurement_std", [0.03, 0.01, 0.04])
+        node.declare_parameter("velocity_kalman_jerk_std", [180.0, 60.0, 240.0])
+        node.declare_parameter("velocity_kalman_reset_gap_s", 0.05)
 
     def build(self, node, dynamics, tau_limit, control_hz):
         n = dynamics.nq
+        filter_type = str(node.get_parameter('velocity_filter_type').value)
+        velocity_filter = None
+        if filter_type == 'kalman2':
+            from gim_control.velocity_filter import VelocityAccelerationKalman
+            velocity_filter = VelocityAccelerationKalman(
+                vector_parameter(node, 'velocity_kalman_measurement_std', n, positive=True),
+                vector_parameter(node, 'velocity_kalman_jerk_std', n, positive=True),
+                1. / control_hz,
+                node.get_parameter('velocity_kalman_reset_gap_s').value)
+        elif filter_type != 'none':
+            raise ValueError('velocity_filter_type cần none hoặc kalman2')
         # Chuẩn hoá tương tự ScaleFactor của MPC Toolbox để các trọng số giữ
         # cùng ý nghĩa khi chuyển sang bài toán QP viết tay.
         integral_scale = vector_parameter(
@@ -97,4 +112,5 @@ class MpcFactory(ControllerFactory):
                 node.get_parameter("precompute_prediction").value),
             base_ff_alpha=float(node.get_parameter("base_ff_alpha").value),
             feedback_model_mode=str(node.get_parameter("feedback_model_mode").value),
+            velocity_filter=velocity_filter,
         )
