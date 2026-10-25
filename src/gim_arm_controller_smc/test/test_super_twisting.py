@@ -176,14 +176,15 @@ def test_velocity_lpf_is_per_joint_and_resets_between_trials():
         controller(velocity_lpf_hz=[0., -1., 3.])
 
 
-def test_kalman_velocity_reaches_feedback_and_preserves_raw_and_reference():
-    c = controller(velocity_kalman_enabled=[False, False, True])
+@pytest.mark.parametrize('enabled', [[False, False, True], [True, True, True]])
+def test_kalman_velocity_reaches_feedback_and_preserves_raw_and_reference(enabled):
+    c = controller(velocity_kalman_enabled=enabled)
     baseline = controller()
     zero = np.zeros(3)
     q = np.array([.1, -.1, .05])
     reference_velocity = np.array([.1, -.1, .02])
     for stamp, raw in ((1_000_000_000, .1), (1_020_000_000, -.1)):
-        velocity = np.array([.2, -.3, raw])
+        velocity = np.array([2*raw, -3*raw, raw])
         before, reference_before = velocity.copy(), reference_velocity.copy()
         c.set_velocity_sample_time(stamp)
         tau = c.compute(q, velocity, zero, reference_velocity, zero, .01)
@@ -191,8 +192,10 @@ def test_kalman_velocity_reaches_feedback_and_preserves_raw_and_reference():
         np.testing.assert_allclose(tau, expected)
         np.testing.assert_array_equal(velocity, before)
         np.testing.assert_array_equal(reference_velocity, reference_before)
-        np.testing.assert_array_equal(c.last['qd_filtered'][:2], velocity[:2])
-    assert abs(c.last['qd_filtered'][2] - velocity[2]) > .01
+        np.testing.assert_array_equal(c.last['qd_filtered'][~np.array(enabled)],
+                                      velocity[~np.array(enabled)])
+        np.testing.assert_array_equal(c.last['tau_ff'], baseline.last['tau_ff'])
+    assert np.all(np.abs(c.last['qd_filtered'] - velocity)[enabled] > .01)
     c.reset()
     c.set_velocity_sample_time(2_000_000_000)
     c.compute(zero, [.1, .2, .8], zero, zero, zero, .01)

@@ -30,9 +30,20 @@ Thứ tự vector luôn là [base/id0, shoulder/id1, elbow/id2]:
 | z_limit (rad/s²) | 20 | 40 | 30 |
 | torque_slew_rate (Nm/s) | 6 | 16 | 1.5 |
 
-Control 100 Hz, tau_scale=1. Kalman [v,a] chỉ bật elbow: jerk PSD=1,
-measurement variance=0.0004; LPF tắt. Giá trị k1 elbow=3.5 là giá trị đã chạy
+Control 100 Hz, tau_scale=1. Từ 2026-10-25, Kalman [v,a] bật cho cả ba khớp:
+`velocity_kalman_enabled: [true, true, true]`. Mỗi khớp có bộ lọc riêng,
+jerk PSD=1, measurement variance=0.0004; LPF tắt. Giữ nguyên bộ lọc elbow
+và gain SMC đã tune; hai khớp mới bật lọc chưa được kiểm chứng trên tay thật.
+Giá trị k1 elbow=3.5 là giá trị đã chạy
 vòng tròn mới, không phải 4.5 của lượt tune độc lập cũ.
+
+Đường tín hiệu: vận tốc driver thô -> Kalman -> vận tốc sau lọc -> sai số vận
+tốc/mặt trượt để tính `tau_fb`. Gia tốc ước lượng chỉ dùng nội bộ bộ lọc.
+`tau_ff` vẫn tính từ `q_ref, qd_ref, qdd_ref`; không lọc góc hoặc tham chiếu.
+Trong CSV SMC, `qd_*` vẫn là vận tốc thô, `qd_filtered_*` là vận tốc đưa vào
+phản hồi; đồ thị vận tốc có cả hai để đối chiếu. Kiểm tra đứng yên vẫn dùng
+vận tốc thô. Muốn đối chiếu chỉ lọc elbow, đổi mask về `[false, false, true]`
+và restart node SMC. Mỗi phần tử mask theo thứ tự base, shoulder, elbow.
 
 ## 1. Chuẩn bị terminal và phần cứng
 

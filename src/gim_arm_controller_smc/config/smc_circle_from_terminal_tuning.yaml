@@ -10,9 +10,11 @@ smc_controller:
   ros__parameters:
     smc_variant: super_twisting
     control_hz: 100.0
+    # 2026-10-25: Kalman [velocity, acceleration] enabled for all three joints.
+    # Only measured velocity in feedback is filtered; reference feedforward unchanged.
     velocity_kalman_enabled:
-    - false
-    - false
+    - true
+    - true
     - true
     velocity_kalman_jerk_psd:
     - 1.0

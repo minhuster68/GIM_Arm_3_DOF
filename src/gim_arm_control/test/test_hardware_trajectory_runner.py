@@ -115,12 +115,14 @@ def test_smc_hold_drift_guard_stops_before_trajectory():
         rclpy.shutdown()
 
 
-def test_smc_kalman_uses_ros_sample_stamps_and_keeps_raw_velocity(tmp_path):
+@pytest.mark.parametrize('enabled', [[False, False, True], [True, True, True]])
+def test_smc_kalman_uses_ros_sample_stamps_and_keeps_raw_velocity(tmp_path, enabled):
     source = Path(__file__).resolve().parents[2]
     params = source / 'gim_arm_controller_smc/config/smc_circle_from_terminal_tuning.yaml'
     path = tmp_path / 'kalman.csv'
+    mask = '[' + ', '.join(str(value).lower() for value in enabled) + ']'
     rclpy.init(args=['--ros-args', '--params-file', str(params), '-p', f'log_file:={path}',
-                     '-p', 'velocity_kalman_enabled:=[false, false, true]'])
+                     '-p', f'velocity_kalman_enabled:={mask}'])
     node = None
     try:
         node = EffortControllerNode(SmcFactory())
@@ -136,13 +138,13 @@ def test_smc_kalman_uses_ros_sample_stamps_and_keeps_raw_velocity(tmp_path):
         with patch.object(node, '_publish', side_effect=capture):
             for offset, velocity in ((0, .1), (30_000_000, -.1)):
                 state.header.stamp.nanosec = offset
-                state.velocity = [0., 0., velocity]
+                state.velocity = [velocity, -velocity, velocity]
                 node._on_state(state)
                 node.manual_hold_latched = True
                 node._tick()
                 assert node.controller._velocity_sample_time_ns == 1_000_000_000 + offset
                 np.testing.assert_array_equal(node.qd, state.velocity)
-        assert abs(node.controller.last['qd_filtered'][2] - node.qd[2]) > .01
+        assert np.all(np.abs(node.controller.last['qd_filtered'] - node.qd)[enabled] > .01)
         covariance = node.controller.velocity_kalman.covariance.copy()
         node._hold_torque(.01, integrate=True)
         np.testing.assert_array_equal(node.controller.velocity_kalman.covariance, covariance)
