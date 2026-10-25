@@ -10,14 +10,12 @@ import numpy as np
 import rclpy
 
 from gim_arm_controller_lqr.factory import LqrFactory
-from gim_arm_controller_mpc.factory import MpcFactory
-from gim_arm_controller_smc.factory import SmcFactory
 from gim_control.effort_controller_node import EffortControllerNode
 from gim_control.reference_trajectory import Quintic
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FACTORIES = {'lqr': LqrFactory, 'mpc': MpcFactory, 'smc': SmcFactory}
+FACTORIES = {'lqr': LqrFactory}
 
 
 def check_case(algorithm, shape):
