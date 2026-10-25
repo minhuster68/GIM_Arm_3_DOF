@@ -4,248 +4,156 @@ Start exactly one torque algorithm node.
 The controller manager and MuJoCo/CAN simulator are intentionally launched
 separately so switching the algorithm never changes the plant under test.
 """
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
-from launch.substitutions import (
-    LaunchConfiguration,
-    PathJoinSubstitution,
-    PythonExpression,
-)
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
-
-
-ALGORITHMS = {
-    "pid": ("gim_arm_controller_pid", "cascade_pid_node", "pid.yaml"),
-    "lqr": ("gim_arm_controller_lqr", "lqr_node", "lqr.yaml"),
-    "mpc": ("gim_arm_controller_mpc", "mpc_node", "mpc.yaml"),
-    "smc": ("gim_arm_controller_smc", "smc_node", "smc.yaml"),
-}
-
+ALGORITHMS = {'lqr': ('gim_arm_controller_lqr', 'lqr_node', 'lqr.yaml')}
 
 def generate_launch_description():
-    algorithm = LaunchConfiguration("algorithm")
-    pid_profile = LaunchConfiguration("pid_profile")
-    lqr_profile = LaunchConfiguration("lqr_profile")
-    mpc_profile = LaunchConfiguration("mpc_profile")
-    smc_profile = LaunchConfiguration("smc_profile")
-    lqr_recompute_every = LaunchConfiguration("lqr_recompute_every")
-    lqr_tau_penalty_scale = LaunchConfiguration("lqr_tau_penalty_scale")
-    lqr_gravity_at_measured = LaunchConfiguration(
-        "lqr_gravity_at_measured")
+    algorithm = LaunchConfiguration('algorithm')
+    lqr_profile = LaunchConfiguration('lqr_profile')
+    lqr_recompute_every = LaunchConfiguration('lqr_recompute_every')
+    lqr_tau_penalty_scale = LaunchConfiguration('lqr_tau_penalty_scale')
+    lqr_gravity_at_measured = LaunchConfiguration('lqr_gravity_at_measured')
     common_overrides = {
-        "trajectory_shape": LaunchConfiguration("trajectory_shape"),
-        "autostart": ParameterValue(
-            LaunchConfiguration("autostart"), value_type=bool),
-        "tau_scale": ParameterValue(
-            LaunchConfiguration("tau_scale"), value_type=float),
-        "control_hz": ParameterValue(
-            LaunchConfiguration("control_hz"), value_type=float),
-        "max_track_error_rad": ParameterValue(
-            LaunchConfiguration("max_track_error_rad"), value_type=float),
-        "max_transition_error_rad": ParameterValue(
-            LaunchConfiguration("max_transition_error_rad"), value_type=float),
-        "stale_recovery_threshold": ParameterValue(
-            LaunchConfiguration("stale_recovery_threshold"),
-            value_type=float),
-        "stale_recovery_time": ParameterValue(
-            LaunchConfiguration("stale_recovery_time"), value_type=float),
-        "approach_time": ParameterValue(
-            LaunchConfiguration("approach_time"), value_type=float),
-        "return_time": ParameterValue(
-            LaunchConfiguration("return_time"), value_type=float),
-        "loops": ParameterValue(
-            LaunchConfiguration("loops"), value_type=float),
-        "diagnostic_hold": ParameterValue(
-            LaunchConfiguration("diagnostic_hold"), value_type=bool),
-        "diagnostic_segment": ParameterValue(
-            LaunchConfiguration("diagnostic_segment"), value_type=bool),
-        "diagnostic_q1_deg": ParameterValue(
-            LaunchConfiguration("diagnostic_q1_deg"), value_type=float),
-        "diagnostic_q2_deg": ParameterValue(
-            LaunchConfiguration("diagnostic_q2_deg"), value_type=float),
-        "diagnostic_q3_deg": ParameterValue(
-            LaunchConfiguration("diagnostic_q3_deg"), value_type=float),
-        "diagnostic_hold_time": ParameterValue(
-            LaunchConfiguration("diagnostic_hold_time"), value_type=float),
-        "diagnostic_qd1_rad_s": ParameterValue(
-            LaunchConfiguration("diagnostic_qd1_rad_s"), value_type=float),
-        "diagnostic_qd2_rad_s": ParameterValue(
-            LaunchConfiguration("diagnostic_qd2_rad_s"), value_type=float),
-        "diagnostic_qd3_rad_s": ParameterValue(
-            LaunchConfiguration("diagnostic_qd3_rad_s"), value_type=float),
-        "diagnostic_segment_time": ParameterValue(
-            LaunchConfiguration("diagnostic_segment_time"), value_type=float),
-        "fixed_track_gain_index": ParameterValue(
-            LaunchConfiguration("lqr_fixed_track_gain_index"),
-            value_type=int),
-        "command_heartbeat_nm": ParameterValue(
-            LaunchConfiguration("command_heartbeat_nm"), value_type=float),
-        "use_sim_time": ParameterValue(
-            LaunchConfiguration("use_sim_time"), value_type=bool),
-        "log_file": LaunchConfiguration("log_file"),
+        'trajectory_shape': LaunchConfiguration('trajectory_shape'),
+        'autostart': ParameterValue(LaunchConfiguration('autostart'), value_type=bool),
+        'tau_scale': ParameterValue(LaunchConfiguration('tau_scale'), value_type=float),
+        'control_hz': ParameterValue(LaunchConfiguration('control_hz'), value_type=float),
+        'max_track_error_rad': ParameterValue(LaunchConfiguration('max_track_error_rad'), value_type=float),
+        'max_transition_error_rad': ParameterValue(LaunchConfiguration('max_transition_error_rad'), value_type=float),
+        'stale_recovery_threshold': ParameterValue(LaunchConfiguration('stale_recovery_threshold'), value_type=float),
+        'stale_recovery_time': ParameterValue(LaunchConfiguration('stale_recovery_time'), value_type=float),
+        'approach_time': ParameterValue(LaunchConfiguration('approach_time'), value_type=float),
+        'return_time': ParameterValue(LaunchConfiguration('return_time'), value_type=float),
+        'loops': ParameterValue(LaunchConfiguration('loops'), value_type=float),
+        'diagnostic_hold': ParameterValue(LaunchConfiguration('diagnostic_hold'), value_type=bool),
+        'diagnostic_segment': ParameterValue(LaunchConfiguration('diagnostic_segment'), value_type=bool),
+        'diagnostic_q1_deg': ParameterValue(LaunchConfiguration('diagnostic_q1_deg'), value_type=float),
+        'diagnostic_q2_deg': ParameterValue(LaunchConfiguration('diagnostic_q2_deg'), value_type=float),
+        'diagnostic_q3_deg': ParameterValue(LaunchConfiguration('diagnostic_q3_deg'), value_type=float),
+        'diagnostic_hold_time': ParameterValue(LaunchConfiguration('diagnostic_hold_time'), value_type=float),
+        'diagnostic_qd1_rad_s': ParameterValue(LaunchConfiguration('diagnostic_qd1_rad_s'), value_type=float),
+        'diagnostic_qd2_rad_s': ParameterValue(LaunchConfiguration('diagnostic_qd2_rad_s'), value_type=float),
+        'diagnostic_qd3_rad_s': ParameterValue(LaunchConfiguration('diagnostic_qd3_rad_s'), value_type=float),
+        'diagnostic_segment_time': ParameterValue(LaunchConfiguration('diagnostic_segment_time'), value_type=float),
+        'fixed_track_gain_index': ParameterValue(LaunchConfiguration('lqr_fixed_track_gain_index'), value_type=int),
+        'command_heartbeat_nm': ParameterValue(LaunchConfiguration('command_heartbeat_nm'), value_type=float),
+        'use_sim_time': ParameterValue(LaunchConfiguration('use_sim_time'), value_type=bool),
+        'log_file': LaunchConfiguration('log_file'),
     }
-
     actions = [
         DeclareLaunchArgument(
-            "trajectory_shape", default_value="circle", choices=["circle", "r", "a"]),
+            'trajectory_shape',
+            default_value='circle',
+            choices=['circle', 'r', 'a'],
+        ),
+        DeclareLaunchArgument('algorithm', default_value='lqr', choices=list(ALGORITHMS)),
         DeclareLaunchArgument(
-            "algorithm", default_value="lqr", choices=list(ALGORITHMS)),
+            'lqr_profile',
+            default_value='matlab_reference',
+            choices=['matlab_reference', 'safe_100hz'],
+            description='LQR only: exact MATLAB weights or the discretely-stable 100 Hz Gazebo/hardware bring-up profile',
+        ),
         DeclareLaunchArgument(
-            "pid_profile", default_value="matlab_reference",
-            choices=["matlab_reference", "gazebo_smooth"],
-            description=(
-                "PID only: original MATLAB gains or a separately tuned "
-                "Gazebo profile")),
+            'lqr_recompute_every',
+            default_value=PythonExpression(["'1' if '", lqr_profile, "' == 'matlab_reference' else ", "'2'"]),
+            description='LQR only: recompute gain every N torque cycles; use 2 for a 200 Hz torque loop with 100 Hz gain updates',
+        ),
         DeclareLaunchArgument(
-            "lqr_profile", default_value="matlab_reference",
-            choices=["matlab_reference", "safe_100hz"],
-            description=(
-                "LQR only: exact MATLAB weights or the discretely-stable "
-                "100 Hz Gazebo/hardware bring-up profile")),
+            'lqr_tau_penalty_scale',
+            default_value=PythonExpression(
+                ["'1.0' if '", lqr_profile, "' == 'matlab_reference' else ", "'512.0'"],
+            ),
+            description='LQR only: multiplier on Bryson R; larger values reduce feedback bandwidth and improve delay robustness',
+        ),
         DeclareLaunchArgument(
-            "mpc_profile", default_value="gazebo_safe",
-            choices=["matlab_reference", "gazebo_safe"],
-            description=(
-                "MPC only: validated MATLAB slew limits or a delay-robust "
-                "100 Hz Gazebo bring-up profile")),
+            'lqr_gravity_at_measured',
+            default_value=PythonExpression(
+                ["'false' if '", lqr_profile, "' == 'matlab_reference' else ", "'true'"],
+            ),
+            description='LQR only: true uses G(q measured), false uses MATLAB-style inverse dynamics entirely at the reference state',
+        ),
+        DeclareLaunchArgument('autostart', default_value='false'),
+        DeclareLaunchArgument('tau_scale', default_value='0.35'),
         DeclareLaunchArgument(
-            "smc_profile", default_value="gazebo_safe",
-            choices=["matlab_reference", "gazebo_safe"],
-            description=(
-                "SMC only: original continuous-time MATLAB gains or the "
-                "validated 100 Hz Gazebo profile")),
+            'control_hz',
+            default_value=PythonExpression(
+                ["'100.0' if '", lqr_profile, "' == 'matlab_reference' else ", "'200.0'"],
+            ),
+        ),
+        DeclareLaunchArgument('max_track_error_rad', default_value='0.05'),
+        DeclareLaunchArgument('max_transition_error_rad', default_value='0.10'),
         DeclareLaunchArgument(
-            "lqr_recompute_every",
-            default_value=PythonExpression([
-                "'2' if '", lqr_profile,
-                "' == 'safe_100hz' else '1'",
-            ]),
-            description=(
-                "LQR only: recompute gain every N torque cycles; use 2 for "
-                "a 200 Hz torque loop with 100 Hz gain updates")),
+            'stale_recovery_threshold',
+            default_value='0.03',
+            description='State-feedback gap in seconds that activates damped-hold recovery',
+        ),
         DeclareLaunchArgument(
-            "lqr_tau_penalty_scale",
-            default_value=PythonExpression([
-                "'512.0' if '", lqr_profile,
-                "' == 'safe_100hz' else '1.0'",
-            ]),
-            description=(
-                "LQR only: multiplier on Bryson R; larger values reduce "
-                "feedback bandwidth and improve delay robustness")),
+            'stale_recovery_time',
+            default_value='0.25',
+            description='Damped-hold duration before an interrupted trajectory resumes',
+        ),
+        DeclareLaunchArgument('approach_time', default_value='5.0'),
+        DeclareLaunchArgument('return_time', default_value='5.0'),
+        DeclareLaunchArgument('loops', default_value='1.0'),
+        DeclareLaunchArgument('diagnostic_hold', default_value='false'),
+        DeclareLaunchArgument('diagnostic_segment', default_value='false'),
+        DeclareLaunchArgument('diagnostic_q1_deg', default_value='0.0'),
+        DeclareLaunchArgument('diagnostic_q2_deg', default_value='0.0'),
+        DeclareLaunchArgument('diagnostic_q3_deg', default_value='0.0'),
+        DeclareLaunchArgument('diagnostic_hold_time', default_value='15.0'),
+        DeclareLaunchArgument('diagnostic_qd1_rad_s', default_value='0.0'),
+        DeclareLaunchArgument('diagnostic_qd2_rad_s', default_value='0.0'),
+        DeclareLaunchArgument('diagnostic_qd3_rad_s', default_value='0.0'),
+        DeclareLaunchArgument('diagnostic_segment_time', default_value='2.0'),
         DeclareLaunchArgument(
-            "lqr_gravity_at_measured",
-            default_value=PythonExpression([
-                "'true' if '", lqr_profile,
-                "' == 'safe_100hz' else 'false'",
-            ]),
-            description=(
-                "LQR only: true uses G(q measured), false uses MATLAB-style "
-                "inverse dynamics entirely at the reference state")),
-        DeclareLaunchArgument("autostart", default_value="false"),
-        DeclareLaunchArgument("tau_scale", default_value=PythonExpression([
-            "'1.0' if '", algorithm,
-            "' == 'mpc' else ('0.50' if ('", algorithm,
-            "' == 'pid' and '", pid_profile,
-            "' == 'gazebo_smooth') or ('", algorithm,
-            "' == 'smc' and '", smc_profile,
-            "' == 'gazebo_safe') else '0.35')",
-        ])),
-        DeclareLaunchArgument("control_hz", default_value=PythonExpression([
-            "'2000.0' if '", algorithm, "' == 'pid' and '", pid_profile,
-            "' == 'gazebo_smooth' else ('200.0' if '", algorithm,
-            "' == 'lqr' and '", lqr_profile,
-            "' == 'safe_100hz' else '100.0')",
-        ])),
-        DeclareLaunchArgument("max_track_error_rad", default_value="0.05"),
+            'lqr_fixed_track_gain_index',
+            default_value='-1',
+            description='LQR diagnostic segment only: -1=schedule, >=0=hold this K during TRACK',
+        ),
+        DeclareLaunchArgument('command_heartbeat_nm', default_value='1.0e-6'),
         DeclareLaunchArgument(
-            "max_transition_error_rad", default_value="0.10"),
-        DeclareLaunchArgument(
-            "stale_recovery_threshold", default_value="0.03",
-            description=(
-                "State-feedback gap in seconds that activates damped-hold "
-                "recovery")),
-        DeclareLaunchArgument(
-            "stale_recovery_time", default_value="0.25",
-            description=(
-                "Damped-hold duration before an interrupted trajectory "
-                "resumes")),
-        DeclareLaunchArgument("approach_time", default_value="5.0"),
-        DeclareLaunchArgument("return_time", default_value="5.0"),
-        DeclareLaunchArgument("loops", default_value="1.0"),
-        DeclareLaunchArgument("diagnostic_hold", default_value="false"),
-        DeclareLaunchArgument("diagnostic_segment", default_value="false"),
-        DeclareLaunchArgument("diagnostic_q1_deg", default_value="0.0"),
-        DeclareLaunchArgument("diagnostic_q2_deg", default_value="0.0"),
-        DeclareLaunchArgument("diagnostic_q3_deg", default_value="0.0"),
-        DeclareLaunchArgument("diagnostic_hold_time", default_value="15.0"),
-        DeclareLaunchArgument("diagnostic_qd1_rad_s", default_value="0.0"),
-        DeclareLaunchArgument("diagnostic_qd2_rad_s", default_value="0.0"),
-        DeclareLaunchArgument("diagnostic_qd3_rad_s", default_value="0.0"),
-        DeclareLaunchArgument("diagnostic_segment_time", default_value="2.0"),
-        DeclareLaunchArgument(
-            "lqr_fixed_track_gain_index",
-            default_value="-1",
-            description=(
-                "LQR diagnostic segment only: -1=schedule, "
-                ">=0=hold this K during TRACK")),
-        DeclareLaunchArgument("command_heartbeat_nm", default_value="1.0e-6"),
-        DeclareLaunchArgument(
-            "lqr_use_armature",
-            default_value="true",
-            description=(
-                "LQR only: include reflected motor inertia in its model")),
-        DeclareLaunchArgument("use_sim_time", default_value="false"),
-        DeclareLaunchArgument("log_file", default_value=""),
+            'lqr_use_armature',
+            default_value='true',
+            description='LQR only: include reflected motor inertia in its model',
+        ),
+        DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('log_file', default_value=''),
     ]
-    for name, (package, executable, config) in ALGORITHMS.items():
+    for (name, (package, executable, config)) in ALGORITHMS.items():
         config_file = config
-        if name == "pid":
-            config_file = PythonExpression([
-                "'pid_gazebo_smooth.yaml' if '", pid_profile,
-                "' == 'gazebo_smooth' else 'pid.yaml'",
-            ])
-        if name == "lqr":
-            config_file = PythonExpression([
-                "'lqr_safe_100hz.yaml' if '", lqr_profile,
-                "' == 'safe_100hz' else 'lqr.yaml'",
-            ])
-        if name == "mpc":
-            config_file = PythonExpression([
-                "'mpc_gazebo_safe.yaml' if '", mpc_profile,
-                "' == 'gazebo_safe' else 'mpc.yaml'",
-            ])
-        if name == "smc":
-            config_file = PythonExpression([
-                "'smc_gazebo_safe.yaml' if '", smc_profile,
-                "' == 'gazebo_safe' else 'smc.yaml'",
-            ])
-        parameter_overrides = [common_overrides]
-        if name == "lqr":
-            parameter_overrides.append({
-                "recompute_every": ParameterValue(
-                    lqr_recompute_every, value_type=int),
-                "tau_penalty_scale": ParameterValue(
-                    lqr_tau_penalty_scale, value_type=float),
-                "gravity_at_measured": ParameterValue(
-                    lqr_gravity_at_measured, value_type=bool),
-                "use_armature": ParameterValue(
-                    LaunchConfiguration("lqr_use_armature"), value_type=bool),
-            })
-        actions.append(Node(
-            package=package,
-            executable=executable,
-            output="screen",
-            parameters=[
-                PathJoinSubstitution([
-                    FindPackageShare(package), "config", config_file]),
-                *parameter_overrides,
+        config_file = PythonExpression(
+            [
+                "'lqr.yaml' if '",
+                lqr_profile,
+                "' == 'matlab_reference' else ",
+                "'lqr_safe_100hz.yaml'",
             ],
-            condition=IfCondition(PythonExpression([
-                "'", algorithm, "' == '", name, "'",
-            ])),
-        ))
+        )
+        parameter_overrides = [common_overrides]
+        parameter_overrides.append(
+            {
+                'recompute_every': ParameterValue(lqr_recompute_every, value_type=int),
+                'tau_penalty_scale': ParameterValue(lqr_tau_penalty_scale, value_type=float),
+                'gravity_at_measured': ParameterValue(lqr_gravity_at_measured, value_type=bool),
+                'use_armature': ParameterValue(LaunchConfiguration('lqr_use_armature'), value_type=bool),
+            },
+        )
+        actions.append(
+            Node(
+                package=package,
+                executable=executable,
+                output='screen',
+                parameters=[
+                    PathJoinSubstitution([FindPackageShare(package), 'config', config_file]),
+                    *parameter_overrides,
+                ],
+                condition=IfCondition(PythonExpression(["'", algorithm, "' == '", name, "'"])),
+            ),
+        )
     return LaunchDescription(actions)

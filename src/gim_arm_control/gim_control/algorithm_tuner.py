@@ -17,30 +17,7 @@ import yaml
 
 
 # (length, strictly positive, integer). Vectors follow base, shoulder, elbow.
-FIELDS = {
-    'lqr': {
-        'max_int_e': (3, True, False), 'max_e': (3, True, False),
-        'max_de': (3, True, False),
-        'max_tau': (3, True, False), 'tau_penalty_scale': (1, True, False),
-        'integral_limit': (1, True, False),
-        'max_tau_rate_nm_s': (3, True, False),
-    },
-    'mpc': {
-        'q_integral': (3, False, False), 'q_position': (3, True, False),
-        'q_velocity': (3, False, False),
-        'r_input': (3, True, False), 'r_rate': (3, False, False),
-        'output_scale_integral': (3, True, False),
-        'output_scale_position': (3, True, False),
-        'output_scale_velocity': (3, True, False),
-        'torque_penalty_scale': (1, True, False),
-        'integral_limit': (1, True, False), 'torque_slew_rate': (3, True, False),
-        'prediction_horizon': (1, True, True), 'control_horizon': (1, True, True),
-    },
-    'smc': {
-        'lambda_gain': (3, True, False), 'ks': (3, True, False),
-        'kr': (3, False, False), 'phi': (3, True, False),
-    },
-}
+FIELDS = {'lqr': {'max_int_e': (3, True, False), 'max_e': (3, True, False), 'max_de': (3, True, False), 'max_tau': (3, True, False), 'tau_penalty_scale': (1, True, False), 'integral_limit': (1, True, False), 'max_tau_rate_nm_s': (3, True, False)}}
 HELP = """show                         bộ số hiện tại (vector: base shoulder elbow)
 set PARAM VALUE [VALUE VALUE] chỉnh tham số; áp dụng khi test tiếp theo
 shape circle|r|a              chọn quỹ đạo
