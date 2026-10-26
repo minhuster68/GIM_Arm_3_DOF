@@ -266,3 +266,53 @@ Không ghi đè log; đổi run01 khi chạy lại. Muốn so cấu hình ghép 
 APPROACH/TRACK/RETURN, cùng thời lượng; theo dõi cả vận tốc, torque, solver và
 thời gian tính toán. Khi quay lại SMC, switch smc-test rồi áp dụng đúng stash
 đã lưu (xem `git stash list` trước), không pop nhầm stash khác.
+## Chẩn đoán các thành phần torque phản hồi
+
+Trên `mpc-test`, CSV mới ghi thêm các vector (Nm) cho từng khớp:
+
+| Cột | Ý nghĩa |
+|---|---|
+| `tau_mpc_i_free` | Đóng góp của trạng thái tích phân sai số trong nghiệm QP chưa áp ràng buộc |
+| `tau_mpc_q_free` | Đóng góp của sai số vị trí trong nghiệm QP chưa áp ràng buộc |
+| `tau_mpc_qd_free` | Đóng góp của sai số vận tốc trong nghiệm QP chưa áp ràng buộc |
+| `tau_mpc_prev_free` | Đóng góp của lệnh phản hồi trước đó qua cost thay đổi torque |
+| `tau_mpc_fb_free` | Tổng bốn thành phần trên, tức bước điều khiển đầu của QP tự do |
+| `tau_mpc_correction` | Phản hồi thực tế trừ nghiệm QP tự do: gồm ảnh hưởng ràng buộc torque/slew và sai số solver, projection hoặc fallback |
+| `tau_mpc_total_clip` | Hiệu chỉnh do kẹp torque tổng sau khi cộng feedforward |
+
+Quan hệ cộng kiểm tra được ở từng mẫu `CONTROL`:
+
+```text
+tau_fb = tau_mpc_i_free + tau_mpc_q_free + tau_mpc_qd_free
+       + tau_mpc_prev_free + tau_mpc_correction
+tau_controller = tau_ff + tau_fb + tau_mpc_total_clip
+```
+
+Đây là một cách quy chiếu để chẩn đoán MPC, không phải các nhánh PID độc lập.
+Các thành phần `_free` được tính từ cùng Hessian/cost/mô hình của QP đang chạy:
+`U_free = -H^-1 (F*x + P*u_previous)`, rồi lấy lệnh đầu tiên.
+Khi có ràng buộc, phần đóng góp thực tế không có cách tách cộng duy nhất.
+Vì vậy không được diễn giải riêng `_free` như torque thực sự do một nhánh phát
+ra sau giới hạn, hoặc coi `tau_mpc_correction` chỉ do slew. Đối chiếu thêm
+`solver_accepted`, `constraint_violation` và giới hạn tích phân.
+
+Trạng thái tích phân dùng để tính torque là giá trị **trước** bước cập nhật
+tích phân của tick; cột `integral` có sẵn ghi giá trị sau cập nhật/kẹp.
+Heartbeat ở runner có thể tạo chênh lệch cỡ 1e-6 Nm giữa torque controller và
+cột torque gửi. Mẫu giữ lệnh do thiếu trạng thái mới ghi NaN cho các thành phần
+chẩn đoán, không giả là đã chạy lại MPC.
+
+Với `precompute_prediction: true`, các ma trận gain chẩn đoán được tính trước
+khi chạy quỹ đạo; không giải thêm QP trong control tick. Phần chẩn đoán không
+thay đổi nghiệm solver, warm start, tích phân, gain hay giới hạn điều khiển.
+
+Sau khi build `gim_control` và `gim_arm_controller_mpc`, restart node và ghi
+CSV mới. `plot_joint_tracking` tự thêm các đường thành phần vào panel torque:
+
+```bash
+ros2 run gim_control plot_joint_tracking \
+  results_new/mpc/fine_tune/circle_run04.csv --show
+```
+
+CSV cũ vẫn plot được, nhưng không chứa các thành phần mới. Các nhánh khác,
+bao gồm `mpc-eso-test`, chưa được cập nhật bởi thay đổi này.

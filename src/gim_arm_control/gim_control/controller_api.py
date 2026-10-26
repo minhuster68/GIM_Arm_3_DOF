@@ -6,6 +6,13 @@ from typing import Protocol
 import numpy as np
 
 
+MPC_FEEDBACK_COMPONENTS = (
+    'tau_mpc_i_free', 'tau_mpc_q_free', 'tau_mpc_qd_free',
+    'tau_mpc_prev_free', 'tau_mpc_correction', 'tau_mpc_fb_free',
+    'tau_mpc_total_clip',
+)
+
+
 class TorqueController(Protocol):
     """Giao diện mà PID, LQR, MPC và SMC phải triển khai."""
 

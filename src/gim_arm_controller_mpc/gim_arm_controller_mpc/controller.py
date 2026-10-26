@@ -71,6 +71,7 @@ class MpcController:
         self.feedforward_min = self.feedforward_max = None
         self.precompute_prediction = bool(precompute_prediction)
         self.prediction_schedule = None
+        self.feedback_gain_schedule = None
         self.reference_time = 0.0
         self.fd_step = float(fd_step)
         self.max_iterations = int(max_iterations)
@@ -130,11 +131,14 @@ class MpcController:
         self.feedback_min, self.feedback_max = lower, upper
         if self.precompute_prediction:
             schedule = []
+            feedback_gains = []
             for q, qd, qdd in zip(q_ref, qd_ref, qdd_ref):
                 ad, bd = self._linearize(q, qd, qdd)
                 h, f = self._prediction_terms(ad, bd)
                 schedule.append((h, f))
+                feedback_gains.append(self._feedback_decomposition_gains(h, f))
             self.prediction_schedule = (times.copy(), schedule)
+            self.feedback_gain_schedule = feedback_gains
         return len(q_ref)
 
     def set_reference_time(self, elapsed):
@@ -242,6 +246,42 @@ class MpcController:
         weighted_difference = self._rate_weight @ self._difference
         hessian += 2.0 * self._difference.T @ weighted_difference
         return 0.5 * (hessian + hessian.T), gradient
+
+    def _feedback_decomposition_gains(self, hessian, state_gradient):
+        """First-move gains of the unconstrained QP, for diagnostics only.
+
+        H U + F x + P u_previous = 0. Solve only the first n rows of
+        H^-1; never replace the constrained solution by this free solution.
+        With prediction precomputation these gains are prepared before motion.
+        """
+        selector = np.zeros((len(hessian), self.n))
+        selector[:self.n] = np.eye(self.n)
+        first_inverse_rows = cho_solve(
+            cho_factor(hessian, lower=True, check_finite=False),
+            selector, check_finite=False).T
+        return (-first_inverse_rows @ state_gradient,
+                -first_inverse_rows @ self._previous_gradient)
+
+    def _feedback_decomposition(self, gains, state, previous, feedback):
+        """Additive free-QP contributions plus actual constraint/solver residual.
+
+        A constrained MPC is not an additive PID. Attribution uses the free
+        optimum as a reference; the residual includes bounds, slew, numerical
+        solver error/projection and fallback. It is not a unique attribution
+        of the constrained optimum to individual cost weights.
+        """
+        state_gain, previous_gain = gains
+        n = self.n
+        parts = {
+            'tau_mpc_i_free': state_gain[:, :n] @ state[:n],
+            'tau_mpc_q_free': state_gain[:, n:2*n] @ state[n:2*n],
+            'tau_mpc_qd_free': state_gain[:, 2*n:] @ state[2*n:],
+            'tau_mpc_prev_free': previous_gain @ previous,
+        }
+        free_feedback = sum(parts.values())
+        parts['tau_mpc_fb_free'] = free_feedback
+        parts['tau_mpc_correction'] = feedback - free_feedback
+        return parts
 
     @staticmethod
     def _quadratic_cost(flat_u, hessian, gradient):
@@ -487,6 +527,7 @@ class MpcController:
         error = q - q_ref
         error_rate = qd - qd_ref
         state = np.concatenate([self.integral, error, error_rate])
+        previous_feedback = self.previous_feedback.copy()
         feedforward = self._feedforward(q_ref, qd_ref, qdd_ref)
 
         lower_fb, upper_fb = -self.tau_limit - feedforward, self.tau_limit - feedforward
@@ -507,9 +548,12 @@ class MpcController:
                 index -= 1
             hessian, state_gradient = matrices[index]
             gradient = state_gradient @ state + self._previous_gradient @ self.previous_feedback
+            feedback_gains = self.feedback_gain_schedule[index]
         else:
             ad, bd = self._linearize(q_ref, qd_ref, qdd_ref)
-            hessian, gradient = self._qp_terms(state, ad, bd)
+            hessian, state_gradient = self._prediction_terms(ad, bd)
+            gradient = state_gradient @ state + self._previous_gradient @ self.previous_feedback
+            feedback_gains = self._feedback_decomposition_gains(hessian, state_gradient)
         started = time.perf_counter()
         if self.feedback_model_mode == "independent":
             # A/B and Q/R/Rd make the condensed cost separable by joint.
@@ -572,6 +616,9 @@ class MpcController:
             **diagnostics,
             "solve_time": solve_time,
         }
+        self.last.update(self._feedback_decomposition(
+            feedback_gains, state, previous_feedback, feedback))
+        self.last['tau_mpc_total_clip'] = tau - tau_raw
         return tau
 
     def describe(self, q_nominal=None):

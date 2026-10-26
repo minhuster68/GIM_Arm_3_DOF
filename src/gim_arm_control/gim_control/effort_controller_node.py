@@ -22,6 +22,7 @@ from std_msgs.msg import Float64MultiArray
 from std_srvs.srv import SetBool
 
 from gim_control.arm_dynamics import ArmDynamics
+from gim_control.controller_api import MPC_FEEDBACK_COMPONENTS
 from gim_control.reference_trajectory import (
     Hold,
     Quintic,
@@ -545,6 +546,8 @@ class EffortControllerNode(Node):
                 *(last.get("tau_feedback", missing)),
                 *(last.get("integral", missing)),
             ])
+            for name in MPC_FEEDBACK_COMPONENTS:
+                row.extend(last.get(name, missing))
         elif self.diagnostic_pid:
             last = self.controller.last if event == "CONTROL" else {}
             missing = np.full(self.n, np.nan)
@@ -1066,6 +1069,8 @@ class EffortControllerNode(Node):
                 "primal_residual", "dual_residual", "solver_rho",
             ])
             for prefix in ("tau_ff", "tau_feedback", "tau_raw", "saturated", "tau_fb", "integral"):
+                header.extend(f"{prefix}_{name}" for name in self.joint_names)
+            for prefix in MPC_FEEDBACK_COMPONENTS:
                 header.extend(f"{prefix}_{name}" for name in self.joint_names)
             if self.velocity_filter is not None:
                 for prefix in ('qd_raw', 'qd_filtered'):

@@ -7,6 +7,8 @@ import os
 
 import numpy as np
 
+from gim_control.controller_api import MPC_FEEDBACK_COMPONENTS
+
 
 JOINT_NAMES = ("base_joint", "shoulder_joint", "elbow_joint")
 JOINT_TITLES = ("q1 - Base joint", "q2 - Shoulder joint", "q3 - Elbow joint")
@@ -36,7 +38,8 @@ def load_log(path):
             "qd_ref": [],
             "tau": [],
         }
-        optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i', 'saturated', 'qd_raw', 'qd_filtered')
+        optional = [prefix for prefix in ('tau_ff', 'tau_fb', 'tau_p', 'tau_i', 'saturated', 'qd_raw', 'qd_filtered',
+                                         *MPC_FEEDBACK_COMPONENTS)
                     if all(f'{prefix}_{name}' in reader.fieldnames for name in JOINT_NAMES)]
         columns.update({prefix: [] for prefix in optional})
         for row in reader:
@@ -199,10 +202,20 @@ def plot(log, output, show, max_plot_points):
                 if prefix in log:
                     axes[2].plot(t, log[prefix][sample, index], color=color,
                                  linewidth=0.8, linestyle='--', label=prefix)
+        for prefix, label, component_color in (
+                ('tau_mpc_i_free', 'Tích phân (QP tự do)', 'tab:brown'),
+                ('tau_mpc_q_free', 'Sai số vị trí (QP tự do)', 'tab:red'),
+                ('tau_mpc_qd_free', 'Sai số vận tốc (QP tự do)', 'tab:cyan'),
+                ('tau_mpc_prev_free', 'Lệnh trước (QP tự do)', 'tab:gray'),
+                ('tau_mpc_correction', 'Hiệu chỉnh ràng buộc/solver', 'tab:pink'),
+                ('tau_mpc_total_clip', 'Kẹp torque tổng', 'black')):
+            if prefix in log:
+                axes[2].plot(t, log[prefix][sample, index], color=component_color,
+                             linewidth=0.8, linestyle='--', label=label)
         axes[2].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
         axes[2].set_ylabel("Mô-men (Nm)")
         axes[2].set_title("Mô-men điều khiển đầu ra")
-        axes[2].legend(loc="best")
+        axes[2].legend(loc="best", ncol=2, fontsize=8)
 
         for axis in axes:
             axis.set_xlabel("Thời gian t (s)")
