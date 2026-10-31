@@ -22,11 +22,13 @@ START_VELOCITY_LIMIT_RAD_S = 0.05
 PRESTART_STABLE_TIME_S = 0.3
 
 
-def stationary_window(samples, selected, limit=START_VELOCITY_LIMIT_RAD_S):
-    """Check fresh position excursion and mean velocity; keep selected raw gate.
+def stationary_window(samples, selected, limit=START_VELOCITY_LIMIT_RAD_S,
+                      allow_selected_noise=False):
+    """Check fresh position excursion and mean velocity before a trial.
 
     Held position joints can report alternating velocity spikes at rest. This
-    check is only for starting a trial and never filters MPC feedback.
+    check is only for starting a trial and never filters MPC feedback. The
+    optional window mode also caps every joint's excursion at 0.3 degree.
     Samples are (monotonic receipt time, three positions, three velocities).
     """
     if len(samples) < 2:
@@ -38,11 +40,14 @@ def stationary_window(samples, selected, limit=START_VELOCITY_LIMIT_RAD_S):
         return False
     if any(not math.isfinite(v) for _, q, qd in samples for v in (*q, *qd)):
         return False
-    if any(abs(sample[2][selected]) > limit for sample in samples):
+    if not allow_selected_noise and any(abs(sample[2][selected]) > limit for sample in samples):
         return False
     for joint in range(3):
         positions = [sample[1][joint] for sample in samples]
-        if max(positions) - min(positions) > limit * span:
+        excursion_limit = limit * span
+        if allow_selected_noise:
+            excursion_limit = min(excursion_limit, math.radians(0.3))
+        if max(positions) - min(positions) > excursion_limit:
             return False
         mean_velocity = sum((b[0] - a[0]) * (a[2][joint] + b[2][joint]) / 2
                             for a, b in zip(samples, list(samples)[1:])) / span
@@ -98,13 +103,21 @@ def trial_target(start, selected, degrees, move, lower, upper, velocity):
 class RosMpcJointTrial:
     """Run the existing effort MPC runner, with only one hardware torque joint."""
 
-    def __init__(self, log_dir, show_plot=True, prestart_timeout=6.0):
+    def __init__(self, log_dir, show_plot=True, prestart_timeout=6.0,
+                 stationarity_mode='raw'):
         self.log_dir = Path(log_dir)
         self.show_plot = show_plot
         self.prestart_timeout = float(prestart_timeout)
         if not math.isfinite(self.prestart_timeout) or self.prestart_timeout <= 0:
             raise ValueError('prestart_timeout phải hữu hạn và > 0')
         self.node = None
+        if stationarity_mode not in ('raw', 'window'):
+            raise ValueError('stationarity_mode phải là raw hoặc window')
+        self.stationarity_mode = stationarity_mode
+
+    def is_stationary(self, samples, selected, limit=START_VELOCITY_LIMIT_RAD_S):
+        return stationary_window(samples, selected, limit,
+                                 allow_selected_noise=self.stationarity_mode == 'window')
 
     def wait_for_stable_hold(self, executor, handoff_duration=0.0):
         """Keep the original HOME under MPC before starting the trajectory."""
@@ -139,8 +152,13 @@ class RosMpcJointTrial:
             if error > position_limit:
                 samples.clear()
                 continue
+            if self.stationarity_mode == 'window' and any(
+                    abs(float(node.q[joint] - node.home_q[joint])) > math.radians(0.3)
+                    for joint in range(3) if joint != self.selected):
+                samples.clear()
+                continue
             append_stationary_sample(samples, now, node.q, node.qd_raw)
-            if stationary_window(samples, self.selected):
+            if self.is_stationary(samples, self.selected):
                 node.stationarity_samples = samples.copy()
                 return
         values = ', '.join(
@@ -168,7 +186,7 @@ class RosMpcJointTrial:
             def _start_velocity_is_safe(node):
                 samples = getattr(node, 'stationarity_samples', deque()).copy()
                 append_stationary_sample(samples, time.monotonic(), node.q, node.qd_raw)
-                return stationary_window(samples, selected, node.start_velocity_limit)
+                return self.is_stationary(samples, selected, node.start_velocity_limit)
 
         self.node = None
         self.selected = selected
@@ -252,7 +270,7 @@ class RosMpcJointTrial:
                 raise RuntimeError('Một node khác đang phát effort; dừng node MPC cũ trước test')
             deadline = time.monotonic() + 3.0
             while (not state or time.monotonic() - state['received'] > 0.05
-                   or not stationary_window(preflight_samples, selected)):
+                   or not self.is_stationary(preflight_samples, selected)):
                 if time.monotonic() >= deadline:
                     raise RuntimeError('Chưa có cửa sổ joint state mới, đứng yên đủ 0.3s trước test')
                 executor.spin_once(timeout_sec=0.01)
@@ -300,13 +318,37 @@ class RosMpcJointTrial:
             self.node._prepare_controller_schedule(self.node.home_q)
             self.node.controller.reset()
             # Precomputation blocks callbacks: require a fresh state afterward.
+            precompute_finished_ns = time.time_ns()
+            previous_seq = self.node.state_seq
             self.node.q = self.node.qd = self.node.state_stamp = None
             self.node.previous_tick = None
             deadline = time.monotonic() + 3.0
-            while self.node.q is None:
+
+            def fresh_after_precompute():
+                if self.node.q is None:
+                    return False
+                if self.stationarity_mode != 'window':
+                    return True
+                # Receipt of a queued callback alone does not prove its
+                # measurement was generated after the blocking computation.
+                if self.node.state_header_ns > 0:
+                    return self.node.state_header_ns >= precompute_finished_ns
+                return self.node.state_seq >= previous_seq + 2
+
+            while not fresh_after_precompute():
                 if time.monotonic() >= deadline:
                     raise RuntimeError('Không có state mới sau precompute MPC')
                 executor.spin_once(timeout_sec=0.01)
+            if self.stationarity_mode == 'window':
+                for joint in range(3):
+                    if joint == selected:
+                        continue
+                    shift = abs(float(self.node.q[joint] - self.node.home_q[joint]))
+                    if shift > math.radians(0.3):
+                        raise RuntimeError(
+                            f'{JOINTS[joint]} đổi tư thế {math.degrees(shift):.2f} độ '
+                            'trong precompute; chờ position ổn định rồi test lại. '
+                            'Chưa chuyển sang torque.')
             (directory / 'parameters.yaml').write_text(yaml.safe_dump({
                 'mpc_controller': {'ros__parameters': config}}, sort_keys=False))
             (directory / 'trial.json').write_text(json.dumps({
@@ -323,7 +365,10 @@ class RosMpcJointTrial:
                     'stable_time_s': PRESTART_STABLE_TIME_S,
                     'timeout_s': self.prestart_timeout,
                     'velocity_limit_rad_s': START_VELOCITY_LIMIT_RAD_S,
-                    'stationarity_check': 'position excursion and time-mean velocity over 0.3s; selected raw velocity gate',
+                    'stationarity_mode': self.stationarity_mode,
+                    'stationarity_check': 'fresh 0.3s position excursion and time-mean velocity; '
+                        + ('every joint excursion capped at 0.3 degree' if self.stationarity_mode == 'window'
+                           else 'selected instantaneous raw velocity gate'),
                     'position_limit_rad': min(0.02, self.node.max_transition_error),
                 },
             }, indent=2) + '\n')

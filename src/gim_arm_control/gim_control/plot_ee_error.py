@@ -135,19 +135,60 @@ def add_phase_boundaries(axes, t, phases):
             color="0.25")
 
 
-def output_paths(output, velocity=False):
-    """Return separate position or velocity paths for the three joints."""
+def output_paths(output, velocity=False, torque=False):
+    """Return separate position, velocity or torque paths for the three joints."""
     if not output:
         raise ValueError("output không được rỗng")
+    if velocity and torque:
+        raise ValueError("velocity và torque không được cùng bật")
     root, extension = os.path.splitext(output)
     if not extension:
         root, extension = output, ".png"
-    signal_suffix = "_velocity" if velocity else ""
+    signal_suffix = "_velocity" if velocity else "_torque" if torque else ""
     return [f"{root}_{suffix}{signal_suffix}{extension}" for suffix in JOINT_SUFFIXES]
 
 
+def enable_torque_interaction(figure, axis, legend):
+    """Enable cursor-centred wheel zoom and click-to-toggle torque curves."""
+    curves = dict(zip(legend.get_lines(), axis.get_legend_handles_labels()[0]))
+    for handle in curves:
+        handle.set_picker(5)
+
+    def toggle_curve(event):
+        curve = curves.get(event.artist)
+        if curve is None:
+            return
+        visible = not curve.get_visible()
+        curve.set_visible(visible)
+        event.artist.set_alpha(1.0 if visible else 0.2)
+        figure.canvas.draw_idle()
+
+    def zoom(event):
+        if event.inaxes is not axis or event.xdata is None or event.ydata is None:
+            return
+        step = event.step
+        if not step:
+            return
+        toolbar = getattr(figure.canvas, 'toolbar', None)
+        if toolbar is not None:
+            toolbar.push_current()
+        factor = 1.25 ** step
+        left, right = axis.get_xlim()
+        bottom, top = axis.get_ylim()
+        axis.set_xlim(event.xdata + (left - event.xdata) / factor,
+                      event.xdata + (right - event.xdata) / factor)
+        axis.set_ylim(event.ydata + (bottom - event.ydata) / factor,
+                      event.ydata + (top - event.ydata) / factor)
+        if toolbar is not None:
+            toolbar.push_current()
+        figure.canvas.draw_idle()
+
+    figure.canvas.mpl_connect('pick_event', toggle_curve)
+    figure.canvas.mpl_connect('scroll_event', zoom)
+
+
 def plot(log, output, show, max_plot_points):
-    """Create separate position/torque and velocity figures for each joint."""
+    """Create separate position, torque and velocity figures for each joint."""
     import matplotlib
     if not show:
         matplotlib.use("Agg")
@@ -168,7 +209,7 @@ def plot(log, output, show, max_plot_points):
     for index, (title, color, path) in enumerate(zip(
             JOINT_TITLES, JOINT_COLORS, paths)):
         figure, axes = plt.subplots(
-            3, 1, figsize=(13, 10), sharex=True,
+            2, 1, figsize=(13, 7), sharex=True,
             constrained_layout=True)
 
         axes[0].plot(
@@ -192,16 +233,28 @@ def plot(log, output, show, max_plot_points):
         axes[1].set_title("e_q = q thực tế - q mong muốn")
         axes[1].legend(loc="best")
 
-        torque_peak = float(np.max(np.abs(tau[:, index])))
-        axes[2].plot(
-            t, tau[:, index], color="tab:purple", linewidth=1.0,
-            label=f"MAX |tau|={torque_peak:.3f} Nm")
-        if 'tau_fb' in log:
-            for prefix, color in (('tau_ff', 'tab:green'), ('tau_fb', 'tab:orange'),
-                                  ('tau_p', 'tab:red'), ('tau_i', 'tab:brown')):
-                if prefix in log:
-                    axes[2].plot(t, log[prefix][sample, index], color=color,
-                                 linewidth=0.8, linestyle='--', label=prefix)
+        for axis in axes:
+            axis.set_xlabel("Thời gian t (s)")
+            axis.tick_params(labelbottom=True)
+            axis.grid(alpha=0.3)
+        add_phase_boundaries(axes, t, phases)
+        figure.suptitle(f"{title} — vị trí và sai số bám", fontsize=15)
+        figure.savefig(path, dpi=150)
+        figures.append(figure)
+        print(f"Đã lưu: {os.path.abspath(path)}")
+
+    for index, (title, path) in enumerate(zip(
+            JOINT_TITLES, output_paths(output, torque=True))):
+        figure, axis = plt.subplots(figsize=(14, 8), constrained_layout=True)
+        torque_peak = float(np.max(np.abs(log['tau'][:, index])))
+        axis.plot(
+            t, tau[:, index], color="tab:purple", linewidth=1.2,
+            label=f"tau đầu ra (MAX |tau|={torque_peak:.3f} Nm)")
+        for prefix, color in (('tau_ff', 'tab:green'), ('tau_fb', 'tab:orange'),
+                              ('tau_p', 'tab:red'), ('tau_i', 'tab:brown')):
+            if prefix in log:
+                axis.plot(t, log[prefix][sample, index], color=color,
+                          linewidth=0.8, linestyle='--', label=prefix)
         for prefix, label, component_color in (
                 ('tau_mpc_i_free', 'Tích phân (QP tự do)', 'tab:brown'),
                 ('tau_mpc_q_free', 'Sai số vị trí (QP tự do)', 'tab:red'),
@@ -210,19 +263,18 @@ def plot(log, output, show, max_plot_points):
                 ('tau_mpc_correction', 'Hiệu chỉnh ràng buộc/solver', 'tab:pink'),
                 ('tau_mpc_total_clip', 'Kẹp torque tổng', 'black')):
             if prefix in log:
-                axes[2].plot(t, log[prefix][sample, index], color=component_color,
-                             linewidth=0.8, linestyle='--', label=label)
-        axes[2].axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
-        axes[2].set_ylabel("Mô-men (Nm)")
-        axes[2].set_title("Mô-men điều khiển đầu ra")
-        axes[2].legend(loc="best", ncol=2, fontsize=8)
-
-        for axis in axes:
-            axis.set_xlabel("Thời gian t (s)")
-            axis.tick_params(labelbottom=True)
-            axis.grid(alpha=0.3)
-        add_phase_boundaries(axes, t, phases)
-        figure.suptitle(f"{title} — output và sai số bám", fontsize=15)
+                axis.plot(t, log[prefix][sample, index], color=component_color,
+                          linewidth=0.8, linestyle='--', label=label)
+        axis.axhline(0.0, color="black", linewidth=0.8, alpha=0.6)
+        axis.set_ylabel("Mô-men (Nm)")
+        axis.set_xlabel("Thời gian t (s)")
+        axis.grid(alpha=0.3)
+        legend = axis.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12),
+                             ncol=3, fontsize=9)
+        add_phase_boundaries([axis], t, phases)
+        figure.suptitle(f"{title} — torque và các thành phần", fontsize=15)
+        if show:
+            enable_torque_interaction(figure, axis, legend)
         figure.savefig(path, dpi=150)
         figures.append(figure)
         print(f"Đã lưu: {os.path.abspath(path)}")
@@ -274,6 +326,8 @@ def plot(log, output, show, max_plot_points):
         print(f"Đã lưu: {os.path.abspath(path)}")
 
     if show:
+        print("Torque: cuộn chuột để zoom tại con trỏ; bấm đường trong chú giải "
+              "để ẩn/hiện. Thanh công cụ: Zoom, Pan, Home và Save.")
         plt.show()
     for figure in figures:
         plt.close(figure)
@@ -283,15 +337,15 @@ def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(
         description=(
-            "Vẽ hình góc/sai số góc/mô-men và hình vận tốc/sai số vận tốc riêng cho "
+            "Vẽ riêng hình góc/sai số góc, hình mô-men và hình vận tốc/sai số vận tốc cho "
             "từng khớp từ CSV effort controller."))
     parser.add_argument("csv", help="file CSV truyền bằng launch log_file:=...")
     parser.add_argument(
         "--output", default="",
         help=("prefix PNG đầu ra; mặc định <csv>_joints.png, sau đó thêm "
-              "tên từng khớp; hình vận tốc thêm _velocity"))
+              "tên từng khớp; hình vận tốc thêm _velocity, mô-men thêm _torque"))
     parser.add_argument("--show", action="store_true",
-                        help="mở sáu cửa sổ đồ thị sau khi lưu (hai hình mỗi khớp)")
+                        help="mở chín cửa sổ đồ thị có zoom/pan (ba hình mỗi khớp)")
     parser.add_argument("--max-plot-points", type=int, default=6000,
                         help="giảm mẫu khi vẽ; metrics vẫn dùng toàn bộ mẫu")
     args = parser.parse_args()

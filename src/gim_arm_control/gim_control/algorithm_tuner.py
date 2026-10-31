@@ -18,6 +18,7 @@ import yaml
 
 # (length, strictly positive, integer). Vectors follow base, shoulder, elbow.
 FIELDS = {'mpc': {'q_integral': (3, False, False), 'q_position': (3, True, False), 'q_velocity': (3, False, False), 'r_input': (3, True, False), 'r_rate': (3, False, False), 'output_scale_integral': (3, True, False), 'output_scale_position': (3, True, False), 'output_scale_velocity': (3, True, False), 'torque_penalty_scale': (1, True, False), 'integral_limit': (1, True, False), 'torque_slew_rate': (3, True, False), 'prediction_horizon': (1, True, True), 'control_horizon': (1, True, True)}}
+FIELDS['mpc']['integral_limit_per_joint'] = (3, False, False)
 HELP = """show                         bộ số hiện tại (vector: base shoulder elbow)
 set PARAM VALUE [VALUE VALUE] chỉnh tham số; áp dụng khi test tiếp theo
 shape circle|r|a              chọn quỹ đạo
@@ -70,6 +71,8 @@ class TuningSession:
         try:
             params = document[f'{self.algorithm}_controller']['ros__parameters']
             for name in FIELDS[self.algorithm]:
+                if name == 'integral_limit_per_joint' and name not in params:
+                    continue  # Older profiles keep their scalar limit.
                 self.parse_value(name, params[name] if isinstance(params[name], list)
                                  else [params[name]])
             if self.algorithm == 'lqr' and params.get('position_tracking_only') is not False:
@@ -117,7 +120,8 @@ class TuningSession:
     def show(self):
         print(f'{self.algorithm.upper()} | shape={self.shape} | YAML={self.params_file}')
         for name in FIELDS[self.algorithm]:
-            print(f'  {name}: {self.params[name]}')
+            if name in self.params:
+                print(f'  {name}: {self.params[name]}')
 
     def save(self, path=None):
         self.validate(self.document)

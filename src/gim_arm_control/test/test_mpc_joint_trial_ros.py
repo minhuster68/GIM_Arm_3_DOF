@@ -46,6 +46,8 @@ class TestMpcJointRosTrial(unittest.TestCase):
         self.prestart_drift = 0.0
         self.prestart_duration = 0.0
         self.held_velocity_noise = 0.0
+        self.selected_velocity_noise = 0.0
+        self.position_before_effort_shift = 0.0
         self.state_counter = 0
         self.activation_time = None
         self.commands_before_effort = []
@@ -85,8 +87,10 @@ class TestMpcJointRosTrial(unittest.TestCase):
 
     def publish_state(self):
         q, qd = np.array([0.03, 0.05, 0.1]), np.zeros(3)
+        q[0] += self.position_before_effort_shift
         self.state_counter += 1
         qd[0] = self.held_velocity_noise * (-1)**self.state_counter
+        qd[2] = self.selected_velocity_noise * (-1)**self.state_counter
         mpc = self.trial.node
         if (mpc is not None and self.effort_active and mpc.phase == 'GRAVITY'
                 and time.monotonic() - self.activation_time < self.prestart_duration):
@@ -193,6 +197,25 @@ class TestMpcJointRosTrial(unittest.TestCase):
         self.assertEqual(self.switches, [])
         self.assertIsNone(self.trial.node)
 
+    def test_window_rejects_held_pose_change_during_precompute_before_effort(self):
+        from gim_control.effort_controller_node import EffortControllerNode
+        self.trial.stationarity_mode = 'window'
+        original = EffortControllerNode._prepare_controller_schedule
+        calls = []
+
+        def changed_pose(node, home):
+            result = original(node, home)
+            calls.append(home.copy())
+            if len(calls) == 2:
+                self.position_before_effort_shift = .015
+            return result
+
+        with patch.object(EffortControllerNode, '_prepare_controller_schedule', changed_pose):
+            with self.assertRaisesRegex(RuntimeError, 'trong precompute'):
+                self.trial.run(2, 1, .15, .04, self.parameters)
+        self.assertEqual(self.switches, [])
+        self.assertFalse(self.effort_active)
+
     def test_held_position_joint_velocity_noise_uses_window_at_actual_path_start(self):
         self.held_velocity_noise = 0.3
         self.parameters['feedback_model_mode'] = 'independent'
@@ -202,6 +225,20 @@ class TestMpcJointRosTrial(unittest.TestCase):
             rows = list(csv.DictReader(stream))
         self.assertTrue(any(row['phase'] == 'APPROACH' for row in rows))
         self.assertFalse(any(row['phase'] == 'ABORT' for row in rows))
+
+    def test_window_mode_accepts_selected_velocity_noise_and_restores_position(self):
+        self.selected_velocity_noise = .3
+        self.trial.stationarity_mode = 'window'
+        self.trial.run(2, 1, .15, .04, self.parameters)
+        self.assertFalse(self.effort_active)
+        self.assertEqual(len(self.switches), 2)
+        path = next(Path(self.directory.name).glob('*/tracking.csv'))
+        metadata = json.loads(path.with_name('trial.json').read_text())
+        self.assertEqual(metadata['prestart_hold']['stationarity_mode'], 'window')
+        with path.open() as stream:
+            phases = {row['phase'] for row in csv.DictReader(stream)}
+        self.assertTrue({'APPROACH', 'TRACK', 'RETURN', 'HOLD'} <= phases)
+        self.assertNotIn('ABORT', phases)
 
     def test_base_handoff_keeps_home_mpc_active_until_transient_velocity_settles(self):
         self.description = configure_hardware_description(self.stale_description, torque_joint='base')

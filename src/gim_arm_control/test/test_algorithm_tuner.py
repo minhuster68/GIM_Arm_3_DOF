@@ -108,6 +108,22 @@ def test_velocity_weights_are_editable_and_saved(session, tmp_path):
         assert session.params['output_scale_velocity'] == [0.2, 0.3, 0.4]
 
 
+def test_joint_integral_caps_can_be_added_to_a_legacy_profile(session, tmp_path):
+    assert 'integral_limit_per_joint' not in session.params
+    session.set_value('integral_limit_per_joint', ['0.6', '0.6', '0.9'])
+    original = deepcopy(session.document)
+    for bad in (['0.6', '0.9'], ['0.6', '-1', '0.9'], ['nan', '0.6', '0.9']):
+        with pytest.raises(ValueError):
+            session.set_value('integral_limit_per_joint', bad)
+        assert session.document == original
+    target = tmp_path / 'joint_caps.yaml'
+    session.save(target)
+    restored = tuner.TuningSession('mpc', target)
+    assert restored.params['integral_limit_per_joint'] == [.6, .6, .9]
+    trial = restored.trial_document(tmp_path / 'log.csv', tmp_path / 'robot.urdf')
+    assert trial['mpc_controller']['ros__parameters']['integral_limit_per_joint'] == [.6, .6, .9]
+
+
 def test_tracking_evaluation_depends_on_position_only(capsys):
     import numpy as np
     from gim_control.plot_ee_error import print_metrics

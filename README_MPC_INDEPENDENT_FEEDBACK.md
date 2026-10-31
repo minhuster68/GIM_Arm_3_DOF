@@ -80,6 +80,10 @@ tên log khác. Tham số lọc được nạp khi khởi tạo node.
 
 ## Tune lại từng khớp
 
+Đợt tune coupled/no-Kalman elbow ngày 2026-10-28 được ghi ở
+[ELBOW_RETUNE_20261028.md](results_new/mpc/ELBOW_RETUNE_20261028.md).
+Phiên này dùng file coupled tường minh, khác mặc định independent bên dưới.
+
 Terminal hiện mặc định đọc `mpc_circle_independent_feedback.yaml`, in rõ
 `feedback_model_mode=independent` và lưu kết quả ở `results_new/mpc/joint_trials`.
 Lệnh `save` ghi đúng file này, nên bộ sau tune cũng chính là bộ chạy vòng tròn.
@@ -137,6 +141,13 @@ tiết chế hơn; RD tăng làm thay đổi torque đắt hơn, có thể giả
 trễ. Slew là ràng buộc cứng, khác RD. Giữ horizon và alpha cố định trong các
 lượt đầu để đánh giá thay đổi từng trọng số. Sau tune từng khớp cần chạy lại
 vòng tròn vì các tư thế và tương tác cơ khí khác bài độc lập.
+
+QI/QV có thể bằng 0; QE/R phải dương và RD không âm. Nếu gate vận tốc thô
+liên tục báo chưa đứng yên dù vị trí ổn định, có thể thêm
+`--stationarity-mode window`. Chế độ này xét mẫu mới liên tục trong 0.3s,
+vận tốc trung bình <=0.05 rad/s và biên vị trí <=0.3° cho cả ba khớp;
+không lọc tín hiệu đưa vào MPC. Nếu tư thế khớp giữ thay đổi trong precompute,
+tuner yêu cầu chờ position ổn định rồi thử lại trước khi chuyển torque.
 
 Lượt vòng tròn independent ban đầu đã hoàn thành: RMS TRACK
 [base, shoulder, elbow]=[0.912,0.600,0.718] độ; vấn đề lớn nhất là base ở RETURN
@@ -307,7 +318,9 @@ khi chạy quỹ đạo; không giải thêm QP trong control tick. Phần chẩ
 thay đổi nghiệm solver, warm start, tích phân, gain hay giới hạn điều khiển.
 
 Sau khi build `gim_control` và `gim_arm_controller_mpc`, restart node và ghi
-CSV mới. `plot_joint_tracking` tự thêm các đường thành phần vào panel torque:
+CSV mới. `plot_joint_tracking` tự thêm các đường thành phần vào hình torque
+riêng của từng khớp (`*_torque.png`); vị trí/sai số vị trí vẫn ở hình riêng.
+Với `--show`, cuộn chuột để zoom và bấm đường trong chú giải để ẩn/hiện:
 
 ```bash
 ros2 run gim_control plot_joint_tracking \

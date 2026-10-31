@@ -77,7 +77,7 @@ def test_stage_order_slew_alpha_and_horizons(terminal):
 
 
 @pytest.mark.parametrize('command', ['qe nan', 'qv -1', 'r 0', 'rd -1',
-                                    'set 1 2 0 4', 'slew inf', 'nc 2.5'])
+                                    'set 1 2 0 0', 'slew inf', 'nc 2.5'])
 def test_bad_commands_do_not_mutate_profile(terminal, command):
     before = deepcopy(terminal.parameters)
     with pytest.raises(ValueError):
@@ -91,6 +91,13 @@ def test_dry_run_never_connects_to_ros_or_saves(terminal, monkeypatch):
     terminal.execute('test 3 6 3')
     terminal.execute('save')
     assert terminal.session.params_file.read_text() == before
+
+
+def test_zero_integral_and_velocity_costs_can_be_staged(terminal):
+    terminal.execute('set 400 0 0 0.15 3')
+    assert terminal.costs() == pytest.approx((400, 0, 0, .15, 3))
+    terminal.execute('qe 500')
+    assert terminal.costs() == pytest.approx((500, 0, 0, .15, 3))
 
 
 def test_independent_mode_survives_edits_save_and_trial(tmp_path, monkeypatch, capsys):

@@ -173,14 +173,20 @@ ros2 run gim_control plot_joint_tracking results/mpc_circle_run01.csv --show
 
 ```text
 RMS e_q [deg], MAX |e_q| [deg], MAX |tau| [Nm].
-6 cửa sổ đồ thị, mỗi khớp 2 hình riêng: vị trí/sai số vị trí/mô-men và vận tốc/sai số vận tốc.
+9 cửa sổ đồ thị, mỗi khớp 3 hình riêng: vị trí/sai số vị trí, mô-men và vận tốc/sai số vận tốc.
 results/mpc_circle_run01_joints_q1_base.png
 results/mpc_circle_run01_joints_q2_shoulder.png
 results/mpc_circle_run01_joints_q3_elbow.png
+results/mpc_circle_run01_joints_q1_base_torque.png
+results/mpc_circle_run01_joints_q2_shoulder_torque.png
+results/mpc_circle_run01_joints_q3_elbow_torque.png
 results/mpc_circle_run01_joints_q1_base_velocity.png
 results/mpc_circle_run01_joints_q2_shoulder_velocity.png
 results/mpc_circle_run01_joints_q3_elbow_velocity.png
 ```
+
+Trong cửa sổ torque, cuộn chuột để zoom quanh con trỏ, bấm đường trong chú giải
+để ẩn/hiện thành phần. Thanh công cụ có Zoom, Pan, Home và Save.
 
 ## Xem trước ba quỹ đạo
 

@@ -23,7 +23,7 @@ tau = tau_ff(URDF) + tau_fb(QP). Q phạt tích phân, vị trí và vận tốc
   save                    Lưu YAML trên máy; không ghi flash motor
   next                    Chuyển elbow -> shoulder -> base
   help / quit
-QE/QI/QV/R > 0; RD >= 0. Nhập trọng số thực, terminal tự đổi về YAML.
+QE/R > 0; QI/QV/RD >= 0. Nhập trọng số thực, terminal tự đổi về YAML.
 RD phạt thay đổi feedback torque; slew là ràng buộc cứng của QP.
 Ctrl-C trong test: trả về position, lưu log và mở đồ thị.
 """
@@ -65,14 +65,15 @@ def validate_joint_profile(params):
 
 class MpcJointTerminal:
     def __init__(self, params_file, joint='elbow', log_dir='results_new/mpc/joint_trials',
-                 show_plot=True, dry_run=False, interface='can0', prestart_timeout=6.0):
+                 show_plot=True, dry_run=False, interface='can0', prestart_timeout=6.0,
+                 stationarity_mode='raw'):
         self.session = TuningSession('mpc', params_file)
         validate_joint_profile(self.parameters)
         self.parameters.setdefault('base_ff_alpha', 1.0)
         self.parameters.setdefault('feedback_model_mode', 'coupled')
         self.selected = JOINTS.index(joint)
         self.dry_run, self.interface = dry_run, interface
-        self.trial = RosMpcJointTrial(log_dir, show_plot, prestart_timeout)
+        self.trial = RosMpcJointTrial(log_dir, show_plot, prestart_timeout, stationarity_mode)
 
     @property
     def parameters(self):
@@ -92,7 +93,9 @@ class MpcJointTerminal:
         self.session.document = candidate
 
     def set_costs(self, qe, qi, qv, r, rd=None):
-        values = [positive(v) for v in (qe, qi, qv, r)]
+        values = [positive(qe), float(qi), float(qv), positive(r)]
+        if any(not math.isfinite(v) or v < 0 for v in values[1:3]):
+            raise ValueError('QI/QV phải hữu hạn và >= 0')
         rd = self.costs()[-1] if rd is None else float(rd)
         if not math.isfinite(rd) or rd < 0:
             raise ValueError('RD phải hữu hạn và >= 0')
@@ -108,9 +111,14 @@ class MpcJointTerminal:
               ', '.join(f'{name.upper()}={value:g}' for name, value in zip(COSTS, self.costs())))
         p = self.parameters
         print(f'feedback_model_mode={p["feedback_model_mode"]}')
+        print(f'prestart stationarity_mode={self.trial.stationarity_mode}')
         print(f'alpha base={p["base_ff_alpha"]:g}, tau_scale={p["tau_scale"]:g}, '
               f'slew={p["torque_slew_rate"][self.selected]:g} Nm/s, '
               f'Np={p["prediction_horizon"]}, Nc={p["control_horizon"]}')
+        limits = [value if value > 0 else p['integral_limit'] for value in
+                  p.get('integral_limit_per_joint', [0.0, 0.0, 0.0])]
+        print(f'I-limit [base, shoulder, elbow]={limits} rad.s '
+              '(<=0: không giới hạn)')
         print(f'YAML lưu bằng save: {self.session.params_file}')
 
     def stage(self):
@@ -198,11 +206,14 @@ def main(root, argv=None):
     parser.add_argument('--log-dir', default='results_new/mpc/joint_trials')
     parser.add_argument('--interface', '--can', default='can0')
     parser.add_argument('--prestart-timeout', type=positive, default=6.0)
+    parser.add_argument('--stationarity-mode', choices=('raw', 'window'), default='raw',
+                        help='window: dùng vận tốc trung bình và biên góc 0.3° cho từng khớp')
     parser.add_argument('--no-show', action='store_true')
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args(argv)
     try:
         MpcJointTerminal(args.params_file, args.joint, args.log_dir, not args.no_show,
-                         args.dry_run, args.interface, args.prestart_timeout).run()
+                         args.dry_run, args.interface, args.prestart_timeout,
+                         args.stationarity_mode).run()
     except (ValueError, KeyError, OSError) as error:
         parser.error(str(error))

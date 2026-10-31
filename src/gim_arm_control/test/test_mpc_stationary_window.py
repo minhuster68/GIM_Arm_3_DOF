@@ -20,6 +20,20 @@ def test_held_joint_alternating_noise_passes_but_selected_raw_spike_does_not():
     assert not stationary_window(window, selected=2)
 
 
+def test_window_mode_accepts_selected_noise_but_retains_motion_checks():
+    assert stationary_window(samples(noise=.4), selected=2, allow_selected_noise=True)
+    assert not stationary_window(samples(speed=.03), selected=2, allow_selected_noise=True)
+    assert not stationary_window(samples(speed=.15), selected=2, allow_selected_noise=True)
+    biased = deque((t, q, [0., 0., .2]) for t, q, _ in samples())
+    assert not stationary_window(biased, selected=2, allow_selected_noise=True)
+    oscillating = deque((t, [0., 0., .01*(-1)**i], v)
+                        for i, (t, q, v) in enumerate(samples(noise=.4)))
+    assert not stationary_window(oscillating, selected=2, allow_selected_noise=True)
+    held_motion = deque((t, [.01*(-1)**i, 0., 0.], v)
+                        for i, (t, q, v) in enumerate(samples(noise=.4)))
+    assert not stationary_window(held_motion, selected=2, allow_selected_noise=True)
+
+
 def test_drift_and_biased_velocity_still_reject():
     assert not stationary_window(samples(speed=.15), selected=1)
     window = samples()

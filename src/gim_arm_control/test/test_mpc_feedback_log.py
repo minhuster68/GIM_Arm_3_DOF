@@ -49,8 +49,9 @@ def test_feedback_csv_round_trip_and_plot_including_stale_sample(tmp_path, monke
         figures = []
         monkeypatch.setattr(Figure, 'savefig', lambda fig, *args, **kw: figures.append(fig))
         plot(log, str(tmp_path / 'tracking.png'), False, 100)
-        assert len(figures) == 6
-        labels = [line.get_label() for line in figures[0].axes[2].lines]
+        assert len(figures) == 9
+        assert len(figures[0].axes) == 2
+        labels = [line.get_label() for line in figures[3].axes[0].lines]
         assert 'Tích phân (QP tự do)' in labels
         assert 'Hiệu chỉnh ràng buộc/solver' in labels
     finally:
