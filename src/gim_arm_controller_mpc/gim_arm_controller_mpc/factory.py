@@ -22,6 +22,8 @@ class MpcFactory(ControllerFactory):
         node.declare_parameter("input_scale", [5.0, 40.0, 5.0])
         node.declare_parameter("torque_slew_rate", [50.0, 200.0, 50.0])
         node.declare_parameter("integral_limit", 0.0)
+        # Zero entries inherit the legacy scalar integral_limit.
+        node.declare_parameter("integral_limit_per_joint", [0.0, 0.0, 0.0])
         node.declare_parameter("linearization_step", 1.0e-5)
         node.declare_parameter("max_solver_iterations", 60)
         node.declare_parameter("qp_solver", "slsqp")
@@ -82,6 +84,14 @@ class MpcFactory(ControllerFactory):
             raise ValueError("torque_penalty_scale phải hữu hạn và dương")
         ri = penalty * cost("r_input", input_scale, positive=True)
         rr = penalty * cost("r_rate", input_scale)
+        integral_limit = float(node.get_parameter("integral_limit").value)
+        if not math.isfinite(integral_limit):
+            raise ValueError("integral_limit phải hữu hạn")
+        joint_limits = vector_parameter(
+            node, "integral_limit_per_joint", n, nonnegative=True).copy()
+        if any(joint_limits > 0.0):
+            joint_limits[joint_limits == 0.0] = integral_limit
+            integral_limit = joint_limits
         return MpcController(
             dynamics,
             control_hz=control_hz,
@@ -95,7 +105,7 @@ class MpcFactory(ControllerFactory):
             r_rate=rr,
             torque_slew_rate=vector_parameter(
                 node, "torque_slew_rate", n, positive=True),
-            integral_limit=float(node.get_parameter("integral_limit").value),
+            integral_limit=integral_limit,
             tau_limit=tau_limit,
             fd_step=float(node.get_parameter("linearization_step").value),
             max_iterations=int(

@@ -15,6 +15,33 @@ và kiểm tra Python/ROS, không phải tuyên bố đã chạy lại mô phỏ
 | `mpc-eso-test` | `mpc-test` | `mpc_eso_hardware.yaml` |
 | `smc-eso-test` | `smc-test` | `smc_eso_hardware.yaml` |
 
+## MPC: đồng bộ bộ tune mới — 2026-10-31
+
+`mpc_eso_hardware.yaml` hiện dùng baseline từ `mpc-test` commit `753271e`,
+file `mpc_circle_coupled_no_kalman_trial.yaml`. Bản sao baseline cùng tên
+được giữ trong config của branch này để đối chiếu hoặc chạy không ESO.
+Profile ESO khớp tất cả tham số của baseline đó, chỉ thêm các tham số `eso_*`.
+
+- Feedback coupled, không lọc Kalman, 100 Hz; horizon 18/10.
+- q_integral `[32, 63.245553203367585, 16]`.
+- q_position `[3.4641016151377553, 8.94427190999916, 1.25]`.
+- q_velocity `[0, 0, 0]`.
+- r_input `[0.0097, 0.01788854381999832, 0.019364916731037084]`.
+- r_rate `[0.03, 0.12649110640673517, 0.08660254037844387]`.
+- Slew `[12, 80, 20]` Nm/s; I-limit `[0.6, 0.6, 1.0]` rad.s.
+
+Đã đồng bộ hỗ trợ `integral_limit_per_joint` trong factory/controller;
+config cũ chỉ có scalar vẫn dùng được. Tham số ESO giữ nguyên bộ ban đầu,
+bao gồm bandwidth 15 rad/s và trần bù `[0.5, 2.0, 0.3]` Nm. Chưa tune ESO
+hoặc đưa nhiễu ước lượng vào QP. Vì Kalman tắt trong baseline MPC mới,
+vận tốc driver đi thẳng vào feedback; ESO vẫn quan sát từ góc đo.
+
+Lượt `original_retest_run01.csv` trước thay đổi dùng bộ MPC-ESO cũ:
+independent, Kalman2, horizon 40/10 và I-limit 0.05. Không dùng cùng tên log
+cho bộ mới. Đề xuất `results_new/mpc/eso/tuned_mpc_eso_run01.csv`.
+Phải build lại `gim_control` và `gim_arm_controller_mpc`, sau đó restart
+node thuật toán. Không cần restart phần cứng chỉ để nạp gain controller.
+
 Mỗi branch xuất phát từ bộ gain và Kalman hiện có của đúng thuật toán.
 Không tạo worktree mới. Các branch cơ sở được giữ nguyên. Commit ESO chỉ
 nằm local cho tới khi có yêu cầu push. Trong mỗi branch chỉ có YAML ESO của
@@ -45,7 +72,7 @@ timestamp quay ngược sẽ reset observer và khởi động lại ramp.
 
 ```text
 Nhánh FF: q_ref, qd_ref, qdd_ref -> nghịch động lực học -> tau_ff
-Nhánh FB: sai số góc + vận tốc Kalman hiện có -> thuật toán -> tau_fb
+Nhánh FB: sai số góc + vận tốc theo cấu hình lọc hiện có -> thuật toán -> tau_fb
 Nhánh ESO: góc đo + torque đã gửi sau giới hạn -> LESO -> d_hat
 tau_dist_hat = M(q_measured) @ d_hat
 tau_eso = giới hạn/ramp/slew(-gain * tau_dist_hat)
@@ -55,7 +82,9 @@ tau_cmd = giới hạn torque/slew cuối(tau_base + tau_eso)
 `tau_base` là output hiện có của PID/LQR/MPC/SMC, đã qua giới hạn nội bộ của
 thuật toán. Port ghép ESO bên ngoài như sơ đồ MATLAB, không thay thế bộ điều
 khiển hoặc tối ưu lại Q/R. `v_hat` chỉ dùng trong mô hình nội bộ observer;
-**vận tốc Kalman vẫn đi vào phản hồi**. Góc đo vẫn đi vào P/I, LQR/MPC và mặt trượt.
+**ESO không thay tín hiệu vận tốc phản hồi**: dùng vận tốc Kalman nếu cấu hình
+bật Kalman, hoặc vận tốc driver nếu bộ lọc tắt. Góc đo vẫn đi vào P/I,
+LQR/MPC và mặt trượt.
 FF vẫn theo tham chiếu; việc observer dùng G(q đo) không sửa nhánh FF.
 
 Observer dùng **ma trận M đầy đủ** như block `Disturbance_torque`, dù feedback

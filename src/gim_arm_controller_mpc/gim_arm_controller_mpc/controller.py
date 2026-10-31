@@ -57,9 +57,18 @@ class MpcController:
         self.R = np.diag(np.asarray(r_input, dtype=float))
         self.Rd = np.diag(np.asarray(r_rate, dtype=float))
         self.slew = np.asarray(torque_slew_rate, dtype=float)
-        requested_limit = float(integral_limit)
-        self.integral_limit = (
-            np.inf if requested_limit <= 0.0 else requested_limit)
+        requested_limit = np.asarray(integral_limit, dtype=float)
+        if (requested_limit.ndim > 0 and requested_limit.shape != (self.n,)):
+            raise ValueError(f"integral_limit cần một số hoặc vector {self.n} phần tử")
+        if not np.all(np.isfinite(requested_limit)):
+            raise ValueError("integral_limit phải hữu hạn")
+        # Preserve scalar callers; a vector allows each joint its own cap.
+        # The legacy <= 0 convention still means an unlimited I-state.
+        if requested_limit.ndim == 0:
+            self.integral_limit = (
+                np.inf if requested_limit <= 0.0 else float(requested_limit))
+        else:
+            self.integral_limit = np.where(requested_limit <= 0.0, np.inf, requested_limit)
         self.tau_limit = np.asarray(
             dynamics.tau_max if tau_limit is None else tau_limit, dtype=float)
         self.feedback_bounds_mode = str(feedback_bounds_mode)
@@ -585,5 +594,6 @@ class MpcController:
             f"  tau_limit={self.tau_limit} Nm, bounds={self.feedback_bounds_mode}, "
             f"prediction_precompute={self.precompute_prediction}, "
             f"base_ff_alpha={self.base_ff_alpha:g}\n"
+            f"  integral_limit={self.integral_limit} rad.s\n"
             f"  feedback_model_mode={self.feedback_model_mode}; "
             "tau_ff=full inverse_dynamics(reference)")

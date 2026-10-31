@@ -27,7 +27,7 @@ def test_eso_profile_preserves_its_baseline_and_logs_actual_command_decompositio
     profile = profiles[0]
     algorithm = profile.name.split('_')[0]
     defaults = dict(pid='pid_hardware_soft.yaml', lqr='lqr_circle_hardware.yaml',
-                    mpc='mpc_circle_independent_feedback.yaml', smc='smc_circle_from_terminal_tuning.yaml')
+                    mpc='mpc_circle_coupled_no_kalman_trial.yaml', smc='smc_circle_from_terminal_tuning.yaml')
     params = next(iter(yaml.safe_load(profile.read_text()).values()))['ros__parameters']
     original = next(iter(yaml.safe_load(profile.with_name(defaults[algorithm]).read_text()).values()))['ros__parameters']
     assert all(params[k] == v for k, v in original.items())
@@ -45,6 +45,11 @@ def test_eso_profile_preserves_its_baseline_and_logs_actual_command_decompositio
         node.home_q = np.zeros(3)
         zero = np.zeros(3)
         controller = node.controller
+        if algorithm == 'mpc':
+            assert controller.feedback_model_mode == 'coupled'
+            assert (controller.np, controller.nc) == (18, 10)
+            assert controller.velocity_filter is None
+            np.testing.assert_allclose(controller.integral_limit, [.6, .6, 1.])
         if hasattr(controller, 'prepare_reference'):
             controller.prepare_reference(np.zeros((2, 3)), np.zeros((2, 3)),
                                          np.zeros((2, 3)), [0., .01])
