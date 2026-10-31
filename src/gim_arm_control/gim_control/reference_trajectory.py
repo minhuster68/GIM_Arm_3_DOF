@@ -100,8 +100,8 @@ def solve_waypoints(urdf, cache, logger):
 
 def load_trajectory(urdf, cache, logger, shape="circle"):
     """Select a common reference while retaining the circle's endpoints."""
-    if shape not in ("circle", "r", "a"):
-        raise ValueError("trajectory_shape phải là 'circle', 'r' hoặc 'a'")
+    if shape not in ("circle", "r", "a", "square"):
+        raise ValueError("trajectory_shape phải là 'circle', 'r', 'a' hoặc 'square'")
     q_way, dt_way = solve_waypoints(urdf, cache, logger)
     circle = SmoothSweep(q_way, dt_way)
     if shape == "circle":
@@ -122,7 +122,7 @@ def load_trajectory(urdf, cache, logger, shape="circle"):
     if (not ok or margin < sweep_trajectory.MIN_JOINT_MARGIN_RAD
             or clearance < sweep_trajectory.MIN_BODY_CLEARANCE_M
             or condition > sweep_trajectory.MAX_COND):
-        raise RuntimeError(f"Quỹ đạo chữ {shape.upper()} không đạt safety_report")
-    logger.info(f"Chữ {shape.upper()}: giữ điểm đầu/cuối vòng tròn, "
+        raise RuntimeError(f"Quỹ đạo {shape.upper()} không đạt safety_report")
+    logger.info(f"Quỹ đạo {shape.upper()}: giữ điểm đầu/cuối vòng tròn, "
                 f"{profile.duration:g}s, qd=qdd=0 tại các điểm nối nét")
     return profile

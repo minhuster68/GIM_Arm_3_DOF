@@ -5,6 +5,8 @@
 build/
 install/
 log/
+build_sim_gazebo/
+install_sim_gazebo/
 
 # --- cache cua IDE / python ---
 .vscode/

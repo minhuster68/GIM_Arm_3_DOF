@@ -177,7 +177,7 @@ def run_case(mass, output, trajectory_shape="circle"):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path)
-    parser.add_argument("--trajectory-shape", choices=("circle", "r", "a"),
+    parser.add_argument("--trajectory-shape", choices=("circle", "r", "a", "square"),
                         default="circle")
     parser.add_argument("--payload-masses", type=float, nargs="+",
                         choices=(0.0, 0.5), default=(0.0, 0.5))

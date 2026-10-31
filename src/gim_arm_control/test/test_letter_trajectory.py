@@ -18,12 +18,12 @@ def references(tmp_path_factory):
     cache = tmp_path_factory.mktemp("letters") / "waypoints.npz"
     logger = logging.getLogger("letter-test")
     profiles = {shape: load_trajectory(str(urdf), str(cache), logger, shape)
-                for shape in ("circle", "r", "a")}
+                for shape in ("circle", "r", "a", "square")}
     kin = GimArmKinematics(str(urdf), tool_offset_xyz=sweep.TOOL_OFFSET)
     return profiles, kin, urdf, cache
 
 
-@pytest.mark.parametrize("shape", ("r", "a"))
+@pytest.mark.parametrize("shape", ("r", "a", "square"))
 def test_same_circle_endpoints_and_duration(references, shape):
     profiles, _, _, _ = references
     profile, circle = profiles[shape], profiles["circle"]
@@ -35,7 +35,7 @@ def test_same_circle_endpoints_and_duration(references, shape):
         np.testing.assert_allclose(qdd, 0.0, atol=1e-12)
 
 
-@pytest.mark.parametrize("shape", ("r", "a"))
+@pytest.mark.parametrize("shape", ("r", "a", "square"))
 def test_analytic_derivatives_match_position(references, shape):
     profile = references[0][shape]
     times = (profile.boundaries[:-1, None]
@@ -49,7 +49,7 @@ def test_analytic_derivatives_match_position(references, shape):
     assert np.max(np.abs(qdd)) > 0.01
 
 
-@pytest.mark.parametrize("shape", ("r", "a"))
+@pytest.mark.parametrize("shape", ("r", "a", "square"))
 def test_stroke_joins_are_c2(references, shape):
     profile = references[0][shape]
     _, qd, qdd = profile.at(profile.boundaries)
@@ -61,7 +61,7 @@ def test_stroke_joins_are_c2(references, shape):
             np.testing.assert_allclose(left, right, atol=2e-5)
 
 
-@pytest.mark.parametrize("shape", ("r", "a"))
+@pytest.mark.parametrize("shape", ("r", "a", "square"))
 def test_front_view_preserves_letter_and_joint_limits(references, shape):
     profiles, kin, _, _ = references
     profile = profiles[shape]

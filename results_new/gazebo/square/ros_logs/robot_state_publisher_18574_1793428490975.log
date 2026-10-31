@@ -1,0 +1,7 @@
+[INFO] [1793428490.985069435] [robot_state_publisher]: got segment base_footprint
+[INFO] [1793428490.985160926] [robot_state_publisher]: got segment base_link
+[INFO] [1793428490.985165606] [robot_state_publisher]: got segment lower_arm_link
+[INFO] [1793428490.985169020] [robot_state_publisher]: got segment preview_tool_marker
+[INFO] [1793428490.985171687] [robot_state_publisher]: got segment shoulder_link
+[INFO] [1793428490.985174099] [robot_state_publisher]: got segment upper_arm_link
+[INFO] [1793428490.985176546] [robot_state_publisher]: got segment world

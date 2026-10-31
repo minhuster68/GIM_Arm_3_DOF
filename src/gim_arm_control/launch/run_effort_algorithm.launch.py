@@ -93,7 +93,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "algorithm", default_value="lqr", choices=list(ALGORITHMS)),
         DeclareLaunchArgument(
-            "trajectory_shape", default_value="circle", choices=["circle", "r", "a"],
+            "trajectory_shape", default_value="circle", choices=["circle", "r", "a", "square"],
             description="End-effector path; all shapes share circle start/end"),
         DeclareLaunchArgument(
             "pid_profile", default_value="matlab_reference",

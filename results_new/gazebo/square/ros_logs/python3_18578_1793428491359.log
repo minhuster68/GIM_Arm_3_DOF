@@ -1,0 +1,69 @@
+[INFO] [1793428491.422985325] [gazebo_trajectory_preview]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1793428491.423251210] [gazebo_trajectory_preview]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1793428491.423422309] [gazebo_trajectory_preview]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1793428491.423589314] [gazebo_trajectory_preview]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1793428491.423825261] [gazebo_trajectory_preview]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1793428491.424121357] [gazebo_trajectory_preview]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1793428491.424423960] [gazebo_trajectory_preview]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1793428491.424687277] [gazebo_trajectory_preview]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1793428491.467454760] [gazebo_trajectory_preview]: Kích thước: rộng 20cm (trái-phải) x cao 20cm x sâu 14cm (ra-vào)
+[INFO] [1793428491.467677481] [gazebo_trajectory_preview]:   x[0.172, 0.372] y[-0.134, 0.009] z[0.395, 0.595]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1793428491.467841339] [gazebo_trajectory_preview]: IK: 369/369 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1793428491.468000864] [gazebo_trajectory_preview]:   cond(J) lớn nhất 9.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.175 rad (ngưỡng 0.05)
+[INFO] [1793428491.468162048] [gazebo_trajectory_preview]:   biên độ mỗi khớp (độ): [32.6 15.6  9.8] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1793428491.468324825] [gazebo_trajectory_preview]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.119 0.068 0.043] | trần URDF: [15.708  1.963 15.708] | dùng [0.8 3.5 0.3]% (cho phép 25%)
+[INFO] [1793428491.468486138] [gazebo_trajectory_preview]:   gia tốc đỉnh profile (rad/s^2): [0.308 0.161 0.1  ]
+[INFO] [1793428491.468654181] [gazebo_trajectory_preview]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 28.7cm | đùi/ghế 9.8cm | cẳng chân 9.5cm
+[INFO] [1793428491.555762471] [gazebo_trajectory_preview]: Quỹ đạo SQUARE: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1793428491.600854767] [gazebo_trajectory_preview]: Waiting for GazeboSystem, joint states and controllers; no CAN commands.
+[INFO] [1793428496.774904622] [gazebo_trajectory_preview]: Preview cycle 1: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428534.077951820] [gazebo_trajectory_preview]: Preview cycle 1 completed and returned HOME.
+[INFO] [1793428534.385794093] [gazebo_trajectory_preview]: Preview cycle 2: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428571.837220771] [gazebo_trajectory_preview]: Preview cycle 2 completed and returned HOME.
+[INFO] [1793428572.194089137] [gazebo_trajectory_preview]: Preview cycle 3: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428609.496336772] [gazebo_trajectory_preview]: Preview cycle 3 completed and returned HOME.
+[INFO] [1793428609.796107100] [gazebo_trajectory_preview]: Preview cycle 4: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428647.146541225] [gazebo_trajectory_preview]: Preview cycle 4 completed and returned HOME.
+[INFO] [1793428647.471288452] [gazebo_trajectory_preview]: Preview cycle 5: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428684.769891846] [gazebo_trajectory_preview]: Preview cycle 5 completed and returned HOME.
+[INFO] [1793428685.125236958] [gazebo_trajectory_preview]: Preview cycle 6: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428722.373467258] [gazebo_trajectory_preview]: Preview cycle 6 completed and returned HOME.
+[INFO] [1793428722.699882648] [gazebo_trajectory_preview]: Preview cycle 7: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428760.250398432] [gazebo_trajectory_preview]: Preview cycle 7 completed and returned HOME.
+[INFO] [1793428760.538084331] [gazebo_trajectory_preview]: Preview cycle 8: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428797.837506950] [gazebo_trajectory_preview]: Preview cycle 8 completed and returned HOME.
+[INFO] [1793428798.171318402] [gazebo_trajectory_preview]: Preview cycle 9: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428835.421306127] [gazebo_trajectory_preview]: Preview cycle 9 completed and returned HOME.
+[INFO] [1793428835.753204702] [gazebo_trajectory_preview]: Preview cycle 10: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428873.003284247] [gazebo_trajectory_preview]: Preview cycle 10 completed and returned HOME.
+[INFO] [1793428873.344610916] [gazebo_trajectory_preview]: Preview cycle 11: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428910.594693524] [gazebo_trajectory_preview]: Preview cycle 11 completed and returned HOME.
+[INFO] [1793428910.936094289] [gazebo_trajectory_preview]: Preview cycle 12: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428948.235527841] [gazebo_trajectory_preview]: Preview cycle 12 completed and returned HOME.
+[INFO] [1793428948.575843801] [gazebo_trajectory_preview]: Preview cycle 13: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793428985.826436373] [gazebo_trajectory_preview]: Preview cycle 13 completed and returned HOME.
+[INFO] [1793428986.189075933] [gazebo_trajectory_preview]: Preview cycle 14: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429023.440087862] [gazebo_trajectory_preview]: Preview cycle 14 completed and returned HOME.
+[INFO] [1793429023.770463853] [gazebo_trajectory_preview]: Preview cycle 15: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429061.219552152] [gazebo_trajectory_preview]: Preview cycle 15 completed and returned HOME.
+[INFO] [1793429061.528510130] [gazebo_trajectory_preview]: Preview cycle 16: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429098.881328212] [gazebo_trajectory_preview]: Preview cycle 16 completed and returned HOME.
+[INFO] [1793429099.187979881] [gazebo_trajectory_preview]: Preview cycle 17: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429136.540635661] [gazebo_trajectory_preview]: Preview cycle 17 completed and returned HOME.
+[INFO] [1793429136.866902440] [gazebo_trajectory_preview]: Preview cycle 18: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429174.166163840] [gazebo_trajectory_preview]: Preview cycle 18 completed and returned HOME.
+[INFO] [1793429174.473698956] [gazebo_trajectory_preview]: Preview cycle 19: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429211.825058908] [gazebo_trajectory_preview]: Preview cycle 19 completed and returned HOME.
+[INFO] [1793429212.161802727] [gazebo_trajectory_preview]: Preview cycle 20: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429249.462096339] [gazebo_trajectory_preview]: Preview cycle 20 completed and returned HOME.
+[INFO] [1793429249.799950797] [gazebo_trajectory_preview]: Preview cycle 21: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429287.149449064] [gazebo_trajectory_preview]: Preview cycle 21 completed and returned HOME.
+[INFO] [1793429287.473164320] [gazebo_trajectory_preview]: Preview cycle 22: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429324.922912409] [gazebo_trajectory_preview]: Preview cycle 22 completed and returned HOME.
+[INFO] [1793429325.243113059] [gazebo_trajectory_preview]: Preview cycle 23: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429362.595077643] [gazebo_trajectory_preview]: Preview cycle 23 completed and returned HOME.
+[INFO] [1793429362.903607753] [gazebo_trajectory_preview]: Preview cycle 24: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429400.203739222] [gazebo_trajectory_preview]: Preview cycle 24 completed and returned HOME.
+[INFO] [1793429400.501507751] [gazebo_trajectory_preview]: Preview cycle 25: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.
+[INFO] [1793429437.802022552] [gazebo_trajectory_preview]: Preview cycle 25 completed and returned HOME.
+[INFO] [1793429438.152974617] [gazebo_trajectory_preview]: Preview cycle 26: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.

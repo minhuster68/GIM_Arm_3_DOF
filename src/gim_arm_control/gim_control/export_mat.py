@@ -15,6 +15,7 @@ from ament_index_python.packages import get_package_share_directory
 from scipy.io import savemat
 
 from gim_control.gim_arm_kinematics import GimArmKinematics
+from gim_control.letter_trajectory import LetterTrajectory
 from gim_control import sweep_trajectory
 
 
@@ -44,19 +45,27 @@ def minimum_jerk_segment(q0, q1, duration, sample_dt):
     return t, q, qd, qdd
 
 
-def build_complete_trajectory(kin, sample_dt=0.01):
-    """Sinh trajectory: buông thõng -> quét một vòng -> buông thõng."""
+def build_complete_trajectory(kin, sample_dt=0.01, shape="circle"):
+    """Sinh trajectory: buông thõng -> vẽ một vòng -> buông thõng.
+
+    Giữ quy ước dấu URDF gốc; setup_*.m của matlab-sim tự đổi dấu khớp 2/3.
+    """
+    if shape not in ("circle", "r", "a", "square"):
+        raise ValueError("shape phải là circle, r, a hoặc square")
     positions, results = sweep_trajectory.solve(kin)
-    ok, lines = sweep_trajectory.safety_report(kin, positions, results)
+    q_way = np.asarray([result.q for result in results], dtype=float)
+    sweep = sweep_trajectory.SmoothJointProfile(q_way, sweep_trajectory.DT)
+    if shape != "circle":
+        sweep = LetterTrajectory(kin, shape, q_way[0], sweep.duration)
+        positions, results = sweep.positions, sweep.results
+    ok, lines = sweep_trajectory.safety_report(kin, positions, results, profile=sweep)
     if not ok:
         raise RuntimeError("Quỹ đạo không đạt safety_report:\n" + "\n".join(lines))
 
-    q_way = np.asarray([result.q for result in results], dtype=float)
-    sweep = sweep_trajectory.SmoothJointProfile(q_way, sweep_trajectory.DT)
-
     t_approach, q_approach, qd_approach, qdd_approach = minimum_jerk_segment(
         HANGING_Q, q_way[0], sweep_trajectory.TRANSITION_TIME, sample_dt)
-    t_sweep, q_sweep, qd_sweep, qdd_sweep = sweep.sample(sample_dt)
+    t_sweep = np.linspace(0.0, sweep.duration, int(np.ceil(sweep.duration / sample_dt)) + 1)
+    q_sweep, qd_sweep, qdd_sweep = sweep.at(t_sweep)
     t_return, q_return, qd_return, qdd_return = minimum_jerk_segment(
         q_sweep[-1], HANGING_Q, sweep_trajectory.RETURN_TIME, sample_dt)
 
@@ -88,8 +97,11 @@ def main():
     parser.add_argument("--output", default="trajectory.mat", help="file .mat đầu ra")
     parser.add_argument("--sample-dt", type=float, default=0.01,
                         help="chu kỳ lấy mẫu, giây (mặc định 0.01 = 100 Hz)")
-    parser.add_argument("--urdf", default=default_urdf(), help="đường dẫn URDF")
+    parser.add_argument("--shape", choices=("circle", "r", "a", "square"), default="circle",
+                        help="hình quỹ đạo (mặc định circle, giữ tương thích file cũ)")
+    parser.add_argument("--urdf", help="đường dẫn URDF (mặc định trong gim_arm_description)")
     args = parser.parse_args()
+    args.urdf = args.urdf or default_urdf()
 
     kin = GimArmKinematics(args.urdf, tool_offset_xyz=sweep_trajectory.TOOL_OFFSET)
     if tuple(kin.joint_names) != JOINT_NAMES:
@@ -97,7 +109,9 @@ def main():
             f"Thứ tự khớp trong URDF là {kin.joint_names}, mong đợi {list(JOINT_NAMES)}")
 
     t, q, qd, qdd, segment, cartesian_waypoints, report = (
-        build_complete_trajectory(kin, args.sample_dt))
+        build_complete_trajectory(kin, args.sample_dt, args.shape))
+
+    os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
 
     savemat(args.output, {
         "t": t[:, None],
@@ -110,8 +124,9 @@ def main():
         "cartesian_waypoints": cartesian_waypoints,
         "sample_dt": float(args.sample_dt),
         "transition_time": float(sweep_trajectory.TRANSITION_TIME),
-        "sweep_time": float(len(cartesian_waypoints) * sweep_trajectory.DT),
+        "sweep_time": float(t[-1] - sweep_trajectory.TRANSITION_TIME - sweep_trajectory.RETURN_TIME),
         "return_time": float(sweep_trajectory.RETURN_TIME),
+        "trajectory_shape": args.shape,
     })
 
     print("\n".join(report))

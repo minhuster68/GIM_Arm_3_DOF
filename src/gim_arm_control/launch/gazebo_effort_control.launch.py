@@ -30,14 +30,14 @@ def _launch_setup(context):
         description_share, "urdf", "gim_arm.urdf")
     controllers_path = os.path.join(
         control_share, "config", "controllers_gazebo.yaml")
-    world_path = os.path.join(
-        control_share, "worlds", "gim_arm_zero_gravity.world")
+    world_path = LaunchConfiguration('world').perform(context)
     payload_mass_kg = float(
         LaunchConfiguration("payload_mass_kg").perform(context))
     robot_description = build_gazebo_description(
         urdf_path, controllers_path,
         payload_mass_kg=payload_mass_kg,
-        payload_offset_xyz=TOOL_OFFSET)
+        payload_offset_xyz=TOOL_OFFSET,
+        show_tool_marker=LaunchConfiguration('show_tool_marker').perform(context).lower() == 'true')
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -184,6 +184,9 @@ def generate_launch_description():
         DeclareLaunchArgument("gui", default_value="true"),
         DeclareLaunchArgument("verbose", default_value="false"),
         DeclareLaunchArgument("gravity_z", default_value="-9.81"),
+        DeclareLaunchArgument('world', default_value=os.path.join(
+            get_package_share_directory('gim_control'), 'worlds', 'gim_arm_zero_gravity.world')),
+        DeclareLaunchArgument('show_tool_marker', default_value='false'),
         DeclareLaunchArgument(
             "payload_mass_kg",
             default_value="0.0",

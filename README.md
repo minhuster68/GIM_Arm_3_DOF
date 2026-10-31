@@ -1,5 +1,7 @@
 # GIM Arm 3 DOF — lệnh mô phỏng Gazebo
 
+Quỹ đạo mới: [vuông bo góc, đủ vị trí/vận tốc/gia tốc và preview Gazebo tự chạy](README_SQUARE_GAZEBO.md).
+
 ## Chuẩn bị
 
 ```bash

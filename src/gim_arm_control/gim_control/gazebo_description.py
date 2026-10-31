@@ -67,7 +67,7 @@ def _add_point_payload(root, mass_kg, offset_xyz):
 
 def build_gazebo_description(
         urdf_path, controllers_path, payload_mass_kg=0.0,
-        payload_offset_xyz=(0.0, 0.0, 0.0)):
+        payload_offset_xyz=(0.0, 0.0, 0.0), show_tool_marker=False):
     """Replace only the hardware backend while preserving robot dynamics."""
     root = ET.parse(urdf_path).getroot()
 
@@ -157,6 +157,21 @@ def build_gazebo_description(
     # continues to read the source URDF, so the controller does not compensate
     # this mass and sees it as an unknown payload/disturbance.
     _add_point_payload(root, payload_mass_kg, payload_offset_xyz)
+    if show_tool_marker:
+        # Massless, collision-free visual only; never changes source URDF/CAN.
+        link = ET.SubElement(root, 'link', {'name': 'preview_tool_marker'})
+        visual = ET.SubElement(link, 'visual')
+        geometry = ET.SubElement(visual, 'geometry')
+        ET.SubElement(geometry, 'sphere', {'radius': '0.012'})
+        material = ET.SubElement(visual, 'material', {'name': 'preview_red'})
+        ET.SubElement(material, 'color', {'rgba': '1 0.1 0.05 1'})
+        joint = ET.SubElement(root, 'joint', {'name': 'preview_tool_fixed', 'type': 'fixed'})
+        ET.SubElement(joint, 'parent', {'link': 'lower_arm_link'})
+        ET.SubElement(joint, 'child', {'link': 'preview_tool_marker'})
+        ET.SubElement(joint, 'origin', {
+            'xyz': ' '.join(str(value) for value in payload_offset_xyz), 'rpy': '0 0 0'})
+        marker = ET.SubElement(root, 'gazebo', {'reference': 'preview_tool_marker'})
+        ET.SubElement(marker, 'material').text = 'Gazebo/Red'
 
     gazebo = ET.SubElement(root, "gazebo")
     plugin = ET.SubElement(

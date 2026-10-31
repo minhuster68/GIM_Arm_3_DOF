@@ -1,0 +1,19 @@
+[INFO] [1793428240.050424810] [gazebo_trajectory_preview]: Kích thước: rộng 55cm (trái-phải) x cao 22cm x sâu 9cm (ra-vào)
+[INFO] [1793428240.050668222] [gazebo_trajectory_preview]:   x[-0.177, 0.372] y[-0.112, -0.021] z[0.404, 0.625]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1793428240.050843121] [gazebo_trajectory_preview]: IK: 90/90 điểm hội tụ, sai số lớn nhất 0.00034mm
+[INFO] [1793428240.051005442] [gazebo_trajectory_preview]:   cond(J) lớn nhất 8.6 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.266 rad (ngưỡng 0.05)
+[INFO] [1793428240.051166248] [gazebo_trajectory_preview]:   biên độ mỗi khớp (độ): [65.6 37.8 37.2] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1793428240.051343922] [gazebo_trajectory_preview]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.239 0.252 0.264] | trần URDF: [15.708  1.963 15.708] | dùng [ 1.5 12.8  1.7]% (cho phép 25%)
+[INFO] [1793428240.051507948] [gazebo_trajectory_preview]:   gia tốc đỉnh profile (rad/s^2): [0.11  0.215 0.301]
+[INFO] [1793428240.051675197] [gazebo_trajectory_preview]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 30.8cm | đùi/ghế 11.7cm | cẳng chân 10.5cm
+[INFO] [1793428240.093541683] [gazebo_trajectory_preview]: Kích thước: rộng 20cm (trái-phải) x cao 20cm x sâu 14cm (ra-vào)
+[INFO] [1793428240.093827273] [gazebo_trajectory_preview]:   x[0.172, 0.372] y[-0.134, 0.009] z[0.395, 0.595]  (mặt ngồi z~0.145, mép trước ghế y=-0.215)
+[INFO] [1793428240.093996715] [gazebo_trajectory_preview]: IK: 369/369 điểm hội tụ, sai số lớn nhất 0.00004mm
+[INFO] [1793428240.094162619] [gazebo_trajectory_preview]:   cond(J) lớn nhất 9.7 (ngưỡng 15.0) | cách giới hạn khớp gần nhất 0.175 rad (ngưỡng 0.05)
+[INFO] [1793428240.094337616] [gazebo_trajectory_preview]:   biên độ mỗi khớp (độ): [32.6 15.6  9.8] -> ['base_joint', 'shoulder_joint', 'elbow_joint']
+[INFO] [1793428240.094501385] [gazebo_trajectory_preview]:   tốc độ đỉnh profile (rad/s, duration=27s): [0.119 0.068 0.043] | trần URDF: [15.708  1.963 15.708] | dùng [0.8 3.5 0.3]% (cho phép 25%)
+[INFO] [1793428240.094669438] [gazebo_trajectory_preview]:   gia tốc đỉnh profile (rad/s^2): [0.308 0.161 0.1  ]
+[INFO] [1793428240.094836354] [gazebo_trajectory_preview]:   hở người ngồi + ghế (ngưỡng 8cm): thân/đầu 28.7cm | đùi/ghế 9.8cm | cẳng chân 9.5cm
+[INFO] [1793428240.181349204] [gazebo_trajectory_preview]: Quỹ đạo SQUARE: giữ điểm đầu/cuối vòng tròn, 27s, qd=qdd=0 tại các điểm nối nét
+[INFO] [1793428240.249606796] [gazebo_trajectory_preview]: Waiting for GazeboSystem, joint states and controllers; no CAN commands.
+[INFO] [1793428245.194663676] [gazebo_trajectory_preview]: Preview cycle 1: APPROACH -> SQUARE (27s) -> RETURN; green=reference, red sphere=tool. q/qd/qdd included.

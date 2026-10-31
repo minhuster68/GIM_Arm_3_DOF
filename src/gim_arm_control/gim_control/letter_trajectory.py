@@ -1,10 +1,34 @@
-"""Closed R/A paths with analytic joint velocity and acceleration."""
+"""Closed letter/square paths with analytic joint velocity and acceleration."""
 
 import numpy as np
 from scipy.interpolate import CubicSpline
 
 from gim_control import sweep_trajectory as sweep
 from gim_control.gim_arm_kinematics import IKResult
+
+
+def square_strokes(side=0.20, corner_radius=0.025):
+    """Rounded square in front-view x/z, starting at the right-edge midpoint.
+
+    Cubic Bezier quarter circles join straight sides. The depth is projected
+    onto the reachable shoulder shell by stroke_positions(), just like R/A.
+    """
+    if (not np.isfinite([side, corner_radius]).all()
+            or side <= 0 or not 0 < corner_radius < side / 2):
+        raise ValueError("square cần side > 0 và 0 < corner_radius < side/2")
+    s, r, b = float(side), float(corner_radius), float(side) / 2
+    k = 4 * (np.sqrt(2) - 1) / 3
+    return [
+        [(0., 0.), (0., b-r)],
+        [(0., b-r), (0., b-r+k*r), (-r+k*r, b), (-r, b)],
+        [(-r, b), (-s+r, b)],
+        [(-s+r, b), (-s+r-k*r, b), (-s, b-r+k*r), (-s, b-r)],
+        [(-s, b-r), (-s, -b+r)],
+        [(-s, -b+r), (-s, -b+r-k*r), (-s+r-k*r, -b), (-s+r, -b)],
+        [(-s+r, -b), (-r, -b)],
+        [(-r, -b), (-r+k*r, -b), (0., -b+r-k*r), (0., -b+r)],
+        [(0., -b+r), (0., 0.)],
+    ]
 
 
 def letter_strokes(shape, width=0.28, height=0.20):
@@ -28,7 +52,9 @@ def letter_strokes(shape, width=0.28, height=0.20):
         bar_right = (-0.25 * width, height / 2)
         return [[start, apex], [apex, left], [left, bar_left],
                 [bar_left, bar_right], [bar_right, start]]
-    raise ValueError("letter shape phải là 'r' hoặc 'a'")
+    if shape == "square":
+        return square_strokes()
+    raise ValueError("shape phải là 'r', 'a' hoặc 'square'")
 
 
 def stroke_positions(control, anchor, parameters):
@@ -82,7 +108,7 @@ class LetterTrajectory:
             for position in positions[1:]:
                 result = kin.ik_position(position, q_init=current, eps=1e-10)
                 if not result.converged:
-                    raise RuntimeError(f"IK chữ {shape.upper()} không hội tụ")
+                    raise RuntimeError(f"IK quỹ đạo {shape.upper()} không hội tụ")
                 current = result.q
                 results.append(result)
                 stroke_q.append(current.copy())
