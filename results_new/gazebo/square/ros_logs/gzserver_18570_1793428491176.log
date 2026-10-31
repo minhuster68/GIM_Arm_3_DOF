@@ -137,3 +137,93 @@
 [INFO] [1793429437.795534988] [gim_arm_group_controller]: Goal reached, success!
 [INFO] [1793429438.151778109] [gim_arm_group_controller]: Received new action goal
 [INFO] [1793429438.151974008] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429475.403316720] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429475.798358444] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429475.798563447] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429513.052382071] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429513.365448397] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429513.365646089] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429550.620816500] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429550.961358364] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429550.961484336] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429588.220339911] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429588.581910983] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429588.582178056] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429625.831825355] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429626.182252502] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429626.182385407] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429663.426839589] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429663.766941994] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429663.767077822] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429701.009327926] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429701.374769972] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429701.374979306] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429738.626812535] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429738.968485974] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429738.968680245] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429776.219822816] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429776.596278823] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429776.596472323] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429813.843828816] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429814.160190229] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429814.160325412] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429851.406828147] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429851.764017342] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429851.764142298] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429889.016822800] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429889.357327272] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429889.357511253] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429926.600316973] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429926.962773453] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429926.962900469] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793429964.216818294] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793429964.578684100] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793429964.578812436] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430001.835315857] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430002.169926916] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430002.170129292] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430039.425829454] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430039.772471416] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430039.772659405] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430077.020313869] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430077.365803794] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430077.365999729] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430114.614514232] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430114.964609906] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430114.964753495] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430152.214794404] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430152.569986542] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430152.570172427] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430189.813783586] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430190.163905480] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430190.164028983] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430227.405792286] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430227.761416356] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430227.761607013] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430265.016314914] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430265.373429652] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430265.373620056] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430302.628311553] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430302.962143568] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430302.962287440] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430340.216309756] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430340.580690245] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430340.580835682] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430377.827316891] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430378.161243217] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430378.161458152] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430415.412819005] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430415.779553438] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430415.779743182] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430453.032826490] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430453.367709976] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430453.367841402] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430490.622315542] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430490.984129722] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430490.984335424] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430528.232314679] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430528.595597372] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430528.595795964] [gim_arm_group_controller]: Accepted new action goal
+[INFO] [1793430565.843836372] [gim_arm_group_controller]: Goal reached, success!
+[INFO] [1793430566.176475781] [gim_arm_group_controller]: Received new action goal
+[INFO] [1793430566.176664839] [gim_arm_group_controller]: Accepted new action goal

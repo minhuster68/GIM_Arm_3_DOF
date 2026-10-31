@@ -160,3 +160,93 @@
 1793429437.7958395 [gzserver-1] [INFO] [1793429437.795534988] [gim_arm_group_controller]: Goal reached, success!
 1793429438.1520927 [gzserver-1] [INFO] [1793429438.151778109] [gim_arm_group_controller]: Received new action goal
 1793429438.1525142 [gzserver-1] [INFO] [1793429438.151974008] [gim_arm_group_controller]: Accepted new action goal
+1793429475.4035473 [gzserver-1] [INFO] [1793429475.403316720] [gim_arm_group_controller]: Goal reached, success!
+1793429475.7986712 [gzserver-1] [INFO] [1793429475.798358444] [gim_arm_group_controller]: Received new action goal
+1793429475.7990873 [gzserver-1] [INFO] [1793429475.798563447] [gim_arm_group_controller]: Accepted new action goal
+1793429513.0530772 [gzserver-1] [INFO] [1793429513.052382071] [gim_arm_group_controller]: Goal reached, success!
+1793429513.3657877 [gzserver-1] [INFO] [1793429513.365448397] [gim_arm_group_controller]: Received new action goal
+1793429513.3663239 [gzserver-1] [INFO] [1793429513.365646089] [gim_arm_group_controller]: Accepted new action goal
+1793429550.6215239 [gzserver-1] [INFO] [1793429550.620816500] [gim_arm_group_controller]: Goal reached, success!
+1793429550.9617221 [gzserver-1] [INFO] [1793429550.961358364] [gim_arm_group_controller]: Received new action goal
+1793429550.9618454 [gzserver-1] [INFO] [1793429550.961484336] [gim_arm_group_controller]: Accepted new action goal
+1793429588.2207246 [gzserver-1] [INFO] [1793429588.220339911] [gim_arm_group_controller]: Goal reached, success!
+1793429588.5827012 [gzserver-1] [INFO] [1793429588.581910983] [gim_arm_group_controller]: Received new action goal
+1793429588.5831368 [gzserver-1] [INFO] [1793429588.582178056] [gim_arm_group_controller]: Accepted new action goal
+1793429625.8321159 [gzserver-1] [INFO] [1793429625.831825355] [gim_arm_group_controller]: Goal reached, success!
+1793429626.1825907 [gzserver-1] [INFO] [1793429626.182252502] [gim_arm_group_controller]: Received new action goal
+1793429626.1829131 [gzserver-1] [INFO] [1793429626.182385407] [gim_arm_group_controller]: Accepted new action goal
+1793429663.4270630 [gzserver-1] [INFO] [1793429663.426839589] [gim_arm_group_controller]: Goal reached, success!
+1793429663.7673039 [gzserver-1] [INFO] [1793429663.766941994] [gim_arm_group_controller]: Received new action goal
+1793429663.7677209 [gzserver-1] [INFO] [1793429663.767077822] [gim_arm_group_controller]: Accepted new action goal
+1793429701.0096662 [gzserver-1] [INFO] [1793429701.009327926] [gim_arm_group_controller]: Goal reached, success!
+1793429701.3751156 [gzserver-1] [INFO] [1793429701.374769972] [gim_arm_group_controller]: Received new action goal
+1793429701.3755577 [gzserver-1] [INFO] [1793429701.374979306] [gim_arm_group_controller]: Accepted new action goal
+1793429738.6271400 [gzserver-1] [INFO] [1793429738.626812535] [gim_arm_group_controller]: Goal reached, success!
+1793429738.9688463 [gzserver-1] [INFO] [1793429738.968485974] [gim_arm_group_controller]: Received new action goal
+1793429738.9693549 [gzserver-1] [INFO] [1793429738.968680245] [gim_arm_group_controller]: Accepted new action goal
+1793429776.2201245 [gzserver-1] [INFO] [1793429776.219822816] [gim_arm_group_controller]: Goal reached, success!
+1793429776.5965962 [gzserver-1] [INFO] [1793429776.596278823] [gim_arm_group_controller]: Received new action goal
+1793429776.5970259 [gzserver-1] [INFO] [1793429776.596472323] [gim_arm_group_controller]: Accepted new action goal
+1793429813.8441129 [gzserver-1] [INFO] [1793429813.843828816] [gim_arm_group_controller]: Goal reached, success!
+1793429814.1605663 [gzserver-1] [INFO] [1793429814.160190229] [gim_arm_group_controller]: Received new action goal
+1793429814.1606977 [gzserver-1] [INFO] [1793429814.160325412] [gim_arm_group_controller]: Accepted new action goal
+1793429851.4070568 [gzserver-1] [INFO] [1793429851.406828147] [gim_arm_group_controller]: Goal reached, success!
+1793429851.7642448 [gzserver-1] [INFO] [1793429851.764017342] [gim_arm_group_controller]: Received new action goal
+1793429851.7645707 [gzserver-1] [INFO] [1793429851.764142298] [gim_arm_group_controller]: Accepted new action goal
+1793429889.0171380 [gzserver-1] [INFO] [1793429889.016822800] [gim_arm_group_controller]: Goal reached, success!
+1793429889.3576844 [gzserver-1] [INFO] [1793429889.357327272] [gim_arm_group_controller]: Received new action goal
+1793429889.3580668 [gzserver-1] [INFO] [1793429889.357511253] [gim_arm_group_controller]: Accepted new action goal
+1793429926.6005964 [gzserver-1] [INFO] [1793429926.600316973] [gim_arm_group_controller]: Goal reached, success!
+1793429926.9630120 [gzserver-1] [INFO] [1793429926.962773453] [gim_arm_group_controller]: Received new action goal
+1793429926.9634228 [gzserver-1] [INFO] [1793429926.962900469] [gim_arm_group_controller]: Accepted new action goal
+1793429964.2170920 [gzserver-1] [INFO] [1793429964.216818294] [gim_arm_group_controller]: Goal reached, success!
+1793429964.5789518 [gzserver-1] [INFO] [1793429964.578684100] [gim_arm_group_controller]: Received new action goal
+1793429964.5792723 [gzserver-1] [INFO] [1793429964.578812436] [gim_arm_group_controller]: Accepted new action goal
+1793430001.8355725 [gzserver-1] [INFO] [1793430001.835315857] [gim_arm_group_controller]: Goal reached, success!
+1793430002.1702814 [gzserver-1] [INFO] [1793430002.169926916] [gim_arm_group_controller]: Received new action goal
+1793430002.1707001 [gzserver-1] [INFO] [1793430002.170129292] [gim_arm_group_controller]: Accepted new action goal
+1793430039.4261115 [gzserver-1] [INFO] [1793430039.425829454] [gim_arm_group_controller]: Goal reached, success!
+1793430039.7727814 [gzserver-1] [INFO] [1793430039.772471416] [gim_arm_group_controller]: Received new action goal
+1793430039.7731955 [gzserver-1] [INFO] [1793430039.772659405] [gim_arm_group_controller]: Accepted new action goal
+1793430077.0205851 [gzserver-1] [INFO] [1793430077.020313869] [gim_arm_group_controller]: Goal reached, success!
+1793430077.3661156 [gzserver-1] [INFO] [1793430077.365803794] [gim_arm_group_controller]: Received new action goal
+1793430077.3665519 [gzserver-1] [INFO] [1793430077.365999729] [gim_arm_group_controller]: Accepted new action goal
+1793430114.6147616 [gzserver-1] [INFO] [1793430114.614514232] [gim_arm_group_controller]: Goal reached, success!
+1793430114.9648483 [gzserver-1] [INFO] [1793430114.964609906] [gim_arm_group_controller]: Received new action goal
+1793430114.9652143 [gzserver-1] [INFO] [1793430114.964753495] [gim_arm_group_controller]: Accepted new action goal
+1793430152.2150824 [gzserver-1] [INFO] [1793430152.214794404] [gim_arm_group_controller]: Goal reached, success!
+1793430152.5703118 [gzserver-1] [INFO] [1793430152.569986542] [gim_arm_group_controller]: Received new action goal
+1793430152.5707445 [gzserver-1] [INFO] [1793430152.570172427] [gim_arm_group_controller]: Accepted new action goal
+1793430189.8141530 [gzserver-1] [INFO] [1793430189.813783586] [gim_arm_group_controller]: Goal reached, success!
+1793430190.1641326 [gzserver-1] [INFO] [1793430190.163905480] [gim_arm_group_controller]: Received new action goal
+1793430190.1645322 [gzserver-1] [INFO] [1793430190.164028983] [gim_arm_group_controller]: Accepted new action goal
+1793430227.4060621 [gzserver-1] [INFO] [1793430227.405792286] [gim_arm_group_controller]: Goal reached, success!
+1793430227.7617345 [gzserver-1] [INFO] [1793430227.761416356] [gim_arm_group_controller]: Received new action goal
+1793430227.7621596 [gzserver-1] [INFO] [1793430227.761607013] [gim_arm_group_controller]: Accepted new action goal
+1793430265.0165906 [gzserver-1] [INFO] [1793430265.016314914] [gim_arm_group_controller]: Goal reached, success!
+1793430265.3737712 [gzserver-1] [INFO] [1793430265.373429652] [gim_arm_group_controller]: Received new action goal
+1793430265.3741970 [gzserver-1] [INFO] [1793430265.373620056] [gim_arm_group_controller]: Accepted new action goal
+1793430302.6285558 [gzserver-1] [INFO] [1793430302.628311553] [gim_arm_group_controller]: Goal reached, success!
+1793430302.9624212 [gzserver-1] [INFO] [1793430302.962143568] [gim_arm_group_controller]: Received new action goal
+1793430302.9628229 [gzserver-1] [INFO] [1793430302.962287440] [gim_arm_group_controller]: Accepted new action goal
+1793430340.2166040 [gzserver-1] [INFO] [1793430340.216309756] [gim_arm_group_controller]: Goal reached, success!
+1793430340.5809517 [gzserver-1] [INFO] [1793430340.580690245] [gim_arm_group_controller]: Received new action goal
+1793430340.5812500 [gzserver-1] [INFO] [1793430340.580835682] [gim_arm_group_controller]: Accepted new action goal
+1793430377.8275614 [gzserver-1] [INFO] [1793430377.827316891] [gim_arm_group_controller]: Goal reached, success!
+1793430378.1615796 [gzserver-1] [INFO] [1793430378.161243217] [gim_arm_group_controller]: Received new action goal
+1793430378.1619859 [gzserver-1] [INFO] [1793430378.161458152] [gim_arm_group_controller]: Accepted new action goal
+1793430415.4130690 [gzserver-1] [INFO] [1793430415.412819005] [gim_arm_group_controller]: Goal reached, success!
+1793430415.7798600 [gzserver-1] [INFO] [1793430415.779553438] [gim_arm_group_controller]: Received new action goal
+1793430415.7803059 [gzserver-1] [INFO] [1793430415.779743182] [gim_arm_group_controller]: Accepted new action goal
+1793430453.0330834 [gzserver-1] [INFO] [1793430453.032826490] [gim_arm_group_controller]: Goal reached, success!
+1793430453.3680549 [gzserver-1] [INFO] [1793430453.367709976] [gim_arm_group_controller]: Received new action goal
+1793430453.3681767 [gzserver-1] [INFO] [1793430453.367841402] [gim_arm_group_controller]: Accepted new action goal
+1793430490.6226714 [gzserver-1] [INFO] [1793430490.622315542] [gim_arm_group_controller]: Goal reached, success!
+1793430490.9844532 [gzserver-1] [INFO] [1793430490.984129722] [gim_arm_group_controller]: Received new action goal
+1793430490.9848733 [gzserver-1] [INFO] [1793430490.984335424] [gim_arm_group_controller]: Accepted new action goal
+1793430528.2325649 [gzserver-1] [INFO] [1793430528.232314679] [gim_arm_group_controller]: Goal reached, success!
+1793430528.5959198 [gzserver-1] [INFO] [1793430528.595597372] [gim_arm_group_controller]: Received new action goal
+1793430528.5963748 [gzserver-1] [INFO] [1793430528.595795964] [gim_arm_group_controller]: Accepted new action goal
+1793430565.8440881 [gzserver-1] [INFO] [1793430565.843836372] [gim_arm_group_controller]: Goal reached, success!
+1793430566.1767850 [gzserver-1] [INFO] [1793430566.176475781] [gim_arm_group_controller]: Received new action goal
+1793430566.1771936 [gzserver-1] [INFO] [1793430566.176664839] [gim_arm_group_controller]: Accepted new action goal
